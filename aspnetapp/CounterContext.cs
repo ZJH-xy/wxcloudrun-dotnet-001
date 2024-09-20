@@ -20,9 +20,9 @@ namespace aspnetapp
         {
             if (!optionsBuilder.IsConfigured)
             {
-                var username = Environment.GetEnvironmentVariable("MYSQL_USERNAME");
-                var password = Environment.GetEnvironmentVariable("MYSQL_PASSWORD");
-                var addressParts = Environment.GetEnvironmentVariable("MYSQL_ADDRESS")?.Split(':');
+                var username = Environment.GetEnvironmentVariable("root");
+                var password = Environment.GetEnvironmentVariable("Abc*123*");
+                var addressParts = Environment.GetEnvironmentVariable("10.28.103.78:3306")?.Split(':');
                 var host = addressParts?[0];
                 var port = addressParts?[1];
                 var connstr = $"server={host};port={port};user={username};password={password};database=aspnet_demo";
