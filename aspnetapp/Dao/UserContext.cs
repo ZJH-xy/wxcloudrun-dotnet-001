@@ -32,8 +32,8 @@ namespace aspnetapp.Dao {
 
         // 添加用户
         public void AddUser(User user) {
-            user.createdAt = DateTime.Now;
-            user.updatedAt = DateTime.Now;
+            user.CreatedAt = DateTime.Now;
+            user.UpdatedAt = DateTime.Now;
             _context.Users.Add(user);
             _context.SaveChanges();
         }
@@ -50,12 +50,11 @@ namespace aspnetapp.Dao {
 
         // 更新用户
         public void UpdateUser(User user) {
-            var existingUser = _context.Users.Find(user.Id);
+            var existingUser = _context.Users.Find(user.UserId);
             if (existingUser != null) {
                 existingUser.Name = user.Name;
-                existingUser.phone = user.phone;
-                existingUser.Password = user.Password;
-                existingUser.updatedAt = DateTime.Now;
+                existingUser.Phone = user.Phone;
+                existingUser.UpdatedAt = DateTime.Now;
 
                 _context.Users.Update(existingUser);
                 _context.SaveChanges();
@@ -70,5 +69,7 @@ namespace aspnetapp.Dao {
                 _context.SaveChanges();
             }
         }
+
+        // 修改密码
     }
 }
