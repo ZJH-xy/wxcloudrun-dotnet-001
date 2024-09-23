@@ -1,5 +1,6 @@
-﻿using aspnetapp.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using aspnetapp.Dao.ContextBases;
+using aspnetapp.Models;
 
 namespace aspnetapp.Dao {
     public partial class UserContext : DbContext {
@@ -16,40 +17,36 @@ namespace aspnetapp.Dao {
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
             modelBuilder.UseCollation("utf8_general_ci").HasCharSet("utf8");
-            modelBuilder.Entity<User>().ToTable("Users");
+            modelBuilder.Entity<User>().ToTable("Users");// 数据库表名
             OnModelCreatingPartial(modelBuilder);
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
     }
 
-    public class UserRepository {
+    public class UserRepository : UserRepositoryBase {
         private readonly UserContext _context;
 
         public UserRepository(UserContext context) {
             _context = context;
         }
 
-        // 添加用户
-        public void AddUser(User user) {
+        public override void AddUser(User user) {
             user.CreatedAt = DateTime.Now;
             user.UpdatedAt = DateTime.Now;
             _context.Users.Add(user);
             _context.SaveChanges();
         }
-        
-        // 获取用户
-        public User? GetUserById(int id) {
+
+        public override User? GetUserById(int id) {
             return _context.Users.Find(id);
         }
 
-        // 获取所有用户
-        public IEnumerable<User> GetAllUsers() {
+        public override IEnumerable<User> GetAllUsers() {
             return _context.Users.ToList();
         }
 
-        // 更新用户
-        public void UpdateUser(User user) {
+        public override void UpdateUser(User user) {
             var existingUser = _context.Users.Find(user.UserId);
             if (existingUser != null) {
                 existingUser.Name = user.Name;
@@ -61,15 +58,12 @@ namespace aspnetapp.Dao {
             }
         }
 
-        // 删除用户
-        public void DeleteUser(int id) {
+        public override void DeleteUser(int id) {
             var user = _context.Users.Find(id);
             if (user != null) {
                 _context.Users.Remove(user);
                 _context.SaveChanges();
             }
         }
-
-        // 修改密码
     }
 }
