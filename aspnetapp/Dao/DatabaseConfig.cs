@@ -1,6 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace aspnetapp {
+﻿namespace aspnetapp {
+    // 数据库基本连接
     public class DatabaseConfig {
         /// <summary>
         /// 获取数据库连接字符串

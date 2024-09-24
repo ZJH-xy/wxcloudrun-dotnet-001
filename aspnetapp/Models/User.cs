@@ -1,5 +1,10 @@
-﻿namespace aspnetapp.Models {
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace aspnetapp.Models {
+    [Table("Users")]
     public class User {
+        [Key]
         private int _userId;
         private string _phone = String.Empty;
         private string? _password;

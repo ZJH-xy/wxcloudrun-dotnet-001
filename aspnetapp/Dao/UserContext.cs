@@ -24,30 +24,38 @@ namespace aspnetapp.Dao {
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
     }
 
-    public class UserRepository : UserRepositoryBase {
+    public class UserRepository : IUserRepository {
         private readonly UserContext _context;
 
         public UserRepository(UserContext context) {
             _context = context;
         }
 
-        public override void AddUser(User user) {
+        public async Task AddUser(User user) {
             user.CreatedAt = DateTime.Now;
             user.UpdatedAt = DateTime.Now;
-            _context.Users.Add(user);
-            _context.SaveChanges();
+            try {
+                await _context.Users.AddAsync(user);
+                await _context.SaveChangesAsync();
+            } catch (Exception ex) {
+                throw new Exception("Error adding user", ex);// 记录异常日志
+            }
         }
 
-        public override User? GetUserById(int id) {
-            return _context.Users.Find(id);
+        public async Task<User>? GetUserById(int id) {
+            User user = await _context.Users.FindAsync(id);
+            return user;
         }
 
-        public override IEnumerable<User> GetAllUsers() {
-            return _context.Users.ToList();
+        public IQueryable<User> GetAllUsers() {
+            return _context.Users;
         }
 
-        public override void UpdateUser(User user) {
-            var existingUser = _context.Users.Find(user.UserId);
+        public async Task UpdateUser(User user) {
+            user.UpdatedAt = DateTime.Now;
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            /* var existingUser = _context.Users.Find(user.UserId);
             if (existingUser != null) {
                 existingUser.Name = user.Name;
                 existingUser.Phone = user.Phone;
@@ -55,14 +63,14 @@ namespace aspnetapp.Dao {
 
                 _context.Users.Update(existingUser);
                 _context.SaveChanges();
-            }
+            }*/
         }
 
-        public override void DeleteUser(int id) {
+        public async Task DeleteUser(int id) {
             var user = _context.Users.Find(id);
             if (user != null) {
                 _context.Users.Remove(user);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
         }
     }
