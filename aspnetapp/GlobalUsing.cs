@@ -11,3 +11,5 @@ global using aspnetapp.Dao;
 global using aspnetapp.Dao.ContextBases;
 global using System.ComponentModel.DataAnnotations;
 global using System.ComponentModel.DataAnnotations.Schema;
+global using aspnetapp.Controllers;
+global using aspnetapp.Models;

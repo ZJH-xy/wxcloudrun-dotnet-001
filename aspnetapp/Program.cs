@@ -6,7 +6,7 @@ builder.Services.AddRazorPages();
 // 激活本地缓存
 builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<UserContext>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();// 依赖注入
+builder.Services.AddScoped<IUserRepository, UserController>();// 依赖注入
 
 // 用于完成 Senparc.Weixin 的注册。
 //builder.Services.AddSenparcWeixinServices(builder.Configuration);

@@ -1,39 +1,44 @@
-﻿namespace aspnetapp.Dao.ContextBases {
-    public interface IUserRepository {
+﻿namespace aspnetapp.Dao.RepositoryInterface {
+    public interface IVehicleRepository {
         /// <summary>
-        /// 添加用户
+        /// 添加车辆
         /// </summary>
-        /// <param name="user"></param>
+        /// <param name="vehicle"></param>
         /// <returns>写入数据库的状态条目数</returns>
-        Task<int> AddUser(User user);
+        Task<int> AddVehicle(Vehicle vehicle);
         /// <summary>
-        /// 根据ID 查询用户
+        /// 根据ID 查询车辆
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<User?> GetUserById(int id);
+        Task<Vehicle?> GetVehicleById(int id);
         /// <summary>
-        /// 批量获取用户
+        /// 批量获取车辆
         /// </summary>
         /// <param name="iimit">用于分页控制，表示返回多少行数据</param>
         /// <param name="offset">表示跳过前面多少条记录（即从哪一条记录开始）</param>
         /// <param name="includeStructure">是否返回表结构</param>
         /// <param name="includeData">是否返回表数据</param>
         /// <returns></returns>
-        public IQueryable<User?> GetUsers(int iimit, int offset, bool includeStructure = true, bool includeData = true);
+        public IQueryable<Vehicle?> GetVehicles(int iimit, int offset, bool includeStructure = true, bool includeData = true);
         /// <summary>
-        /// 更新用户
+        /// 更新车辆状态
         /// </summary>
-        /// <param name="user"></param>
-        /// <returns>写入数据库的状态条目数</returns>
-        Task<int> UpdateUser(User user);
+        /// <param name="vehicleId"></param>
+        /// <param name="status"></param>
+        /// <returns></returns>
+        Task<int> ChangeVehicleStatus(int vehicleId, Vehicle.EVehicle status);
         /// <summary>
-        /// 删除用户
+        /// 更新车辆
+        /// </summary>
+        /// <param name="vehicle"></param>
+        /// <returns>写入数据库的状态条目数</returns>
+        Task<int> UpdateVehicle(Vehicle vehicle);
+        /// <summary>
+        /// 删除车辆
         /// </summary>
         /// <param name="id"></param>
         /// <returns>写入数据库的状态条目数</returns>
-        Task<int> DeleteUser(int id);
-
-        // 修改密码
+        Task<int> DeleteVehicle(int id);
     }
 }
