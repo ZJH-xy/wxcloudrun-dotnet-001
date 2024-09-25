@@ -9,3 +9,5 @@ global using Microsoft.Extensions.FileProviders;
 global using Microsoft.EntityFrameworkCore;
 global using aspnetapp.Dao;
 global using aspnetapp.Dao.ContextBases;
+global using System.ComponentModel.DataAnnotations;
+global using System.ComponentModel.DataAnnotations.Schema;

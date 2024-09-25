@@ -5,7 +5,7 @@ namespace aspnetapp.Dao.ContextBases {
         // 添加用户
         Task AddUser(User user);
         // 根据ID 查询用户
-        Task<User>? GetUserById(int id);
+        Task<User?> GetUserById(int id);
         // 获取所有用户
         IQueryable<User> GetAllUsers();
         // 更新用户

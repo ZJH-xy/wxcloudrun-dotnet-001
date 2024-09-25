@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
+// 不使用，仅参考
 namespace aspnetapp.Controllers.ActionResult {
     public class MyActionResult : IActionResult {
         public bool success { get; set; }
