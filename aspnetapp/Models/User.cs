@@ -1,61 +1,25 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace aspnetapp.Models {
-    [Table("Users")]
+﻿namespace aspnetapp.Models {
+    // 用户信息表
+    [Table("T_Users")]
     public class User {
         [Key]
-        private int _userId;
-        private string _phone = String.Empty;
-        private string? _password;
-        private string? _name;
-        private DateTime _createdAt;
-        private DateTime _updatedAt;
+        public int UserId { get; set; }// 用户编号
 
-        public int UserId {
-            set => _userId = value;
-            get => _userId;
-        }
+        // 使用 Data Annotations 进行格式验证
+        //[RegularExpression(@"^1(3[0-9]|4[01456879]|5[0-35-9]|6[2567]|7[0-8]|8[0-9]|9[0-35-9])\d{8}$", ErrorMessage = "手机号格式无效
+        [Required(ErrorMessage = "手机号码不可为空")]
 
-        public string Phone {
-            set {
-                if (System.Text.RegularExpressions.Regex.IsMatch(value, @"^(\d{3,4}-)?\d{6,8}$"))// 号码判断
-                    throw new Exception("手机号格式无效");
-                if (value is null ||value == String.Empty)
-                    throw new ArgumentNullException(nameof(value));
-                _phone = value;
-            }
-            get => _phone;
-        }
+        public string Phone { get; set; } = String.Empty;// 手机号码
 
-        public string? Name {
-            set {
-                if (value is null || value == String.Empty)
-                    throw new ArgumentNullException(nameof(value));
-                else
-                    _name = value;
-            }
-            get => _name;
-        }
+        [DataType(DataType.Password)]
+        public string? Password { get; set; }// 密码
 
-        public string? Password {
-            set {
-                if (value is null || value == String.Empty)
-                    throw new ArgumentNullException(nameof(value));
-                else
-                    _password = value;
-            }
-            get => _password;
-        }
+        public string? Name { get; set; }// 姓名
 
-        public DateTime CreatedAt {
-            set => _createdAt = value;
-            get => _createdAt;
-        }
+        public string? Nickname { get; set; }// 昵称
 
-        public DateTime UpdatedAt {
-            set => _updatedAt = value;
-            get => _updatedAt;
-        }
+        public DateTime CreatedAt { get; set; }
+
+        public DateTime UpdatedAt { get; set; }
     }
 }
