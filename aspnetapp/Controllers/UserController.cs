@@ -1,6 +1,8 @@
-﻿using aspnetapp.Models;
+﻿using aspnetapp.Dao.RepositoryInterface.Miniprogram;
+using aspnetapp.Models;
 
-namespace aspnetapp.Controllers {
+namespace aspnetapp.Controllers
+{
     public class UserController : IUserRepository {
 
         private readonly UserContext _context;

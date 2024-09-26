@@ -1,3 +1,5 @@
+using aspnetapp.Dao.RepositoryInterface.Miniprogram;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
