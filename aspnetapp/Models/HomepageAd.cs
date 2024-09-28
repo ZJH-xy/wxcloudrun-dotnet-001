@@ -3,7 +3,7 @@
     [Table("T_HomepageAd")]
     public class HomepageAd {
         [Key]
-        public int AdId { get; set; }// 广告编号
+        public int AdId { get; init; }// 广告编号
 
         public string? PictureLink { get; set; }// 图片链接
 

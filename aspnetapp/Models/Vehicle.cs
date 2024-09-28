@@ -3,7 +3,11 @@
     [Table("T_VehicleSummary")]
     public class Vehicle {
         [Key]
-        public int VehicleId { get; set; }// 车辆编号
+        public int VehicleId { get; init; }// 车辆编号
+
+        [ForeignKey("Store")]// 外键，指向门店
+        public int? StoreId { get; set; }
+        public Store? Store { get; set; }// 导航属性，指向门店
 
         public EVehicle Model { get; set; }// 车辆型号
 
@@ -23,9 +27,22 @@
 
         public string? VehicleIntroduction { get; set; }// 车辆介绍
 
+        public Estates State { get; set; }// 车辆状态
+
+        public DateTime StateUpdatedAt { get; set; }// 更新时间
+
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }
+
+        public bool IsDelete { get; set; } = false;
+
+        public enum Estates {
+            Idle,// 空闲
+            Leased,// 已出租
+            Charging,// 充电中
+            Fault// 故障
+        }
 
         // 车辆型号
         public enum EVehicle {

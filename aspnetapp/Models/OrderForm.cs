@@ -1,12 +1,29 @@
-﻿namespace aspnetapp.Models {
+﻿using System.Runtime.InteropServices;
+
+namespace aspnetapp.Models {
     // 订单表
     [Table("T_OrderForm")]
     public class Order {
         [Key]
-        public int OrderId { get; set; }// 订单编号
+        public int OrderId { get; init; }// 订单编号
 
-        [ForeignKey("Users")]
+        [ForeignKey("User")]
         public int UserId { get; set; }// 用户编号（UserId）
+        public User? user { get; set; }
+
+        public DateTime StartingTime { get; set; }// 起始时间
+
+        public DateTime ExpectedReturnTime { get; set; }// 预计归还时间
+
+        public DateTime ActualReturnTime { get; set; }// 实际归还时间
+
+        public int RentalLocation { get; set; }// 租车点（StoreId）
+
+        public int TransferPoint { get; set; }// 换车点（StoreId）
+
+        public int ReturnThePoint { get; set; }// 还车点（StoreId）
+
+        public bool? LongTermLease { get; set; }// 长租
 
         public decimal Deposit { get; set; }// 押金
 
