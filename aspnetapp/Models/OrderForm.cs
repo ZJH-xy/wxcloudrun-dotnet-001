@@ -14,7 +14,7 @@
 
         public decimal DispatchFee { get; set; }// 调度费
 
-        public decimal otherFees { get; set; }// 其他费用
+        public decimal OtherFees { get; set; }// 其他费用
 
         public decimal Paid { get; set; }// 已付
 
