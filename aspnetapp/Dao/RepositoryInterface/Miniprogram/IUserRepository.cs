@@ -1,7 +1,5 @@
-﻿namespace aspnetapp.Dao.RepositoryInterface.Miniprogram
-{
-    public interface IUserRepository
-    {
+﻿namespace aspnetapp.Dao.RepositoryInterface.Miniprogram {
+    public interface IUserRepository {
         /// <summary>
         /// 添加用户
         /// </summary>
@@ -9,11 +7,11 @@
         /// <returns>写入数据库的状态条目数</returns>
         Task<int> AddUser(User user);
         /// <summary>
-        /// 根据ID 查询用户
+        /// 根据phone 查询用户
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="phone"></param>
         /// <returns></returns>
-        Task<User?> GetUserById(int id);
+        Task<Object?> GetUserByPhone(int phone);
         /// <summary>
         /// 更新用户
         /// </summary>

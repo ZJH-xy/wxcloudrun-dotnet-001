@@ -1,6 +1,12 @@
 ﻿namespace aspnetapp.Dao.RepositoryInterface.Web {
     public interface IOrderRepositoryWeb : IOrderRepository {
         /// <summary>
+        /// 根据OrderId 查询订单
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        Task<Order?> GetOrderById(int id);
+        /// <summary>
         /// 更改订单状态
         /// </summary>
         /// <param name="orderId"></param>
