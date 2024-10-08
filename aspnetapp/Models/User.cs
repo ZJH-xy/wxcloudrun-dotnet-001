@@ -11,10 +11,12 @@
 
         public string Phone { get; set; } = String.Empty;// 手机号码
 
-        [DataType(DataType.Password)]
+        //[DataType(DataType.Password)]
         public string? Password { get; set; }// 密码
 
         public string? Name { get; set; }// 姓名
+
+        public string? IdentityCard {  get; set; }// 身份证号
 
         public string? Nickname { get; set; }// 昵称
 

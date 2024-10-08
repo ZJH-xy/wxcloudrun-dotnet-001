@@ -27,6 +27,9 @@
 
         public Estates State { get; set; }// 车辆状态
 
+
+        public bool IsCase { get; set; } = false; // 是否涉案
+
         public DateTime StateUpdatedAt { get; set; }// 更新时间
 
         public DateTime CreatedAt { get; set; }
@@ -45,7 +48,6 @@
         // 车辆型号
         public enum EVehicle {
             UnknownOrSecondHand,// 未知或二手
-            Case,// 涉案车辆
             Harting,// 雅迪
             Aima,// 爱玛
             Tailg// 台铃
