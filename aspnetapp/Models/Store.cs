@@ -24,7 +24,9 @@
 
         public string? Address { get; set; }// 门店地址
 
-        public Geo? Gps { get; set; }// 经纬度
+        public double GpsLongitude { get; init; }// Longitude 经度，范围 [-180, 180]
+
+        public double GpsLatitude { get; init; }// Latitude 纬度，范围 [-90, 90]
 
         public string? Pictures { get; set; }// 门店图片
 
@@ -37,24 +39,5 @@
         public DateTime UpdatedAt { get; set; }
         
         public bool IsDelete { get; set; } = false;
-
-        public readonly struct Geo {
-            public double Longitude { get; init; }// Longitude 经度，范围 [-180, 180]
-
-            public double Latitude { get; init; }// Latitude 纬度，范围 [-90, 90]
-
-            // 构造函数初始化
-            public Geo(double longitude, double latitude) {
-                if (longitude < -180 || longitude > 180) {
-                    throw new ArgumentOutOfRangeException(nameof(longitude), "Longitude must be between -180 and 180.");
-                }
-                if (latitude < -90 || latitude > 90) {
-                    throw new ArgumentOutOfRangeException(nameof(latitude), "Latitude must be between -90 and 90.");
-                }
-
-                this.Longitude = longitude;
-                this.Latitude = latitude;
-            }
-        }
     }
 }
