@@ -5,8 +5,6 @@
         [Key]
         public int VehicleId { get; init; }// 车辆编号
 
-        [ForeignKey("Store")]// 外键，指向门店
-        public int? StoreId { get; set; }
         public Store? Store { get; set; }// 导航属性，指向门店
 
         public EVehicle Model { get; set; }// 车辆型号
