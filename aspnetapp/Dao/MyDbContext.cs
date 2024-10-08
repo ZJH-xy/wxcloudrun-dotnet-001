@@ -1,15 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
-using aspnetapp.Dao.ContextBases;
-using aspnetapp.Models;
+﻿namespace aspnetapp.Dao {
+    public partial class MyDbContext : DbContext {
+        public MyDbContext() { }
 
-namespace aspnetapp.Dao {
-    public partial class UserContext : DbContext {
-        public UserContext() { }
+        public DbSet<User> User { get; set; }
+        public DbSet<Store> Store { get; set; }
+        public DbSet<Vehicle> Vehicle { get; set; }
+        public DbSet<Order> Order { get; set; }
+        public DbSet<HomepageAd> homepageAds { get; set; }
 
-        public DbSet<User> Users { get; set; } = null!;
-
-        public UserContext(DbContextOptions<UserContext> options)
-            : base(options) { }
+        public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             DatabaseConfig.ConfigureMySql(optionsBuilder);
