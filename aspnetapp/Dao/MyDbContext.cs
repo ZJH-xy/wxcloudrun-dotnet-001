@@ -2,11 +2,11 @@
     public partial class MyDbContext : DbContext {
         public MyDbContext() { }
 
-        public DbSet<User> User { get; set; }
-        public DbSet<Store> Store { get; set; }
-        public DbSet<Vehicle> Vehicle { get; set; }
-        public DbSet<Order> Order { get; set; }
-        public DbSet<HomepageAd> homepageAds { get; set; }
+        public DbSet<User> User { get; set; } = null!;
+        public DbSet<Store> Store { get; set; } = null!;
+        public DbSet<Vehicle> Vehicle { get; set; } = null!;
+        public DbSet<Order> Order { get; set; } = null!;
+        public DbSet<HomepageAd> homepageAds { get; set; } = null!;
 
         public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
 
