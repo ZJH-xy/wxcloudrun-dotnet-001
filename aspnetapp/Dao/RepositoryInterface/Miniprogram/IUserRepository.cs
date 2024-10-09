@@ -7,24 +7,24 @@
         /// <returns>写入数据库的状态条目数</returns>
         Task<int> AddUser(User user);
         /// <summary>
-        /// 获取身份证号
+        /// 获取用户所有信息
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="password"></param>
-        /// <returns>身份证号</returns>
-        Task<Object?> GetdentityCard(int id, string password);
+        /// 
+        /// <returns>用户所有信息</returns>
+        Task<User?> GetUser(int id);
         /// <summary>
         /// 根据id 查询用户
         /// </summary>
         /// <param name="id"></param>
         /// <returns>用户昵称等基本信息</returns>
-        Task<Object?> GetUserById(int id);
+        Task<UserController.UserBasic?> GetUserById(int id);
         /// <summary>
         /// 根据phone 查询用户
         /// </summary>
         /// <param name="phone"></param>
         /// <returns>用户昵称等基本信息</returns>
-        Task<Object?> GetUserByPhone(int phone);
+        Task<UserController.UserBasic?> GetUserByPhone(string phone);
         /// <summary>
         /// 删除用户
         /// </summary>
