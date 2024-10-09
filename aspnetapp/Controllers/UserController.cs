@@ -19,7 +19,7 @@
             }
         }
 
-        public async Task<User?> GetUserById(int id) {
+        public async Task<Object?> GetUserById(int id) {
             return await _context.User.FindAsync(id);
         }
 
@@ -38,12 +38,13 @@
             }*/
         }
 
-        public async Task<int> DeleteUser(int id) {
-            User? user = await GetUserById(id);
-            if (user != null) {
-                _context.User.Remove(user);
-            }
-            return await _context.SaveChangesAsync();
+        public async Task<int> DeleteUserById(int id) {
+            throw new NotImplementedException();
+            //Object? user = await GetUserById(id);
+            //if (user != null) {
+            //    _context.User.Remove(user);
+            //}
+            //return await _context.SaveChangesAsync();
         }
 
         public Task<object?> GetUserByPhone(int phone) {

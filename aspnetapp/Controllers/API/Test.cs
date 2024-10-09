@@ -1,20 +1,25 @@
 #nullable disable
 
+using aspnetapp;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 
 
-namespace aspnetapp.Test {
+namespace aspnetapp.Controllers.API
+{
     [Route("api/test")]
     [ApiController]
-    public class Test : ControllerBase {
-        public Test() {
+    public class Test : ControllerBase
+    {
+        public Test()
+        {
 
         }
 
         // GET
         [HttpGet]
-        public Object GetNumber() {
+        public object GetNumber()
+        {
             return new { success = true, code = 200 };
         }
     }
