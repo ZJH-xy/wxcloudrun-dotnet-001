@@ -68,12 +68,7 @@ namespace aspnetapp.Controllers.API {
         [HttpPut("add")]
         public async Task<IActionResult> AddUser() {
             try {
-                UserController.UserBasic? user = await UserController.GetUserByPhone(phone);
-                if (user is null) {
-                    return StatusCode(404);
-                } else {
-                    return StatusCode(200, new { user_basic = user.ToJson() });
-                }
+                throw new NotImplementedException();
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]AddUser: {e}");
