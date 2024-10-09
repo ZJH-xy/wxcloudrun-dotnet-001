@@ -8,9 +8,12 @@
         public static string GetConnectionString() {
             var username = Environment.GetEnvironmentVariable("root");
             var password = Environment.GetEnvironmentVariable("Abc*123*");
-            var addressParts = Environment.GetEnvironmentVariable("10.28.103.78:3306")?.Split(':');// 更改为全局变量
+            var addressParts = Environment.GetEnvironmentVariable("sh-cynosdbmysql-grp-owvd31mk.sql.tencentcdb.com:26679")?.Split(':');// 更改为全局变量
             var host = addressParts?[0];
             var port = addressParts?[1];
+
+            host = "sh-cynosdbmysql-grp-owvd31mk.sql.tencentcdb.com";
+            port = "26679";
             return $"server={host};port={port};user={username};password={password};database=wxcloudrun-dotnet-001";//
         }
         /// <summary>

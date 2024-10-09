@@ -16,7 +16,7 @@
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
             modelBuilder.UseCollation("utf8_general_ci").HasCharSet("utf8");
-            modelBuilder.Entity<User>().ToTable("Users");// 数据库表名
+            //modelBuilder.Entity<User>().ToTable("Users");// 数据库表名
             OnModelCreatingPartial(modelBuilder);
         }
 
