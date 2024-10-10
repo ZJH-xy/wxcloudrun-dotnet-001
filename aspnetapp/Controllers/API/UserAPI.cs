@@ -1,9 +1,15 @@
-﻿using System.Security.Cryptography;
+﻿using Senparc.CO2NET;
+using Senparc.Weixin;
+using Senparc.Weixin.Containers;
+using Senparc.Weixin.MP.Containers;
+using Senparc.Weixin.WxOpen.AdvancedAPIs.WxApp;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace aspnetapp.Controllers.API {
     [Route("user")]
-    [ApiController]
+    //[ApiController]
+    [ApiBind]
     public class UserAPI : ControllerBase {
         UserController UserController = new UserController(new MyDbContext());
 
@@ -20,7 +26,7 @@ namespace aspnetapp.Controllers.API {
 #if DEBUG
                 Console.WriteLine($"[错误]GetUserById: {e}");
 #endif
-                return StatusCode(500, new { message = "服务器错误", code = 500 });
+                return StatusCode(500, "服务器错误");
             }
         }
 
@@ -37,7 +43,7 @@ namespace aspnetapp.Controllers.API {
 #if DEBUG
                 Console.WriteLine($"[错误]GetUserByPhone: {e}");
 #endif
-                return StatusCode(500, new { message = "服务器错误", code = 500 });
+                return StatusCode(500, "服务器错误");
             }
         }
 
@@ -52,29 +58,99 @@ namespace aspnetapp.Controllers.API {
                 if (user.Password is null)
                     return StatusCode(403, "非法请求");
 
-                if (VerifyPassword(password, user.Password)) {
-                    return StatusCode(200, new {user_pro = new UserController.UserPro(user)});
-                } else {
+                if (VerifyPassword(password, user.Password))
+                    return StatusCode(200, new { user_pro = new UserController.UserPro(user).ToJson() });
+                else
                     return StatusCode(403, "帐号或密码错误");
-                }
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]GetUser: {e}");
 #endif
-                return StatusCode(500, new { message = "服务器错误", code = 500 });
+                return StatusCode(500, "服务器错误");
             }
         }
 
-        [HttpPut("add")]
-        public async Task<IActionResult> AddUser() {
+        [HttpPost("login/{id}/{password}")]
+        public async Task<IActionResult> Login(int id, string password) {
+            if (password is null)
+                    return StatusCode(400, "密码为空");
+
+            User? user = null;
             try {
-                throw new NotImplementedException();
+                user = await UserController.GetUser(id);
             } catch (Exception e) {
 #if DEBUG
-                Console.WriteLine($"[错误]AddUser: {e}");
+                Console.WriteLine($"[错误]Login: {e}");
 #endif
-                return StatusCode(500, new { message = "服务器错误", code = 500 });
+                return StatusCode(500, "服务器错误");
             }
+            if (user is null)
+                return StatusCode(404);
+
+            if (user.Password is null)
+                return StatusCode(403, "未设置密码");
+
+            if (VerifyPassword(password, user.Password))
+                return StatusCode(200, new { user_pro = new UserController.UserPro(user).ToJson() });
+            else
+                return StatusCode(403, "帐号或密码错误");
+        }
+
+        // 快速登录
+        [HttpPost("quick_login/{code}")]
+        public async Task<IActionResult> QuickLogin(string code) {
+            var result = await BusinessApi.GetUserPhoneNumberAsync(BaseContainer<AccessTokenBag>.GetFirstOrDefaultAppId(PlatformType.WxOpen), code);
+            switch (result.errcode) {
+                case ReturnCode.请求成功:
+                    break;
+
+                case ReturnCode.系统繁忙此时请开发者稍候再试:
+                    return StatusCode(408, "系统繁忙");
+
+                case ReturnCode.不合法的oauth_code:
+                    return StatusCode(403, "code 无效");
+
+                case ReturnCode.不合法的APPID:
+#if DEBUG
+                    Console.WriteLine($"[错误]in QuickLogin errcode is {result.errcode}");
+#endif
+                    return StatusCode(500, "服务器错误");
+
+                default:
+#if DEBUG
+                    Console.WriteLine($"[错误]in QuickLogin errcode is {result.errcode}");
+#endif
+                    return StatusCode(500, "服务器错误");
+            }
+
+            UserController.UserBasic? userBasic = await UserController.GetUserByPhone(result.phone_info.purePhoneNumber);
+
+            // 未注册
+            if (userBasic is null) {
+                User user = new();
+                user.Phone = result.phone_info.purePhoneNumber;
+                user.CreatedAt = DateTime.Now;
+                user.UpdatedAt = DateTime.Now;
+
+                try {
+                    int ChangeSum = await UserController.AddUser(user);
+
+                    if (ChangeSum > 0) {
+                        return StatusCode(200, new { use_basic = new UserController.UserBasic(user).ToJson() });
+                    }
+#if DEBUG
+                    Console.WriteLine($"[错误]注册用户未成功插入数据库");
+#endif
+                    return StatusCode(406, "注册失败，请联系管理员");
+                } catch (Exception e) {
+#if DEBUG
+                    Console.WriteLine($"[错误]注册新用户QuickLogin: {e}");
+#endif
+                    return StatusCode(500, "服务器错误");
+                }
+            }
+
+            return StatusCode(200, new { use_basic = userBasic.ToJson(), purePhoneNumber = result.phone_info.purePhoneNumber });
         }
 
         // 根据手机号获取收藏门店
@@ -102,7 +178,8 @@ namespace aspnetapp.Controllers.API {
                     builder.Append(b.ToString("x2"));
                 }
 
-                return builder.ToString(); // 返回哈希后的密码
+                // 返回哈希后的密码
+                return builder.ToString(); 
             }
         }
     }
