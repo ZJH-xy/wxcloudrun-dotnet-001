@@ -4,6 +4,6 @@
         /// 获取所有门店基础信息
         /// </summary>
         /// <returns></returns>
-        Task<IList<Object?>> GetOrderByName();
+        Task<IList<StoreBasic>> GetOrderByName();
     }
 }

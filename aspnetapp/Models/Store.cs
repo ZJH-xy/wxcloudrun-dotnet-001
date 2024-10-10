@@ -10,11 +10,11 @@
 
         [DataType(DataType.Time)]// HH:MM:SS
         [Required(ErrorMessage = "营业开始时间不可为空")]
-        public DateTime BusinessHoursStart { get; set; }// 营业开始时间
+        public TimeSpan BusinessHoursStart { get; set; }// 营业开始时间
 
         [DataType(DataType.Time)]// HH:MM:SS
         [Required(ErrorMessage = "营业结束时间不可为空")]
-        public DateTime BusinessHoursBegin { get; set; }// 营业结束时间
+        public TimeSpan BusinessHoursBegin { get; set; }// 营业结束时间
 
         public bool BusinessStatus { get; set; } = true;// 营业状态
 

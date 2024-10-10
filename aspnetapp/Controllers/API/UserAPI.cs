@@ -70,14 +70,17 @@ namespace aspnetapp.Controllers.API {
             }
         }
 
-        [HttpPost("login/{id}/{password}")]
-        public async Task<IActionResult> Login(int id, string password) {
+        [HttpPost("login/{phone}/{password}")]
+        public async Task<IActionResult> Login(string phone, string password) {
             if (password is null)
                     return StatusCode(400, "密码为空");
 
             User? user = null;
             try {
-                user = await UserController.GetUser(id);
+                UserController.UserBasic? userBasic = await UserController.GetUserByPhone(phone);
+                if (userBasic is null)
+                    return StatusCode(404);
+                user = await UserController.GetUser(userBasic.Value.UserId);
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]Login: {e}");
