@@ -1,5 +1,3 @@
-using aspnetapp.Dao.RepositoryInterface.Miniprogram;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -9,6 +7,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<MyDbContext>();
 builder.Services.AddScoped<IUserRepository, UserController>();// 依赖注入
+builder.Services.AddScoped<IStoreRepository, StoreController>();
 
 // 用于完成 Senparc.Weixin 的注册。
 //builder.Services.AddSenparcWeixinServices(builder.Configuration);
