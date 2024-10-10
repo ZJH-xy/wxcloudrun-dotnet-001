@@ -40,14 +40,14 @@
             return await _context.SaveChangesAsync();
         }
 
-        // 基础用户信息
         public struct UserBasic {
             public UserBasic(User user) {
-                Id = user.UserId;
+                UserId = user.UserId;
                 Nickname = user.Nickname ?? string.Empty;
             }
-            public int Id;
-            public string Nickname;
+            public int UserId { get; set; }
+            public string Nickname { get; set; }
+
         }
 
         public struct UserPro {
@@ -58,11 +58,11 @@
                 IdentityCard = user.IdentityCard;
                 Nickname = user.Nickname;
             }
-            public int UserId;
-            public string Phone;
-            public string? Name;
-            public string? IdentityCard;
-            public string? Nickname;
+            public int UserId { get; set; }
+            public string Phone { get; set; }
+            public string? Name { get; set; }
+            public string? IdentityCard { get; set; }
+            public string? Nickname { get; set; }
         }
     }
 }
