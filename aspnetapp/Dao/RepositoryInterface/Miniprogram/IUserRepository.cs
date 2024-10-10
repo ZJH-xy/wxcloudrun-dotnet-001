@@ -1,4 +1,6 @@
-﻿namespace aspnetapp.Dao.RepositoryInterface.Miniprogram {
+﻿using static aspnetapp.Controllers.UserController;
+
+namespace aspnetapp.Dao.RepositoryInterface.Miniprogram {
     public interface IUserRepository {
         /// <summary>
         /// 添加用户
@@ -18,13 +20,13 @@
         /// </summary>
         /// <param name="id"></param>
         /// <returns>用户昵称等基本信息</returns>
-        Task<UserController.UserBasic?> GetUserById(int id);
+        Task<UserBasic?> GetUserById(int id);
         /// <summary>
         /// 根据phone 查询用户
         /// </summary>
         /// <param name="phone"></param>
         /// <returns>用户昵称等基本信息</returns>
-        Task<UserController.UserBasic?> GetUserByPhone(string phone);
+        Task<UserBasic?> GetUserByPhone(string phone);
         /// <summary>
         /// 删除用户
         /// </summary>
