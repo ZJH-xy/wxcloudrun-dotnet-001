@@ -1,39 +1,85 @@
 ﻿@page
-@model aspnetapp.Pages.Admin.LoginModel
+@model LoginModel
 @{
+    ViewData["Title"] = "登录";
     Layout = "_Layout";
 }
  
 <!DOCTYPE html>
- 
-<html>
+<html lang="zh-cn">
 <head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Login</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        body {
+            background-image: url('/images/background.jpg'); /* 设置背景图片的路径 */
+            background-size: cover; /* 背景图片覆盖整个页面 */
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh; /* 视窗高度 */
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.6); /* 半透明白色背景 */
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            width: 350px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        #errorMessage {
+            padding-top: 10px;
+            text-align: center;
+            color: #ff0000;
+        }
+    </style>
 </head>
 <body>
- 
-    <form class="form-horizontal" method="post">
-        @Html.AntiForgeryToken()
-        <div class="form-group">
-            <label for="Email" class="col-sm-2">Email</label>
-            <div class="col-sm-10">
-                <input type="text" class="form-control" name="Email">
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="Password" class="col-sm-2">Password</label>
-            <div class="col-sm-10">
-                <input type="password" class="form-control" name="Password">
-            </div>
-        </div>
-        <div class="form-group">
-            <div class="col-sm-offset-2 col-sm-10">
-                <input type="submit" class="btn btn-dark" value="Login" />
-            </div>
-        </div>
-    </form>
- 
-<div>@ViewData["Email"]</div>
+    <div class="login-container">
+        <h2>系统后台</h2>
+        <form method="post">
+            <input type="text" name="Username" placeholder="用户名" required />
+            <input type="password" name="Password" placeholder="密码" required />
+            <input type="submit" value="登录" />
+        </form>
+        <p id="errorMessage">@Model.ErrorMessage</p>
+    </div>
 </body>
 </html>
