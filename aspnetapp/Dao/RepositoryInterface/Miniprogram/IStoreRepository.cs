@@ -5,5 +5,7 @@
         /// </summary>
         /// <returns></returns>
         Task<IList<StoreBasic>> GetOrderByName();
+        //
+        Task<Store?> GetStoreById(int id);
     }
 }

@@ -8,20 +8,40 @@ using System.Text;
 
 namespace aspnetapp.Controllers.API {
     [Route("user")]
-    //[ApiController]
+    [ApiController]
     [ApiBind]
     public class UserAPI : ControllerBase {
         UserController UserController = new UserController(new MyDbContext());
+        StoreController storeController = new StoreController(new MyDbContext());
+
+        // 添加用户（测试）
+        [HttpPost("add")]
+        public async Task<IActionResult> PostUser(GetUser getUser) {// [FromBody]
+            try {
+                User user = new User() {
+                    Phone = getUser.Phone,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+                int changesSum = await UserController.AddUser(user);
+                return StatusCode(201, new { change_sum = changesSum });
+            } catch (Exception e) {
+#if DEBUG
+                Console.WriteLine($"[错误]PostUserAsync: {e}");
+#endif
+                return StatusCode(500, "服务器错误");
+            }
+        }
+
 
         [HttpGet("i/{id}")]
         public async Task<IActionResult> GetUserById(int id) {
             try {
                 UserController.UserBasic? user = await UserController.GetUserById(id);
-                if (user is null) {
+                if (user is null)
                     return StatusCode(404);
-                } else {
-                    return StatusCode(200, new { user_basic = user.ToJson() });
-                }
+
+                return StatusCode(200, new { user_basic = user.ToJson() });
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]GetUserById: {e}");
@@ -34,11 +54,10 @@ namespace aspnetapp.Controllers.API {
         public async Task<IActionResult> GetUserByPhone(string phone) {
             try {
                 UserController.UserBasic? user = await UserController.GetUserByPhone(phone);
-                if (user is null) {
+                if (user is null)
                     return StatusCode(404);
-                } else {
-                    return StatusCode(200, new { user_basic = user.ToJson() });
-                }
+
+                return StatusCode(200, new { user_basic = user.ToJson() });
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]GetUserByPhone: {e}");
@@ -53,15 +72,15 @@ namespace aspnetapp.Controllers.API {
                 User? user = await UserController.GetUser(id);
 
                 if (user is null)
-                    return StatusCode(404);
+                    return StatusCode(403, "帐号或密码错误");
 
                 if (user.Password is null)
                     return StatusCode(403, "非法请求");
 
-                if (VerifyPassword(password, user.Password))
-                    return StatusCode(200, new { user_pro = new UserController.UserPro(user).ToJson() });
-                else
-                    return StatusCode(403, "帐号或密码错误");
+                if (!VerifyPassword(password, user.Password))
+                    StatusCode(403, "帐号或密码错误");
+
+                return StatusCode(200, new { user_pro = new UserController.UserPro(user).ToJson() });
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]GetUser: {e}");
@@ -70,16 +89,17 @@ namespace aspnetapp.Controllers.API {
             }
         }
 
-        [HttpPost("login/{phone}/{password}")]
+        [HttpPost("l/{phone}/{password}")]
         public async Task<IActionResult> Login(string phone, string password) {
             if (password is null)
-                    return StatusCode(400, "密码为空");
+                return StatusCode(400, "密码为空");
 
             User? user = null;
             try {
                 UserController.UserBasic? userBasic = await UserController.GetUserByPhone(phone);
                 if (userBasic is null)
                     return StatusCode(404);
+
                 user = await UserController.GetUser(userBasic.Value.UserId);
             } catch (Exception e) {
 #if DEBUG
@@ -88,19 +108,19 @@ namespace aspnetapp.Controllers.API {
                 return StatusCode(500, "服务器错误");
             }
             if (user is null)
-                return StatusCode(404);
+                return StatusCode(403, "帐号或密码错误");
 
             if (user.Password is null)
                 return StatusCode(403, "未设置密码");
 
-            if (VerifyPassword(password, user.Password))
-                return StatusCode(200, new { user_pro = new UserController.UserPro(user).ToJson() });
-            else
+            if (!VerifyPassword(password, user.Password))
                 return StatusCode(403, "帐号或密码错误");
+
+            return StatusCode(200, new { user_pro = new UserController.UserPro(user).ToJson() });
         }
 
         // 快速登录
-        [HttpPost("quick_login/{code}")]
+        [HttpPost("ql/{code}")]
         public async Task<IActionResult> QuickLogin(string code) {
             var result = await BusinessApi.GetUserPhoneNumberAsync(BaseContainer<AccessTokenBag>.GetFirstOrDefaultAppId(PlatformType.WxOpen), code);
             switch (result.errcode) {
@@ -157,6 +177,26 @@ namespace aspnetapp.Controllers.API {
         }
 
         // 根据手机号获取收藏门店
+        [HttpGet("f/s/{phone}")]
+        public async Task<IActionResult> GetFavoriteStores(string phone) {
+            User? user = null;
+            try {
+                UserController.UserBasic? userBasic = await UserController.GetUserByPhone(phone);
+                if (userBasic is null)
+                    return StatusCode(404);
+
+                user = await UserController.GetUser(userBasic.Value.UserId);
+            } catch (Exception e) {
+#if DEBUG
+                Console.WriteLine($"[错误]Login: {e}");
+#endif
+                return StatusCode(500, "服务器错误");
+            }
+            if (user is null)
+                return StatusCode(403, "帐号或密码错误");
+
+            return StatusCode(200, new { favorite_stores = user.FavoriteStores.ToArray() });
+        }
 
         // 验证密码
         public static bool VerifyPassword(string password, string hashedPassword) {
@@ -185,5 +225,8 @@ namespace aspnetapp.Controllers.API {
                 return builder.ToString(); 
             }
         }
+    }
+    public class GetUser {
+        public string Phone { get; set; }
     }
 }

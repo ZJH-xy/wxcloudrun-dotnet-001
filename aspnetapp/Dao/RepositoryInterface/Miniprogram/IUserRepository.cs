@@ -2,12 +2,16 @@
 
 namespace aspnetapp.Dao.RepositoryInterface.Miniprogram {
     public interface IUserRepository {
+        //
+        DbContext GetContext();
         /// <summary>
         /// 添加用户
         /// </summary>
         /// <param name="user"></param>
         /// <returns>写入数据库的状态条目数</returns>
         Task<int> AddUser(User user);
+        // 获取所有用户
+        // Task<IQueryable<User>> GetAllUsers();
         /// <summary>
         /// 获取用户所有信息
         /// </summary>

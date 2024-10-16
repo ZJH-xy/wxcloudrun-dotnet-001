@@ -7,12 +7,15 @@
         }
 
         public async Task<IList<StoreBasic>> GetOrderByName() {
-            List<Store> storeList = await _context.Store.ToListAsync();
+            List<Store> storeList = await _context.Store.Where(s => s.IsDelete == false).ToListAsync();
             List<StoreBasic> userBasics = new List<StoreBasic>();
             foreach (Store store in storeList) {
                 userBasics.Add(new StoreBasic(store));
             }
             return userBasics;
+        }
+        public async Task<Store?> GetStoreById(int id) {
+            return await _context.Store.SingleOrDefaultAsync(s => s.StoreId == id && s.IsDelete == false);
         }
     }
 
