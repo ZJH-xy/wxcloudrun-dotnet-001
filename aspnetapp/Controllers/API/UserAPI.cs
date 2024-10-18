@@ -179,6 +179,8 @@ namespace aspnetapp.Controllers.API {
         // 根据手机号获取收藏门店
         [HttpGet("f/s/{phone}")]
         public async Task<IActionResult> GetFavoriteStores(string phone) {
+            return StatusCode(404, "未实现");
+            /*
             User? user = null;
             try {
                 UserController.UserBasic? userBasic = await UserController.GetUserByPhone(phone);
@@ -196,6 +198,7 @@ namespace aspnetapp.Controllers.API {
                 return StatusCode(403, "帐号或密码错误");
 
             return StatusCode(200, new { favorite_stores = user.FavoriteStores.ToArray() });
+            */
         }
 
         // 验证密码

@@ -32,7 +32,6 @@
             GpsLatitude = store.GpsLatitude;
             Pictures = store.Pictures;
             Introduce = store.Introduce;
-            Vehicles = store.Vehicles;
         }
         public int StoreId { get; init; }// 门店编号
         public string Name { get; set; } = string.Empty;// 门店名称
@@ -45,6 +44,5 @@
         public double GpsLatitude { get; init; }// Latitude 纬度，范围 [-90, 90]
         public string? Pictures { get; set; }// 门店图片
         public string? Introduce { get; set; }// 介绍
-        public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();// 一个门店有多个车辆
     }
 }
