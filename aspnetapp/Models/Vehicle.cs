@@ -1,13 +1,18 @@
 ﻿namespace aspnetapp.Models {
     // 车辆总表
     [Table("T_VehicleSummary")]
+    [Index(nameof(OriginalStore), nameof(CurrentStore))]
     public class Vehicle {
         [Key]
         public int VehicleId { get; init; }// 车辆编号
 
-        public Store? Store { get; set; }// 导航属性，指向门店
+        /* 逻辑指向门店 */
+        public int? OriginalStore { get; set; }//原始门店
 
-        public EVehicle Model { get; set; }// 车辆型号
+        /* 逻辑指向门店 */
+        public int? CurrentStore { get; set; }// 当前门店
+
+        public EVehicle Model { get; set; } = EVehicle.UnknownOrSecondHand;// 车辆型号
 
         public string? PlateNumber { get; set; }// 车牌牌号
 
@@ -17,7 +22,7 @@
 
         public bool? Invoice { get; set; }// 发票
 
-        public bool? Drivinglicense;// 行驶证
+        public bool? Drivinglicense { get; set; }// 行驶证
 
         public DateTime? PurchaseRegistrationTime { get; set; }// 购入登记时间
 
@@ -26,7 +31,6 @@
         public string? VehicleIntroduction { get; set; }// 车辆介绍
 
         public Estates State { get; set; }// 车辆状态
-
 
         public bool IsCase { get; set; } = false; // 是否涉案
 

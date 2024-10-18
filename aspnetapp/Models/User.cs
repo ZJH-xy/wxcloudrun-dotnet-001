@@ -19,8 +19,6 @@
 
         public string? Nickname { get; set; }// 昵称
 
-        public ICollection<Store> FavoriteStores { get; set; } = new List<Store>();// 收藏门店
-
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }

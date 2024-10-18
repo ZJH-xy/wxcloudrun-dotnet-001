@@ -32,8 +32,6 @@
 
         public string? Introduce { get; set; }// 介绍
 
-        public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();// 一个门店有多个车辆
-
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }
