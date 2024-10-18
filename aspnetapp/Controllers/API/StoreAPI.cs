@@ -9,7 +9,7 @@ namespace aspnetapp.Controllers.API {
         [HttpGet("a")]
         public async Task<IActionResult> GetStores() {
             try {
-                List<StoreBasic> storeBasic = (List<StoreBasic>)await storeController.GetOrderByName();
+                List<StoreBasic> storeBasic = await storeController.GetAllOrders();
 
                 return StatusCode(200, new { store_basic = storeBasic });
             } catch (Exception e) {

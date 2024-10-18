@@ -6,13 +6,13 @@
             _context = context;
         }
 
-        public async Task<IList<StoreBasic>> GetOrderByName() {
+        public async Task<List<StoreBasic>> GetAllOrders() {
             List<Store> storeList = await _context.Store.Where(s => s.IsDelete == false).ToListAsync();
-            List<StoreBasic> userBasics = new List<StoreBasic>();
+            List<StoreBasic> userBasicsList = new List<StoreBasic>();
             foreach (Store store in storeList) {
-                userBasics.Add(new StoreBasic(store));
+                userBasicsList.Add(new StoreBasic(store));
             }
-            return userBasics;
+            return userBasicsList;
         }
         public async Task<Store?> GetStoreById(int id) {
             return await _context.Store.SingleOrDefaultAsync(s => s.StoreId == id && s.IsDelete == false);
@@ -31,7 +31,7 @@
             GpsLongitude = store.GpsLongitude;
             GpsLatitude = store.GpsLatitude;
             Pictures = store.Pictures;
-            Introduce = store.Pictures;
+            Introduce = store.Introduce;
             Vehicles = store.Vehicles;
         }
         public int StoreId { get; init; }// 门店编号
