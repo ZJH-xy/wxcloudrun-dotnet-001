@@ -32,7 +32,7 @@
         public Vehicle.Estates State { get; set; }// 车辆状态
 
         [JsonConverter(typeof(StringEnumConverter), true)]
-        public Vehicle.Emodel Model { get; set; } = Vehicle.Emodel.UnknownOrSecondHand;// 车辆型号
+        public Vehicle.Emodel Model { get; set; } = Vehicle.Emodel.未知;// 车辆型号
         public int? CurrentStore { get; set; }// 当前门店
         public string? PlateNumber { get; set; }// 车牌牌号
         public string? FrameNumber { get; set; }// 车架号

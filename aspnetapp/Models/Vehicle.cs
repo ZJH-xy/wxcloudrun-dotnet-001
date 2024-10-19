@@ -12,7 +12,7 @@
         /* 逻辑指向门店 */
         public int? CurrentStore { get; set; }// 当前门店
 
-        public Emodel Model { get; set; } = Emodel.UnknownOrSecondHand;// 车辆型号
+        public Emodel Model { get; set; } = Emodel.未知;// 车辆型号
 
         public string? PlateNumber { get; set; }// 车牌牌号
 
@@ -43,18 +43,18 @@
         public bool IsDelete { get; set; } = false;
 
         public enum Estates {
-            Idle,// 空闲
-            Leased,// 已出租
-            Charging,// 充电中
-            Fault// 故障
+            空闲,// 空闲
+            已出租,// 已出租
+            充电中,// 充电中
+            故障// 故障
         }
 
         // 车辆型号
         public enum Emodel {
-            UnknownOrSecondHand,// 未知或二手
-            Harting,// 雅迪
-            Aima,// 爱玛
-            Tailg// 台铃
+            未知,// 未知或二手
+            雅迪,// 雅迪
+            爱玛,// 爱玛
+            台铃// 台铃
         }
     }
 }
