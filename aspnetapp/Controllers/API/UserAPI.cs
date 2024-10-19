@@ -89,7 +89,7 @@ namespace aspnetapp.Controllers.API {
             }
         }
 
-        [HttpPost("l/{phone}/{password}")]
+        [HttpGet("l/{phone}/{password}")]
         public async Task<IActionResult> Login(string phone, string password) {
             if (password is null)
                 return StatusCode(400, "密码为空");

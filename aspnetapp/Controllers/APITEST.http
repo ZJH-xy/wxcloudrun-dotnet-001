@@ -1,0 +1,55 @@
+@localhost = https://localhost:63295
+@id = 1
+@phone = 13000000000
+@password = 1
+
+### 添加用户（测试）
+POST {{{{localhost}}}}/user/add HTTP/1.1
+content-type: application/json
+
+{
+    "Phone": "13000000002"
+}
+
+
+### id 获取用户”基础信息”
+GET {{localhost}}/user/i/{{id}} HTTP/1.1
+
+
+### phone 获取用户”基础信息”
+GET {{localhost}}/user/p/{{{phone}}} HTTP/1.1
+
+
+### id/password，获取用户”完整信息“
+GET {{localhost}}/user/a/{{id}}/{{password}} HTTP/1.1
+
+
+### phone/password，获取用户”完整信息“
+GET {{localhost}}/user/l/{{phone}}/{{password}} HTTP/1.1
+
+
+### code，如未注册则创建用户，反之则返回用户“基础信息”
+#POST {{localhost}}/user/ql/{{code}} HTTP/1.1
+
+
+### phone/password，登录
+GET {{localhost}}/user/l/{{phone}}/{{password}} HTTP/1.1
+
+
+### phone 获取用户收藏门店
+#GET {{localhost}}/user/f/s/{{phone}} HTTP/1.1
+
+# ======================== 门店 ===========================
+### 获取所有门店信息
+GET {{localhost}}/store/a HTTP/1.1
+
+
+# ======================== 车辆 ===========================
+### StoreId 查询车辆
+GET {{localhost}}/vehicle/a/1 HTTP/1.1
+
+
+###
+
+
+
