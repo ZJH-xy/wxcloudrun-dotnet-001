@@ -9,11 +9,13 @@
         public async Task<List<StoreBasic>> GetAllOrders() {
             List<Store> storeList = await _context.Store.Where(s => s.IsDelete == false).ToListAsync();
             List<StoreBasic> userBasicsList = new List<StoreBasic>();
+
             foreach (Store store in storeList) {
                 userBasicsList.Add(new StoreBasic(store));
             }
             return userBasicsList;
         }
+
         public async Task<Store?> GetStoreById(int id) {
             return await _context.Store.SingleOrDefaultAsync(s => s.StoreId == id && s.IsDelete == false);
         }

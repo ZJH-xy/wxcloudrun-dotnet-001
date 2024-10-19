@@ -16,3 +16,5 @@ global using aspnetapp.Dao.RepositoryInterface;
 global using aspnetapp.Dao.RepositoryInterface.Miniprogram;
 global using Microsoft.AspNetCore.Mvc;
 global using NuGet.Protocol;
+global using Newtonsoft.Json;
+global using Newtonsoft.Json.Converters;

@@ -1,17 +1,15 @@
-﻿using Senparc.CO2NET;
-
-namespace aspnetapp.Controllers.API {
+﻿namespace aspnetapp.Controllers.API {
     [Route("store")]
-    [ApiBind]
+    [ApiController]
     public class StoreAPI : ControllerBase {
         StoreController storeController = new StoreController(new MyDbContext());
 
         [HttpGet("a")]
         public async Task<IActionResult> GetStores() {
             try {
-                List<StoreBasic> storeBasic = await storeController.GetAllOrders();
+                List<StoreBasic> storeBasicList = await storeController.GetAllOrders();
 
-                return StatusCode(200, new { store_basic = storeBasic });
+                return StatusCode(200, new { storeBasicList });
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]GetStores: {e}");

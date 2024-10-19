@@ -7,12 +7,12 @@
         public int VehicleId { get; init; }// 车辆编号
 
         /* 逻辑指向门店 */
-        public int? OriginalStore { get; set; }//原始门店
+        public int? OriginalStore { get; set; }// 原始门店
 
         /* 逻辑指向门店 */
         public int? CurrentStore { get; set; }// 当前门店
 
-        public EVehicle Model { get; set; } = EVehicle.UnknownOrSecondHand;// 车辆型号
+        public Emodel Model { get; set; } = Emodel.UnknownOrSecondHand;// 车辆型号
 
         public string? PlateNumber { get; set; }// 车牌牌号
 
@@ -50,7 +50,7 @@
         }
 
         // 车辆型号
-        public enum EVehicle {
+        public enum Emodel {
             UnknownOrSecondHand,// 未知或二手
             Harting,// 雅迪
             Aima,// 爱玛
