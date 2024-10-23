@@ -43,18 +43,18 @@
         public bool IsDelete { get; set; } = false;
 
         public enum Estates {
-            空闲,// 空闲
-            已出租,// 已出租
-            充电中,// 充电中
-            故障// 故障
+            空闲,
+            已出租,
+            充电中,
+            故障
         }
 
         // 车辆型号
         public enum Emodel {
-            未知,// 未知或二手
-            雅迪,// 雅迪
-            爱玛,// 爱玛
-            台铃// 台铃
+            未知,
+            雅迪,
+            爱玛,
+            台铃
         }
     }
 }

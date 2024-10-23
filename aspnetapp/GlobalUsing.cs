@@ -1,5 +1,4 @@
-﻿global using Senparc.NeuChar.MessageHandlers;
-global using Senparc.Weixin.AspNet;
+﻿global using Senparc.Weixin.AspNet;
 global using Senparc.Weixin.WxOpen;
 global using Senparc.Weixin.WxOpen.MessageHandlers;
 global using Senparc.Weixin.RegisterServices;
@@ -18,3 +17,9 @@ global using Microsoft.AspNetCore.Mvc;
 global using NuGet.Protocol;
 global using Newtonsoft.Json;
 global using Newtonsoft.Json.Converters;
+global using Senparc.Weixin;
+global using Senparc.Weixin.Containers;
+global using Senparc.Weixin.MP.Containers;
+global using Senparc.Weixin.WxOpen.AdvancedAPIs.WxApp;
+global using System.Security.Cryptography;
+global using System.Text;

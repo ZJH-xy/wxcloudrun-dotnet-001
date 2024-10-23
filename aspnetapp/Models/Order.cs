@@ -53,11 +53,12 @@
         public DateTime UpdatedAt { get; set; }
 
         public enum OrderStatus {
-            Cancelled,// 已取消
-            PendingPayment,// 待付款
-            Refund,// 已退款
-            InProgress,// 进行中
-            Completed// 已完成
+            已取消,
+            待付款,
+            已退款,
+            待确认,
+            进行中,
+            已完成
         }
     }
 }

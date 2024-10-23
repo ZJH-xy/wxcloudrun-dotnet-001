@@ -50,9 +50,10 @@
                 UserId = user.UserId;
                 Nickname = user.Nickname ?? string.Empty;
             }
-            public int UserId { get; set; }
-            public string Nickname { get; set; }
 
+            public int UserId { get; set; }
+
+            public string Nickname { get; set; }
         }
 
         public struct UserPro {
@@ -63,10 +64,15 @@
                 IdentityCard = user.IdentityCard;
                 Nickname = user.Nickname;
             }
+
             public int UserId { get; set; }
+
             public string Phone { get; set; }
+
             public string? Name { get; set; }
+
             public string? IdentityCard { get; set; }
+
             public string? Nickname { get; set; }
         }
     }

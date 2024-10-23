@@ -1,15 +1,7 @@
-﻿using Senparc.CO2NET;
-using Senparc.Weixin;
-using Senparc.Weixin.Containers;
-using Senparc.Weixin.MP.Containers;
-using Senparc.Weixin.WxOpen.AdvancedAPIs.WxApp;
-using System.Security.Cryptography;
-using System.Text;
+﻿namespace aspnetapp.Controllers.API {
 
-namespace aspnetapp.Controllers.API {
     [Route("user")]
     [ApiController]
-    [ApiBind]
     public class UserAPI : ControllerBase {
         UserController UserController = new UserController(new MyDbContext());
         StoreController storeController = new StoreController(new MyDbContext());
@@ -24,7 +16,7 @@ namespace aspnetapp.Controllers.API {
                     UpdatedAt = DateTime.Now
                 };
                 int changesSum = await UserController.AddUser(user);
-                return StatusCode(201, new { change_sum = changesSum });
+                return StatusCode(201, new { changesSum });
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]PostUserAsync: {e}");
@@ -41,7 +33,7 @@ namespace aspnetapp.Controllers.API {
                 if (user is null)
                     return StatusCode(404);
 
-                return StatusCode(200, new { user_basic = user.ToJson() });
+                return StatusCode(200, new { user });
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]GetUserById: {e}");
@@ -57,7 +49,7 @@ namespace aspnetapp.Controllers.API {
                 if (user is null)
                     return StatusCode(404);
 
-                return StatusCode(200, new { user_basic = user.ToJson() });
+                return StatusCode(200, new { user });
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]GetUserByPhone: {e}");
@@ -78,9 +70,10 @@ namespace aspnetapp.Controllers.API {
                     return StatusCode(403, "非法请求");
 
                 if (!VerifyPassword(password, user.Password))
-                    StatusCode(403, "帐号或密码错误");
+                    return StatusCode(403, "帐号或密码错误");
 
-                return StatusCode(200, new { user_pro = new UserController.UserPro(user).ToJson() });
+                UserController.UserPro userPro = new UserController.UserPro(user);
+                return StatusCode(200, new { userPro });
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]GetUser: {e}");
@@ -116,7 +109,8 @@ namespace aspnetapp.Controllers.API {
             if (!VerifyPassword(password, user.Password))
                 return StatusCode(403, "帐号或密码错误");
 
-            return StatusCode(200, new { user_pro = new UserController.UserPro(user).ToJson() });
+            UserController.UserPro userPro = new UserController.UserPro(user);
+            return StatusCode(200, new { userPro });
         }
 
         // 快速登录
@@ -159,7 +153,8 @@ namespace aspnetapp.Controllers.API {
                     int ChangeSum = await UserController.AddUser(user);
 
                     if (ChangeSum > 0) {
-                        return StatusCode(200, new { use_basic = new UserController.UserBasic(user).ToJson() });
+                        UserController.UserBasic useBasic = new UserController.UserBasic(user);
+                        return StatusCode(200, new { useBasic });
                     }
 #if DEBUG
                     Console.WriteLine($"[错误]注册用户未成功插入数据库");
@@ -173,7 +168,7 @@ namespace aspnetapp.Controllers.API {
                 }
             }
 
-            return StatusCode(200, new { use_basic = userBasic.ToJson(), purePhoneNumber = result.phone_info.purePhoneNumber });
+            return StatusCode(200, new { userBasic, result.phone_info.purePhoneNumber });
         }
 
         // 根据手机号获取收藏门店

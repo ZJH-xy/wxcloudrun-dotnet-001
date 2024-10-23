@@ -1,4 +1,5 @@
 ﻿namespace aspnetapp.Controllers.API {
+
     [Route("vehicle")]
     [ApiController]
     public class VehicleAPI : ControllerBase {

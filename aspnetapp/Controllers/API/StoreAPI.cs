@@ -1,4 +1,5 @@
 ﻿namespace aspnetapp.Controllers.API {
+
     [Route("store")]
     [ApiController]
     public class StoreAPI : ControllerBase {
@@ -7,7 +8,7 @@
         [HttpGet("a")]
         public async Task<IActionResult> GetStores() {
             try {
-                List<StoreBasic> storeBasicList = await storeController.GetAllOrders();
+                List<StoreBasic> storeBasicList = await storeController.GetAllStore();
 
                 return StatusCode(200, new { storeBasicList });
             } catch (Exception e) {
