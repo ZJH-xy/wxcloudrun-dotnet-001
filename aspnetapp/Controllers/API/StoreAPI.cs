@@ -3,7 +3,7 @@
     [Route("store")]
     [ApiController]
     public class StoreAPI : ControllerBase {
-        StoreController storeController = new StoreController(new MyDbContext());
+        StoreController storeController = new(new MyDbContext());
 
         [HttpGet("a")]
         public async Task<IActionResult> GetStores() {
@@ -15,7 +15,7 @@
 #if DEBUG
                 Console.WriteLine($"[错误]GetStores: {e}");
 #endif
-                return StatusCode(500, "服务器错误");
+                return StatusCode(500);
             }
         }
     }

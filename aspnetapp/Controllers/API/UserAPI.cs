@@ -3,14 +3,14 @@
     [Route("user")]
     [ApiController]
     public class UserAPI : ControllerBase {
-        UserController UserController = new UserController(new MyDbContext());
-        StoreController storeController = new StoreController(new MyDbContext());
+        UserController UserController = new(new MyDbContext());
+        StoreController storeController = new(new MyDbContext());
 
         // 添加用户（测试）
         [HttpPost("add")]
         public async Task<IActionResult> PostUser(GetUser getUser) {// [FromBody]
             try {
-                User user = new User() {
+                User user = new() {
                     Phone = getUser.Phone,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
@@ -21,7 +21,7 @@
 #if DEBUG
                 Console.WriteLine($"[错误]PostUserAsync: {e}");
 #endif
-                return StatusCode(500, "服务器错误");
+                return StatusCode(500);
             }
         }
 
@@ -38,7 +38,7 @@
 #if DEBUG
                 Console.WriteLine($"[错误]GetUserById: {e}");
 #endif
-                return StatusCode(500, "服务器错误");
+                return StatusCode(500);
             }
         }
 
@@ -54,7 +54,7 @@
 #if DEBUG
                 Console.WriteLine($"[错误]GetUserByPhone: {e}");
 #endif
-                return StatusCode(500, "服务器错误");
+                return StatusCode(500);
             }
         }
 
@@ -78,7 +78,7 @@
 #if DEBUG
                 Console.WriteLine($"[错误]GetUser: {e}");
 #endif
-                return StatusCode(500, "服务器错误");
+                return StatusCode(500);
             }
         }
 
@@ -98,7 +98,7 @@
 #if DEBUG
                 Console.WriteLine($"[错误]Login: {e}");
 #endif
-                return StatusCode(500, "服务器错误");
+                return StatusCode(500);
             }
             if (user is null)
                 return StatusCode(403, "帐号或密码错误");
@@ -109,7 +109,7 @@
             if (!VerifyPassword(password, user.Password))
                 return StatusCode(403, "帐号或密码错误");
 
-            UserController.UserPro userPro = new UserController.UserPro(user);
+            UserController.UserPro userPro = new(user);
             return StatusCode(200, new { userPro });
         }
 
@@ -131,29 +131,30 @@
 #if DEBUG
                     Console.WriteLine($"[错误]in QuickLogin errcode is {result.errcode}");
 #endif
-                    return StatusCode(500, "服务器错误");
+                    return StatusCode(500);
 
                 default:
 #if DEBUG
                     Console.WriteLine($"[错误]in QuickLogin errcode is {result.errcode}");
 #endif
-                    return StatusCode(500, "服务器错误");
+                    return StatusCode(500);
             }
 
             UserController.UserBasic? userBasic = await UserController.GetUserByPhone(result.phone_info.purePhoneNumber);
 
             // 未注册
             if (userBasic is null) {
-                User user = new();
-                user.Phone = result.phone_info.purePhoneNumber;
-                user.CreatedAt = DateTime.Now;
-                user.UpdatedAt = DateTime.Now;
+                User user = new() {
+                    Phone = result.phone_info.purePhoneNumber,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
 
                 try {
                     int ChangeSum = await UserController.AddUser(user);
 
                     if (ChangeSum > 0) {
-                        UserController.UserBasic useBasic = new UserController.UserBasic(user);
+                        UserController.UserBasic useBasic = new(user);
                         return StatusCode(200, new { useBasic });
                     }
 #if DEBUG
@@ -164,7 +165,7 @@
 #if DEBUG
                     Console.WriteLine($"[错误]注册新用户QuickLogin: {e}");
 #endif
-                    return StatusCode(500, "服务器错误");
+                    return StatusCode(500);
                 }
             }
 
@@ -174,7 +175,7 @@
         // 根据手机号获取收藏门店
         [HttpGet("f/s/{phone}")]
         public async Task<IActionResult> GetFavoriteStores(string phone) {
-            return StatusCode(404, "未实现");
+            return StatusCode(404);
             /*
             User? user = null;
             try {
@@ -187,7 +188,7 @@
 #if DEBUG
                 Console.WriteLine($"[错误]Login: {e}");
 #endif
-                return StatusCode(500, "服务器错误");
+                return StatusCode(500);
             }
             if (user is null)
                 return StatusCode(403, "帐号或密码错误");
