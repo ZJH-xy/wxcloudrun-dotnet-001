@@ -15,6 +15,9 @@
 
         public DateTime? ActualReturnTime { get; set; }// 实际归还时间
 
+        /* 逻辑指向车辆 */
+        public int Vehicle { get; set; }// 租用车辆
+
         /* 逻辑指向门店 */
         public int RentalLocation { get; set; }// 租车点（StoreId）
 
@@ -23,6 +26,12 @@
 
         /* 逻辑指向门店 */
         public int? ReturnThePoint { get; set; }// 还车点（StoreId）
+
+        public string UserName { get; set; }// 用户姓名
+
+        public string UserPhone { get; set; }// 用户手机号
+
+        public string? IdentityCard { get; set; }// 身份证号
 
         public bool LongTermLease { get; set; } = false;// 长租
 
