@@ -258,7 +258,7 @@ namespace aspnetapp.Controllers.API {
             }
         }
     }
-    public struct GetPassword {
+    public class GetPassword {
         public string Password { get; set; }
     }
 
