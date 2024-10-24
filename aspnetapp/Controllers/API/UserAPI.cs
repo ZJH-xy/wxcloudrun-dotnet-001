@@ -50,8 +50,8 @@ namespace aspnetapp.Controllers.API {
         }
 
         // 获取用户所有信息
-        [HttpGet("a/{id}")]
-        public async Task<IActionResult> GetUserPro(int id, GetPassword data) {
+        [HttpGet("a/i")]
+        public async Task<IActionResult> GetUserProById(GetId data) {
             if (data.Password is null)
                 return StatusCode(403, "密码为空");
 
@@ -60,7 +60,7 @@ namespace aspnetapp.Controllers.API {
 
             User? user = null;
             try {
-                user = await UserController.GetUser(id);
+                user = await UserController.GetUser(data.Id);
 
             } catch (Exception e) {
 #if DEBUG
@@ -82,8 +82,8 @@ namespace aspnetapp.Controllers.API {
         }
 
         // 获取用户所有信息
-        [HttpGet("l/{phone}")]
-        public async Task<IActionResult> GetUserproByPhone(string phone, GetPassword data) {
+        [HttpGet("a/p")]
+        public async Task<IActionResult> GetUserproByPhone(GetPhone data) {
             if (data.Password is null)
                 return StatusCode(403, "密码为空");
 
@@ -92,7 +92,7 @@ namespace aspnetapp.Controllers.API {
 
             User? user = null;
             try {
-                user = await UserController.GetUserByPhone(phone);
+                user = await UserController.GetUserByPhone(data.Phone);
 
             } catch (Exception e) {
 #if DEBUG
@@ -258,7 +258,13 @@ namespace aspnetapp.Controllers.API {
             }
         }
     }
-    public class GetPassword {
+    public class GetId {
+        public int Id { get; set; }
+        public string Password { get; set; }
+    }
+
+    public class GetPhone {
+        public string Phone {get; set;}
         public string Password { get; set; }
     }
 
