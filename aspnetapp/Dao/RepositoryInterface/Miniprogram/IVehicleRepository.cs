@@ -6,5 +6,7 @@
         /// <param name="storeId"></param>
         /// <returns></returns>
         Task<List<VehicleBasic>> GetVehicleByStoreId(int storeId);
+        // 
+        Task<VehiclePro?> GetVehicleById(int vehicleId);
     }
 }
