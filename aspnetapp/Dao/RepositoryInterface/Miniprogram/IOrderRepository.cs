@@ -1,5 +1,7 @@
 ﻿namespace aspnetapp.Dao.RepositoryInterface.Miniprogram {
     public interface IOrderRepository {
+        // 获取订单
+        Task<Order?> GetById(int id);
         /// <summary>
         /// 添加订单
         /// </summary>
@@ -11,6 +13,8 @@
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        Task<IList<Object?>> GetOrderByName(int userId);
+        Task<List<Order>> GetOrderByUserId(int userId);
+        //
+        Task<int> UpdateOrder(Order order);
     }
 }
