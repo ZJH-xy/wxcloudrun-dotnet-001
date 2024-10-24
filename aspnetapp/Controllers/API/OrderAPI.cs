@@ -33,10 +33,10 @@ namespace aspnetapp.Controllers.API {
 
         // 创建订单
         [HttpPost("a")]
-        public async Task<IActionResult> AddOrder([FromBody] GetOrder getOrder) {
+        public async Task<IActionResult> AddOrder([FromBody] GetOrder data) {
             using MyDbContext dbcontext = new();
             try {
-                if (await dbcontext.Order.Where(o => o.TheUser == getOrder.TheUser).
+                if (await dbcontext.Order.Where(o => o.TheUser == data.TheUser).
                 Where(o => o.Status == Order.OrderStatus.待确认 || o.Status == Order.OrderStatus.待付款).AnyAsync()) {
                     return StatusCode(403, "当前有待确认的订单");
                 }
@@ -49,7 +49,7 @@ namespace aspnetapp.Controllers.API {
 
             Vehicle? vehicle = null;
             try {
-                vehicle = await dbcontext.Vehicle.SingleOrDefaultAsync(v => v.IsDelete == false && v.VehicleId == getOrder.Vehicle);
+                vehicle = await dbcontext.Vehicle.SingleOrDefaultAsync(v => v.IsDelete == false && v.VehicleId == data.Vehicle);
 
             } catch (Exception e) {
 #if DEBUG
@@ -79,16 +79,16 @@ namespace aspnetapp.Controllers.API {
             }
 
             Order order = new() {
-                TheUser = getOrder.TheUser,
-                UserName = getOrder.UserName,// 用户姓名
-                UserPhone = getOrder.UserPhone,// 用户手机号
-                IdentityCard = getOrder.IdentityCard,// 身份证号
-                StartingTime = getOrder.StartingTime,// 起始时间
-                ExpectedReturnTime = getOrder.ExpectedReturnTime,// 预计归还时间
-                RentalLocation = getOrder.RentalLocation,// 租车点
-                Deposit = getOrder.Deposit,// 押金
-                Rent = getOrder.Rent,// 租金
-                Notes = getOrder.Notes,// 备注
+                TheUser = data.TheUser,
+                UserName = data.UserName,// 用户姓名
+                UserPhone = data.UserPhone,// 用户手机号
+                IdentityCard = data.IdentityCard,// 身份证号
+                StartingTime = data.StartingTime,// 起始时间
+                ExpectedReturnTime = data.ExpectedReturnTime,// 预计归还时间
+                RentalLocation = data.RentalLocation,// 租车点
+                Deposit = data.Deposit,// 押金
+                Rent = data.Rent,// 租金
+                Notes = data.Notes,// 备注
                 Status = Order.OrderStatus.待付款,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
