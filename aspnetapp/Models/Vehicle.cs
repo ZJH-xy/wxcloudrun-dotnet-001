@@ -34,7 +34,7 @@
 
         public bool IsCase { get; set; } = false; // 是否涉案
 
-        public DateTime StateUpdatedAt { get; set; }// 更新时间
+        public DateTime StateUpdatedAt { get; set; }// 状态更新时间
 
         public DateTime CreatedAt { get; set; }
 
@@ -46,7 +46,8 @@
             空闲,
             已出租,
             充电中,
-            故障
+            故障,
+            锁定
         }
 
         // 车辆型号

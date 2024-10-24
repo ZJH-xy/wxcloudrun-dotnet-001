@@ -42,16 +42,16 @@
         public decimal Rent { get; set; }// 租金
 
         [Precision(10, 2)]
-        public decimal DispatchFee { get; set; }// 调度费
+        public decimal DispatchFee { get; set; } = 0;// 调度费
 
         [Precision(10, 2)]
-        public decimal OtherFees { get; set; }// 其他费用
+        public decimal OtherFees { get; set; } = 0;// 其他费用
 
         [Precision(10, 2)]
-        public decimal Paid { get; set; }// 已付
+        public decimal Paid { get; set; } = 0;// 已付
 
         [Precision(10, 2)]
-        public decimal DepositRefunded { get; set; }// 已退押金
+        public decimal DepositRefunded { get; set; } = 0;// 已退押金
 
         public OrderStatus Status { get; set; }// 订单状态
 
