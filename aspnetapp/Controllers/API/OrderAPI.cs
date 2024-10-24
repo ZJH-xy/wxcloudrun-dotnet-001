@@ -33,7 +33,7 @@ namespace aspnetapp.Controllers.API {
 
         // 创建订单
         [HttpPost("a")]
-        public async Task<IActionResult> AddOrder(GetOrder getOrder) {
+        public async Task<IActionResult> AddOrder([FromBody] GetOrder getOrder) {
             using MyDbContext dbcontext = new();
             try {
                 if (await dbcontext.Order.Where(o => o.TheUser == getOrder.TheUser).

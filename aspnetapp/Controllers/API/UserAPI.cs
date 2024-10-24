@@ -51,7 +51,7 @@ namespace aspnetapp.Controllers.API {
 
         // 获取用户所有信息
         [HttpGet("a/{id}")]
-        public async Task<IActionResult> GetUserPro(int id, GetPassword getPassword) {
+        public async Task<IActionResult> GetUserPro(int id, [FromBody] GetPassword getPassword) {
             if (getPassword.Password is null)
                 return StatusCode(403, "密码为空");
 
@@ -83,7 +83,7 @@ namespace aspnetapp.Controllers.API {
 
         // 获取用户所有信息
         [HttpGet("l/{phone}")]
-        public async Task<IActionResult> GetUserproByPhone(string phone, GetPassword getPassword) {
+        public async Task<IActionResult> GetUserproByPhone(string phone, [FromBody] GetPassword getPassword) {
             if (getPassword.Password is null)
                 return StatusCode(403, "密码为空");
 
