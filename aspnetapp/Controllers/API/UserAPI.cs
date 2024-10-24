@@ -51,11 +51,11 @@ namespace aspnetapp.Controllers.API {
 
         // 获取用户所有信息
         [HttpGet("a/{id}")]
-        public async Task<IActionResult> GetUserPro(int id, [FromBody] GetPassword getPassword) {
-            if (getPassword.Password is null)
+        public async Task<IActionResult> GetUserPro(int id, [FromBody] GetPassword data) {
+            if (data.Password is null)
                 return StatusCode(403, "密码为空");
 
-            if (PasswordFormatDetermination(getPassword.Password) == false)
+            if (PasswordFormatDetermination(data.Password) == false)
                 return StatusCode(403, "密码格式错误");
 
             User? user = null;
@@ -75,7 +75,7 @@ namespace aspnetapp.Controllers.API {
             if (user.Password is null) 
                 return StatusCode(403, "用户未设置密码");
 
-            if (VerifyPassword(getPassword.Password, user.Password) == false)
+            if (VerifyPassword(data.Password, user.Password) == false)
                 return StatusCode(403, "帐号或密码错误");
 
             return StatusCode(200, new UserPro(user));
@@ -83,11 +83,11 @@ namespace aspnetapp.Controllers.API {
 
         // 获取用户所有信息
         [HttpGet("l/{phone}")]
-        public async Task<IActionResult> GetUserproByPhone(string phone, [FromBody] GetPassword getPassword) {
-            if (getPassword.Password is null)
+        public async Task<IActionResult> GetUserproByPhone(string phone, [FromBody] GetPassword data) {
+            if (data.Password is null)
                 return StatusCode(403, "密码为空");
 
-            if (PasswordFormatDetermination(getPassword.Password) == false)
+            if (PasswordFormatDetermination(data.Password) == false)
                 return StatusCode(403, "密码格式错误");
 
             User? user = null;
@@ -107,7 +107,7 @@ namespace aspnetapp.Controllers.API {
             if (user.Password is null)
                 return StatusCode(403, "用户未设置密码");
 
-            if (VerifyPassword(getPassword.Password, user.Password) == false)
+            if (VerifyPassword(data.Password, user.Password) == false)
                 return StatusCode(403, "帐号或密码错误");
 
             return StatusCode(200, new UserPro(user));
