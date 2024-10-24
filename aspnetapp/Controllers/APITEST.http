@@ -3,21 +3,12 @@
 @phone = 13000000000
 @password = 1
 
-### 添加用户（测试）
-POST {{{{localhost}}}}/user/add HTTP/1.1
-content-type: application/json
-
-{
-    "Phone": "13000000002"
-}
-
-
 ### id 获取用户”基础信息”
 GET {{localhost}}/user/i/{{id}} HTTP/1.1
 
 
 ### phone 获取用户”基础信息”
-GET {{localhost}}/user/p/{{{phone}}} HTTP/1.1
+GET {{localhost}}/user/p/{{phone}} HTTP/1.1
 
 
 ###
@@ -28,17 +19,21 @@ content-type: application/json
     "Password": "{{password}}"
 }
 
+### phone/password，登录
+GET {{localhost}}/user/l/{{phone}} HTTP/1.1
+content-type: application/json
+
+{
+    "Password": "{{password}}"
+}
 
 ### code，如未注册则创建用户，反之则返回用户“基础信息”
-#POST {{localhost}}/user/ql/{{code}} HTTP/1.1
-
-
-### phone/password，登录
-GET {{localhost}}/user/l/{{phone}}/{{password}} HTTP/1.1
+# POST {{localhost}}/user/ql/1 HTTP/1.1
 
 
 ### phone 获取用户收藏门店
 #GET {{localhost}}/user/f/s/{{phone}} HTTP/1.1
+
 
 ### ======================== 门店 ===========================
 ### 获取所有门店信息
@@ -47,6 +42,10 @@ GET {{localhost}}/store/a HTTP/1.1
 
 ### ======================== 车辆 ===========================
 ### StoreId 获取门店所有车辆
+GET {{localhost}}/vehicle/a HTTP/1.1
+
+
+### 
 GET {{localhost}}/vehicle/1 HTTP/1.1
 
 
@@ -60,11 +59,16 @@ POST {{localhost}}/order/a HTTP/1.1
 content-type: application/json
 
 {
-    "StartingTime": "2024-10-23"
-    "ExpectedReturnTime": "2024-10-24"
-    "RentalLocation": "1"
-    "LongTermLease": "false"
-    "Deposit": "200"
-    "Rent": "50"
-    "Notes": ""
+    "TheUser": 1,
+    "UserName": "测试用户001",
+    "UserPhone": "13666666666",
+    "IdentityCard": "360000000000000000",
+    "Vehicle": 1,
+    "StartingTime": "2024-10-23",
+    "ExpectedReturnTime": "2024-10-24",
+    "RentalLocation": 1,
+    "LongTermLease": false,
+    "Deposit": 200,
+    "Rent": 30,
+    "Notes": "备注"
 }

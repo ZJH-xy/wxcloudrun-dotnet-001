@@ -7,19 +7,12 @@
             _context = context;
         }
 
-        public async Task<VehiclePro?> GetVehicleById(int vehicleId) {
-            Vehicle? vehicle = await _context.Vehicle.SingleOrDefaultAsync(v => v.VehicleId == vehicleId);
-            return vehicle is null ? null : new VehiclePro(vehicle);
+        public async Task<Vehicle?> GetVehicleById(int vehicleId) {
+            return await _context.Vehicle.SingleOrDefaultAsync(v => v.IsDelete == false && v.VehicleId == vehicleId);
         }
 
-        public async Task<List<VehicleBasic>> GetVehicleByStoreId(int storeId) {
-            List<Vehicle> vehicleList = await _context.Vehicle.Where(s => s.IsDelete == false && s.CurrentStore == storeId).ToListAsync();
-            List<VehicleBasic> vehiclesBasicsList = new();
-
-            foreach (Vehicle vehicle in vehicleList) {
-                vehiclesBasicsList.Add(new VehicleBasic(vehicle));
-            }
-            return vehiclesBasicsList;
+        public async Task<List<Vehicle>> GetVehicleByStoreId(int storeId) {
+            return await _context.Vehicle.Where(s => s.IsDelete == false && s.CurrentStore == storeId).ToListAsync();
         }
     }
 

@@ -14,7 +14,11 @@
         /// <param name="userId"></param>
         /// <returns></returns>
         Task<List<Order>> GetOrderByUserId(int userId);
-        //
+        /// <summary>
+        /// 更新订单
+        /// </summary>
+        /// <param name="order"></param>
+        /// <returns></returns>
         Task<int> UpdateOrder(Order order);
     }
 }

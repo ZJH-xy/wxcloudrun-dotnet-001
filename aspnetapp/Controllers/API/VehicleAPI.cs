@@ -8,9 +8,9 @@
         // 获取门店所有车辆
         [HttpGet("a/{storeId}")]
         public async Task<IActionResult> Getvehicles(int storeId) {
-            List<VehicleBasic> vehicleBasicsList = new();
+            List<Vehicle> vehicleList = new();
             try {
-                vehicleBasicsList = await vehicleController.GetVehicleByStoreId(storeId);
+                vehicleList = await vehicleController.GetVehicleByStoreId(storeId);
 
             } catch (Exception e) {
 #if DEBUG
@@ -19,13 +19,19 @@
                 return StatusCode(500);
             }
 
-            return StatusCode(200, vehicleBasicsList);
+            List<VehicleBasic> vehiclesBasicsList = new();
+
+            foreach (Vehicle vehicle in vehicleList) {
+                vehiclesBasicsList.Add(new VehicleBasic(vehicle));
+            }
+
+            return StatusCode(200, vehiclesBasicsList);
         }
 
         // 获取车辆信息
         [HttpGet("{id}")]
         public async Task<IActionResult> GetVehicleById(int id) {
-            VehiclePro? vehicle = null;
+            Vehicle? vehicle = null;
             try {
                 vehicle = await vehicleController.GetVehicleById(id);
 
@@ -35,10 +41,11 @@
 #endif
                 return StatusCode(500);
             }
+
             if (vehicle is null)
                 return StatusCode(404);
 
-            return StatusCode(200, vehicle);
+            return StatusCode(200, new VehiclePro(vehicle));
         }
     }
 }

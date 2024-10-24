@@ -1,4 +1,7 @@
-﻿namespace aspnetapp.Controllers.API {
+﻿using NuGet.Protocol;
+using Senparc.Weixin.MP.AdvancedAPIs;
+
+namespace aspnetapp.Controllers.API {
 
     [Route("user")]
     [ApiController]
@@ -9,92 +12,105 @@
         // 获取用户基础信息
         [HttpGet("i/{id}")]
         public async Task<IActionResult> GetUserById(int id) {
+            User? user = null;
             try {
-                UserController.UserBasic? user = await UserController.GetUserById(id);
-                if (user is null)
-                    return StatusCode(404);
+                user = await UserController.GetUserById(id);
 
-                return StatusCode(200, new { user });
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]GetUserById: {e}");
 #endif
                 return StatusCode(500);
             }
+
+            if (user is null)
+                return StatusCode(404);
+
+            return StatusCode(200, new UserBasic(user));
         }
 
         // 获取用户基础信息
         [HttpGet("p/{phone}")]
         public async Task<IActionResult> GetUserByPhone(string phone) {
+            User? user = null;
             try {
-                UserController.UserBasic? user = await UserController.GetUserByPhone(phone);
-                if (user is null)
-                    return StatusCode(404);
+                user = await UserController.GetUserByPhone(phone);
 
-                return StatusCode(200, new { user });
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]GetUserByPhone: {e}");
 #endif
                 return StatusCode(500);
             }
+
+            if (user is null)
+                return StatusCode(404);
+
+            return StatusCode(200, new UserBasic(user));
         }
 
         // 获取用户所有信息
         [HttpGet("a/{id}")]
-        public async Task<IActionResult> GetUser(int id, GetPassword Password) {
+        public async Task<IActionResult> GetUserPro(int id, GetPassword getPassword) {
+            if (getPassword.Password is null)
+                return StatusCode(403, "密码为空");
+
+            if (PasswordFormatDetermination(getPassword.Password) == false)
+                return StatusCode(403, "密码格式错误");
+
+            User? user = null;
             try {
-                User? user = await UserController.GetUser(id);
+                user = await UserController.GetUser(id);
 
-                if (user is null)
-                    return StatusCode(403, "帐号或密码错误");
-
-                if (user.Password is null)
-                    return StatusCode(403, "非法请求");
-
-                if (!VerifyPassword(Password.password, user.Password))
-                    return StatusCode(403, "帐号或密码错误");
-
-                UserController.UserPro userPro = new UserController.UserPro(user);
-                return StatusCode(200, new { userPro });
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]GetUser: {e}");
 #endif
                 return StatusCode(500);
             }
+
+            if (user is null)
+                return StatusCode(403, "帐号或密码错误");
+
+            if (user.Password is null) 
+                return StatusCode(403, "用户未设置密码");
+
+            if (VerifyPassword(getPassword.Password, user.Password) == false)
+                return StatusCode(403, "帐号或密码错误");
+
+            return StatusCode(200, new UserPro(user));
         }
 
         // 获取用户所有信息
-        [HttpGet("l/{phone}/{password}")]
-        public async Task<IActionResult> Login(string phone, GetPassword Password) {
-            if (Password.password is null)
-                return StatusCode(400, "密码为空");
+        [HttpGet("l/{phone}")]
+        public async Task<IActionResult> GetUserproByPhone(string phone, GetPassword getPassword) {
+            if (getPassword.Password is null)
+                return StatusCode(403, "密码为空");
+
+            if (PasswordFormatDetermination(getPassword.Password) == false)
+                return StatusCode(403, "密码格式错误");
 
             User? user = null;
             try {
-                UserController.UserBasic? userBasic = await UserController.GetUserByPhone(phone);
-                if (userBasic is null)
-                    return StatusCode(404);
+                user = await UserController.GetUserByPhone(phone);
 
-                user = await UserController.GetUser(userBasic.Value.UserId);
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]Login: {e}");
 #endif
                 return StatusCode(500);
             }
+
             if (user is null)
                 return StatusCode(403, "帐号或密码错误");
 
             if (user.Password is null)
-                return StatusCode(403, "未设置密码");
+                return StatusCode(403, "用户未设置密码");
 
-            if (!VerifyPassword(Password.password, user.Password))
+            if (VerifyPassword(getPassword.Password, user.Password) == false)
                 return StatusCode(403, "帐号或密码错误");
 
-            UserController.UserPro userPro = new(user);
-            return StatusCode(200, new { userPro });
+            return StatusCode(200, new UserPro(user));
         }
 
         // 快速登录
@@ -106,54 +122,65 @@
                     break;
 
                 case ReturnCode.系统繁忙此时请开发者稍候再试:
-                    return StatusCode(408, "系统繁忙");
+                    return StatusCode(403, "系统繁忙");
 
                 case ReturnCode.不合法的oauth_code:
                     return StatusCode(403, "code 无效");
 
                 case ReturnCode.不合法的APPID:
 #if DEBUG
-                    Console.WriteLine($"[错误]in QuickLogin errcode is {result.errcode}");
+                    Console.WriteLine($"[错误]QuickLogin: 不合法的APPID，errcode: {result.errcode};");
 #endif
                     return StatusCode(500);
 
                 default:
 #if DEBUG
-                    Console.WriteLine($"[错误]in QuickLogin errcode is {result.errcode}");
+                    Console.WriteLine($"[错误]QuickLogin: errcode: {result.errcode};");
 #endif
                     return StatusCode(500);
             }
 
-            UserController.UserBasic? userBasic = await UserController.GetUserByPhone(result.phone_info.purePhoneNumber);
+            User? user = null;
+            try {
+                user = await UserController.GetUserByPhone(result.phone_info.purePhoneNumber);
+
+            } catch (Exception e) {
+#if DEBUG
+                Console.WriteLine($"[错误]QuickLogin 手机号获取用户: {e}");
+#endif
+                return StatusCode(500);
+            }
 
             // 未注册
-            if (userBasic is null) {
-                User user = new() {
+            if (user is null) {
+                int changeSum = 0;
+                user = new() {
                     Phone = result.phone_info.purePhoneNumber,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };
 
                 try {
-                    int ChangeSum = await UserController.AddUser(user);
+                    changeSum = await UserController.AddUser(user);
 
-                    if (ChangeSum > 0) {
-                        UserController.UserBasic useBasic = new(user);
-                        return StatusCode(200, new { useBasic });
-                    }
-#if DEBUG
-                    Console.WriteLine($"[错误]注册用户未成功插入数据库");
-#endif
-                    return StatusCode(406, "注册失败，请联系管理员");
                 } catch (Exception e) {
 #if DEBUG
-                    Console.WriteLine($"[错误]注册新用户QuickLogin: {e}");
+                    Console.WriteLine($"[错误]QuickLogin 新用户注册: {e}");
 #endif
                     return StatusCode(500);
                 }
+
+                if (0 == changeSum) {
+#if DEBUG
+                    Console.WriteLine($"[异常]QuickLogin 用户注册失败，userJson: {user.ToJson()}");
+#endif
+                    return StatusCode(403, "注册失败，请联系管理员");
+                }
+
+                return StatusCode(200, new UserBasic(user));
             }
 
-            return StatusCode(200, new { userBasic, result.phone_info.purePhoneNumber });
+            return StatusCode(200, new { user = new UserBasic(user), result.phone_info.purePhoneNumber });
         }
 
         // 根据手机号获取收藏门店
@@ -181,7 +208,25 @@
             */
         }
 
-        // 验证密码
+        /// <summary>
+        /// 密码格式判断
+        /// </summary>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        public static bool PasswordFormatDetermination(string password) {
+            return true;
+            //if (password.Length < 8 ||  password.Length > 12)
+            //    return false;
+
+            //return true;
+        }
+
+        /// <summary>
+        /// 验证密码
+        /// </summary>
+        /// <param name="password"></param>
+        /// <param name="hashedPassword"></param>
+        /// <returns></returns>
         public static bool VerifyPassword(string password, string hashedPassword) {
             // 对输入的密码进行SHA-256哈希
             string hashedInputPassword = HashPassword(password);
@@ -189,7 +234,11 @@
             return hashedInputPassword == hashedPassword;
         }
 
-        // 使用SHA-256哈希密码
+        /// <summary>
+        /// 使用SHA-256哈希密码
+        /// </summary>
+        /// <param name="password"></param>
+        /// <returns></returns>
         public static string HashPassword(string password) {
             using (SHA256 sha256 = SHA256.Create()) {
                 // 将输入密码转换为字节数组
@@ -209,7 +258,38 @@
             }
         }
     }
-    public class GetPassword {
-        public string password { get; set; }
+    public struct GetPassword {
+        public string Password { get; set; }
+    }
+
+    public struct UserBasic {
+        public UserBasic(User user) {
+            UserId = user.UserId;
+            Nickname = user.Nickname ?? string.Empty;
+        }
+
+        public int UserId { get; set; }
+
+        public string Nickname { get; set; }
+    }
+
+    public struct UserPro {
+        public UserPro(User user) {
+            UserId = user.UserId;
+            Phone = user.Phone;
+            Name = user.Name;
+            IdentityCard = user.IdentityCard;
+            Nickname = user.Nickname;
+        }
+
+        public int UserId { get; set; }
+
+        public string Phone { get; set; }
+
+        public string? Name { get; set; }
+
+        public string? IdentityCard { get; set; }
+
+        public string? Nickname { get; set; }
     }
 }

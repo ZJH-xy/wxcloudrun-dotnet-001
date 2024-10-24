@@ -7,18 +7,21 @@ namespace aspnetapp.Controllers.API {
     public class OrderAPI : ControllerBase {
         readonly OrderController orderController = new(new MyDbContext());
 
+        // 查询单个订单
         [HttpGet("i/{id}")]
         public async Task<IActionResult> GetOderByUserId(int id) {
+            Order? order = null;
             try {
-                Order? order = await orderController.GetById(id);
+                order = await orderController.GetById(id);
 
-                return StatusCode(200, new { order });
             } catch (Exception e) {
 #if DEBUG
-                Console.WriteLine($"[错误]GetOderByUserId，获取用户订单异常: {e}");
+                Console.WriteLine($"[错误]GetOderByUserId: {e}");
 #endif
                 return StatusCode(500);
             }
+
+            return StatusCode(200, order);
         }
 
         // 计算租金
@@ -28,6 +31,7 @@ namespace aspnetapp.Controllers.API {
             //decimal sum = 0;
         }
 
+        // 创建订单
         [HttpPost("a")]
         public async Task<IActionResult> AddOrder(GetOrder getOrder) {
             using MyDbContext dbcontext = new();
@@ -40,7 +44,7 @@ namespace aspnetapp.Controllers.API {
 #if DEBUG
                 Console.WriteLine($"[错误]AddOrder，获取用户订单信息异常: {e}");
 #endif
-                return StatusCode(404, "订单信息获取错误");
+                return StatusCode(403, "订单信息获取错误");
             }
 
             Vehicle? vehicle = null;
@@ -51,13 +55,13 @@ namespace aspnetapp.Controllers.API {
 #if DEBUG
                 Console.WriteLine($"[错误]AddOrder，获取车辆信息异常: {e}");
 #endif
-                return StatusCode(404, "获取车辆信息错误");
+                return StatusCode(403, "获取车辆信息错误");
             }
             if (vehicle is null)
-                return StatusCode(404, "车辆选择错误");
+                return StatusCode(403, "车辆选择错误");
 
             if (vehicle.State != Vehicle.Estates.空闲)
-                return StatusCode(405, "手慢了，请更换车辆");
+                return StatusCode(403, "手慢了，请更换车辆");
 
             vehicle.State = Vehicle.Estates.锁定;
             vehicle.StateUpdatedAt = DateTime.Now;
@@ -99,10 +103,10 @@ namespace aspnetapp.Controllers.API {
 #if DEBUG
                 Console.WriteLine($"[错误]AddOrder，创建订单异常: {e}");
 #endif
-                return StatusCode(405, "创建订单失败");
+                return StatusCode(403, "创建订单失败");
             }
 
-            return StatusCode(201, new { returnOrder = new ReturnOrder(order) });
+            return StatusCode(201, new ReturnOrder(order));
         }
     }
 
