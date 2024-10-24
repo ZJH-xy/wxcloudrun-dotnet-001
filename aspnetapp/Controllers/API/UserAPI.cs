@@ -6,26 +6,7 @@
         UserController UserController = new(new MyDbContext());
         StoreController storeController = new(new MyDbContext());
 
-        // 添加用户（测试）
-        [HttpPost("add")]
-        public async Task<IActionResult> PostUser(GetUser getUser) {// [FromBody]
-            try {
-                User user = new() {
-                    Phone = getUser.Phone,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
-                };
-                int changesSum = await UserController.AddUser(user);
-                return StatusCode(201, new { changesSum });
-            } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]PostUserAsync: {e}");
-#endif
-                return StatusCode(500);
-            }
-        }
-
-
+        // 获取用户基础信息
         [HttpGet("i/{id}")]
         public async Task<IActionResult> GetUserById(int id) {
             try {
@@ -42,6 +23,7 @@
             }
         }
 
+        // 获取用户基础信息
         [HttpGet("p/{phone}")]
         public async Task<IActionResult> GetUserByPhone(string phone) {
             try {
@@ -58,8 +40,9 @@
             }
         }
 
-        [HttpGet("a/{id}/{password}")]
-        public async Task<IActionResult> GetUser(int id, string password) {
+        // 获取用户所有信息
+        [HttpGet("a/{id}")]
+        public async Task<IActionResult> GetUser(int id, GetPassword Password) {
             try {
                 User? user = await UserController.GetUser(id);
 
@@ -69,7 +52,7 @@
                 if (user.Password is null)
                     return StatusCode(403, "非法请求");
 
-                if (!VerifyPassword(password, user.Password))
+                if (!VerifyPassword(Password.password, user.Password))
                     return StatusCode(403, "帐号或密码错误");
 
                 UserController.UserPro userPro = new UserController.UserPro(user);
@@ -82,9 +65,10 @@
             }
         }
 
+        // 获取用户所有信息
         [HttpGet("l/{phone}/{password}")]
-        public async Task<IActionResult> Login(string phone, string password) {
-            if (password is null)
+        public async Task<IActionResult> Login(string phone, GetPassword Password) {
+            if (Password.password is null)
                 return StatusCode(400, "密码为空");
 
             User? user = null;
@@ -106,7 +90,7 @@
             if (user.Password is null)
                 return StatusCode(403, "未设置密码");
 
-            if (!VerifyPassword(password, user.Password))
+            if (!VerifyPassword(Password.password, user.Password))
                 return StatusCode(403, "帐号或密码错误");
 
             UserController.UserPro userPro = new(user);
@@ -225,7 +209,7 @@
             }
         }
     }
-    public class GetUser {
-        public string Phone { get; set; }
+    public class GetPassword {
+        public string password { get; set; }
     }
 }
