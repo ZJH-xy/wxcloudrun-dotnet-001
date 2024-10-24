@@ -24,13 +24,13 @@ namespace aspnetapp.Dao.RepositoryInterface.Miniprogram {
         /// </summary>
         /// <param name="id"></param>
         /// <returns>用户昵称等基本信息</returns>
-        Task<UserBasic?> GetUserById(int id);
+        Task<User?> GetUserById(int id);
         /// <summary>
         /// 根据phone 查询用户
         /// </summary>
         /// <param name="phone"></param>
         /// <returns>用户昵称等基本信息</returns>
-        Task<UserBasic?> GetUserByPhone(string phone);
+        Task<User?> GetUserByPhone(string phone);
         /// <summary>
         /// 删除用户
         /// </summary>

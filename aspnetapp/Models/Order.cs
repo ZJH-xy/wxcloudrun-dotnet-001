@@ -15,6 +15,9 @@
 
         public DateTime? ActualReturnTime { get; set; }// 实际归还时间
 
+        /* 逻辑指向车辆 */
+        public int Vehicle { get; set; }// 租用车辆
+
         /* 逻辑指向门店 */
         public int RentalLocation { get; set; }// 租车点（StoreId）
 
@@ -23,6 +26,12 @@
 
         /* 逻辑指向门店 */
         public int? ReturnThePoint { get; set; }// 还车点（StoreId）
+
+        public string UserName { get; set; }// 用户姓名
+
+        public string UserPhone { get; set; }// 用户手机号
+
+        public string? IdentityCard { get; set; }// 身份证号
 
         public bool LongTermLease { get; set; } = false;// 长租
 
@@ -33,16 +42,16 @@
         public decimal Rent { get; set; }// 租金
 
         [Precision(10, 2)]
-        public decimal DispatchFee { get; set; }// 调度费
+        public decimal DispatchFee { get; set; } = 0;// 调度费
 
         [Precision(10, 2)]
-        public decimal OtherFees { get; set; }// 其他费用
+        public decimal OtherFees { get; set; } = 0;// 其他费用
 
         [Precision(10, 2)]
-        public decimal Paid { get; set; }// 已付
+        public decimal Paid { get; set; } = 0;// 已付
 
         [Precision(10, 2)]
-        public decimal DepositRefunded { get; set; }// 已退押金
+        public decimal DepositRefunded { get; set; } = 0;// 已退押金
 
         public OrderStatus Status { get; set; }// 订单状态
 
@@ -53,11 +62,12 @@
         public DateTime UpdatedAt { get; set; }
 
         public enum OrderStatus {
-            Cancelled,// 已取消
-            PendingPayment,// 待付款
-            Refund,// 已退款
-            InProgress,// 进行中
-            Completed// 已完成
+            已取消,
+            待付款,
+            已退款,
+            待确认,
+            进行中,
+            已完成
         }
     }
 }
