@@ -8,7 +8,7 @@
         // 获取门店所有车辆
         [HttpGet("a/{storeId}")]
         public async Task<IActionResult> Getvehicles(int storeId) {
-            List<Vehicle> vehicleList = new();
+            List<Vehicle> vehicleList;
             try {
                 vehicleList = await vehicleController.GetVehicleByStoreId(storeId);
 
@@ -31,7 +31,7 @@
         // 获取车辆信息
         [HttpGet("{id}")]
         public async Task<IActionResult> GetVehicleById(int id) {
-            Vehicle? vehicle = null;
+            Vehicle? vehicle;
             try {
                 vehicle = await vehicleController.GetVehicleById(id);
 
