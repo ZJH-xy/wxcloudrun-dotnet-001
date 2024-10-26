@@ -9,6 +9,7 @@ builder.Services.AddDbContext<MyDbContext>();
 builder.Services.AddScoped<IUserRepository, UserController>();// 依赖注入
 builder.Services.AddScoped<IStoreRepository, StoreController>();
 builder.Services.AddScoped<IVehicleRepository, VehicleController>();
+builder.Services.AddScoped<IOrderRepository, OrderController>();
 
 // 用于完成 Senparc.Weixin 的注册。
 //builder.Services.AddSenparcWeixinServices(builder.Configuration);
