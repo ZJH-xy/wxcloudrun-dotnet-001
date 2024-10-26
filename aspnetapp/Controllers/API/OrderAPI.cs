@@ -1,4 +1,6 @@
 ﻿using NuGet.Protocol;
+using Senparc.Weixin.MP.AdvancedAPIs.MerChant;
+using System.Text.RegularExpressions;
 
 namespace aspnetapp.Controllers.API {
 
@@ -27,6 +29,7 @@ namespace aspnetapp.Controllers.API {
             return StatusCode(200, new ReturnOrder(order));
         }
 
+        // 获取用户最近20条订单
         [HttpGet("i/a/{userId}")]
         public async Task<IActionResult> GetOderByUserId(int orderId) {
             List<Order> orderList;
@@ -67,14 +70,14 @@ namespace aspnetapp.Controllers.API {
             if (data.UserName == string.Empty)
                 return StatusCode(403, "请检查名字格式");
 
-            if (data.UserPhone == string.Empty)
-                return StatusCode(403, "请检查手机号码格式");
-
             if (data.IdentityCard == string.Empty)
                 return StatusCode(403, "请检查身份证号格式");
 
             if (data.StartingTime != DateTime.Today)
                 return StatusCode(403, "起始时间只能为今日");
+
+            if (data.UserPhone == string.Empty || Regex.IsMatch(data.UserPhone, @"^1(3[0-9]|4[01456879]|5[0-35-9]|6[2567]|7[0-8]|8[0-9]|9[0-35-9])\d{8}$") == false)
+                return StatusCode(403, "请检查手机号码格式");
 
             // 检查是否有订单待付款
             try {
@@ -184,6 +187,35 @@ namespace aspnetapp.Controllers.API {
 
             return StatusCode(200, "支付成功");
         }
+
+        // 检查未支付订单并取消超过10分钟的订单
+        public async Task CheckOrderPayment() {
+            using MyDbContext _dbContext = new();
+            var now = DateTime.UtcNow; // 获取当前时间
+            var threshold = now.AddMinutes(-10); // 计算10分钟前的时间
+
+            // 查询所有超过10分钟未支付的待付款订单
+            var ordersToCancel = await _dbContext.Order
+                .Where(o => o.Status == Order.OrderStatus.待付款 && o.CreatedAt < threshold)
+                .ToListAsync();
+
+            foreach (var order in ordersToCancel) {
+                order.Status = Order.OrderStatus.已取消;
+                order.UpdatedAt = now; // 更新取消时间
+#if DEBUG
+                Console.WriteLine($"[日志]CheckOrderPayment 订单取消：order: {order.ToJson()}");
+#endif
+            }
+
+            try {
+                await _dbContext.SaveChangesAsync(); // 保存更改
+
+            } catch (Exception) {
+#if DEBUG
+                Console.WriteLine($"[错误]CheckOrderPayment，订单状态修改异常");
+#endif
+            }
+        }
     }
 
     // 计算租用费用
@@ -229,6 +261,7 @@ namespace aspnetapp.Controllers.API {
             DepositRefunded = order.DepositRefunded;
             Status = order.Status;
             Notes = order.Notes;
+            CreatedAt = order.CreatedAt;
     }
         public int OrderId { get; init; }// 订单编号
         public int TheUser { get; set; }
@@ -249,5 +282,6 @@ namespace aspnetapp.Controllers.API {
         public decimal DepositRefunded { get; set; }// 已退押金
         public Order.OrderStatus Status { get; set; }// 订单状态
         public string? Notes { get; set; }// 备注
+        public DateTime CreatedAt { get; set; }
     }
 }

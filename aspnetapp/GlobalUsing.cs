@@ -21,3 +21,5 @@ global using Senparc.Weixin.MP.Containers;
 global using Senparc.Weixin.WxOpen.AdvancedAPIs.WxApp;
 global using System.Security.Cryptography;
 global using System.Text;
+global using aspnetapp.Controllers.API.Background;
+global using aspnetapp.Controllers.API;
