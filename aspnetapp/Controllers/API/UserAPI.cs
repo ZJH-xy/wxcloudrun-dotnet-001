@@ -12,7 +12,7 @@ namespace aspnetapp.Controllers.API {
         // 获取用户基础信息
         [HttpGet("i/{id}")]
         public async Task<IActionResult> GetUserById(int id) {
-            User? user = null;
+            User? user;
             try {
                 user = await UserController.GetUserById(id);
 
@@ -32,7 +32,7 @@ namespace aspnetapp.Controllers.API {
         // 获取用户基础信息
         [HttpGet("p/{phone}")]
         public async Task<IActionResult> GetUserByPhone(string phone) {
-            User? user = null;
+            User? user;
             try {
                 user = await UserController.GetUserByPhone(phone);
 
@@ -50,15 +50,15 @@ namespace aspnetapp.Controllers.API {
         }
 
         // 获取用户所有信息
-        [HttpGet("a/{id}")]
-        public async Task<IActionResult> GetUserPro(int id, GetPassword data) {
-            if (data.Password is null)
+        [HttpGet("a/i/{id}/{password}")]
+        public async Task<IActionResult> GetUserPro(int id, string password) {
+            if (password is null)
                 return StatusCode(403, "密码为空");
 
-            if (PasswordFormatDetermination(data.Password) == false)
+            if (PasswordFormatDetermination(password) == false)
                 return StatusCode(403, "密码格式错误");
 
-            User? user = null;
+            User? user;
             try {
                 user = await UserController.GetUser(id);
 
@@ -75,22 +75,22 @@ namespace aspnetapp.Controllers.API {
             if (user.Password is null) 
                 return StatusCode(403, "用户未设置密码");
 
-            if (VerifyPassword(data.Password, user.Password) == false)
+            if (VerifyPassword(password, user.Password) == false)
                 return StatusCode(403, "帐号或密码错误");
 
             return StatusCode(200, new UserPro(user));
         }
 
         // 获取用户所有信息
-        [HttpGet("l/{phone}")]
-        public async Task<IActionResult> GetUserproByPhone(string phone, GetPassword data) {
-            if (data.Password is null)
+        [HttpGet("a/p/{phone}/{password}")]
+        public async Task<IActionResult> GetUserproByPhone(string phone, string password) {
+            if (password is null)
                 return StatusCode(403, "密码为空");
 
-            if (PasswordFormatDetermination(data.Password) == false)
+            if (PasswordFormatDetermination(password) == false)
                 return StatusCode(403, "密码格式错误");
 
-            User? user = null;
+            User? user;
             try {
                 user = await UserController.GetUserByPhone(phone);
 
@@ -107,7 +107,7 @@ namespace aspnetapp.Controllers.API {
             if (user.Password is null)
                 return StatusCode(403, "用户未设置密码");
 
-            if (VerifyPassword(data.Password, user.Password) == false)
+            if (VerifyPassword(password, user.Password) == false)
                 return StatusCode(403, "帐号或密码错误");
 
             return StatusCode(200, new UserPro(user));
@@ -117,6 +117,7 @@ namespace aspnetapp.Controllers.API {
         [HttpPost("ql/{code}")]
         public async Task<IActionResult> QuickLogin(string code) {
             var result = await BusinessApi.GetUserPhoneNumberAsync(BaseContainer<AccessTokenBag>.GetFirstOrDefaultAppId(PlatformType.WxOpen), code);
+
             switch (result.errcode) {
                 case ReturnCode.请求成功:
                     break;
@@ -140,7 +141,7 @@ namespace aspnetapp.Controllers.API {
                     return StatusCode(500);
             }
 
-            User? user = null;
+            User? user;
             try {
                 user = await UserController.GetUserByPhone(result.phone_info.purePhoneNumber);
 
@@ -153,13 +154,12 @@ namespace aspnetapp.Controllers.API {
 
             // 未注册
             if (user is null) {
-                int changeSum = 0;
+                int changeSum;
                 user = new() {
                     Phone = result.phone_info.purePhoneNumber,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };
-
                 try {
                     changeSum = await UserController.AddUser(user);
 
@@ -184,10 +184,9 @@ namespace aspnetapp.Controllers.API {
         }
 
         // 根据手机号获取收藏门店
+        /*
         [HttpGet("f/s/{phone}")]
-        public async Task<IActionResult> GetFavoriteStores(string phone) {
-            return StatusCode(404);
-            /*
+        public async Task<IActionResult> GetFavoriteStores(string phone) {            
             User? user = null;
             try {
                 UserController.UserBasic? userBasic = await UserController.GetUserByPhone(phone);
@@ -205,8 +204,7 @@ namespace aspnetapp.Controllers.API {
                 return StatusCode(403, "帐号或密码错误");
 
             return StatusCode(200, new { favorite_stores = user.FavoriteStores.ToArray() });
-            */
-        }
+        }*/
 
         /// <summary>
         /// 密码格式判断
@@ -258,18 +256,13 @@ namespace aspnetapp.Controllers.API {
             }
         }
     }
-    public class GetPassword {
-        public string Password { get; set; }
-    }
 
     public struct UserBasic {
         public UserBasic(User user) {
             UserId = user.UserId;
             Nickname = user.Nickname ?? string.Empty;
         }
-
         public int UserId { get; set; }
-
         public string Nickname { get; set; }
     }
 
@@ -281,15 +274,10 @@ namespace aspnetapp.Controllers.API {
             IdentityCard = user.IdentityCard;
             Nickname = user.Nickname;
         }
-
         public int UserId { get; set; }
-
         public string Phone { get; set; }
-
         public string? Name { get; set; }
-
         public string? IdentityCard { get; set; }
-
         public string? Nickname { get; set; }
     }
 }
