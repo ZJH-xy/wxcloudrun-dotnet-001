@@ -1,8 +1,4 @@
-﻿using NuGet.Protocol;
-using Senparc.Weixin.MP.AdvancedAPIs.MerChant;
-using System.Text.RegularExpressions;
-
-namespace aspnetapp.Controllers.API {
+﻿namespace aspnetapp.Controllers.API {
 
     [Route("order")]
     [ApiController]
@@ -76,7 +72,7 @@ namespace aspnetapp.Controllers.API {
             if (data.StartingTime != DateTime.Today)
                 return StatusCode(403, "起始时间只能为今日");
 
-            if (data.UserPhone == string.Empty || Regex.IsMatch(data.UserPhone, @"^1(3[0-9]|4[01456879]|5[0-35-9]|6[2567]|7[0-8]|8[0-9]|9[0-35-9])\d{8}$") == false)
+            if (data.UserPhone == string.Empty || System.Text.RegularExpressions.Regex.IsMatch(data.UserPhone, @"^1(3[0-9]|4[01456879]|5[0-35-9]|6[2567]|7[0-8]|8[0-9]|9[0-35-9])\d{8}$") == false)
                 return StatusCode(403, "请检查手机号码格式");
 
             // 检查是否有订单待付款
@@ -148,7 +144,7 @@ namespace aspnetapp.Controllers.API {
             } catch (Exception e) {
 #if DEBUG
                 Console.WriteLine($"[错误]AddOrder，创建订单异常: {e},\n" +
-                    $"order:{order.ToJson()}");
+                    $"order:{order}");
 #endif
                 return StatusCode(403, "创建订单失败，请联系管理员");
             }
@@ -203,7 +199,7 @@ namespace aspnetapp.Controllers.API {
                 order.Status = Order.OrderStatus.已取消;
                 order.UpdatedAt = now; // 更新取消时间
 #if DEBUG
-                Console.WriteLine($"[日志]CheckOrderPayment 订单取消：order: {order.ToJson()}");
+                Console.WriteLine($"[日志]CheckOrderPayment 订单取消：order: {order}");
 #endif
             }
 

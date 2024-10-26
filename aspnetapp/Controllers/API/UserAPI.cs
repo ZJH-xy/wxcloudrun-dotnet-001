@@ -60,7 +60,7 @@ namespace aspnetapp.Controllers.API {
 
             User? user;
             try {
-                user = await UserController.GetUser(data.Id);
+                user = await UserController.GetUser(id);
 
             } catch (Exception e) {
 #if DEBUG
@@ -92,7 +92,7 @@ namespace aspnetapp.Controllers.API {
 
             User? user;
             try {
-                user = await UserController.GetUserByPhone(data.Phone);
+                user = await UserController.GetUserByPhone(phone);
 
             } catch (Exception e) {
 #if DEBUG
