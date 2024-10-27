@@ -1,7 +1,7 @@
 @localhost = https://localhost:63295
 @id = 1
 @phone = 13000000000
-@password = 1
+@password = 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
 
 ### id 获取用户”基础信息”
 GET {{localhost}}/user/i/{{id}} HTTP/1.1
@@ -12,12 +12,9 @@ GET {{localhost}}/user/p/{{phone}} HTTP/1.1
 
 
 ###
-GET {{localhost}}/user/a/{{id}} HTTP/1.1
+GET {{localhost}}/user/a/i/{{id}}/{{password}} HTTP/1.1
 content-type: application/json
 
-{
-    "Password": "{{password}}"
-}
 
 ### phone/password，登录
 GET {{localhost}}/user/l/{{phone}} HTTP/1.1
@@ -49,9 +46,27 @@ GET {{localhost}}/vehicle/a/1 HTTP/1.1
 GET {{localhost}}/vehicle/1 HTTP/1.1
 
 
+###
+GET {{localhost}}/vehicle/model/1 HTTP/1.1
+
+
 ### ======================== 订单 ===========================
 ### StoreId 查询单个订单
 GET {{localhost}}/order/i/{{id}} HTTP/1.1
+
+
+### 
+GET {{localhost}}/order/i/2 HTTP/1.1
+Authorization: Bearer eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJ1c2VyIiwiZXhwIjoxNzMwMDQ4MjA2fQ.zSdD2ids2TB6r5JHdabLHKlY4muu5sihXkqhhJPmxQ8
+
+
+### 
+GET {{localhost}}/order/i/a/0 HTTP/1.1
+Authorization: Bearer eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJ1c2VyIiwiZXhwIjoxNzMwMDQ4MjA2fQ.zSdD2ids2TB6r5JHdabLHKlY4muu5sihXkqhhJPmxQ8
+
+
+### StoreId 查询订单
+GET {{localhost}}/order/i/a/1 HTTP/1.1
 
 
 ### StoreId 添加单个订单

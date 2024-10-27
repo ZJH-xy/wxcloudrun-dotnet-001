@@ -1,7 +1,10 @@
-﻿namespace aspnetapp.Controllers.API {
+using Microsoft.AspNetCore.Authorization;
+
+namespace aspnetapp.Controllers.API {
 
     [Route("order")]
     [ApiController]
+    [Authorize]// 方法受到限制
     public class OrderAPI : ControllerBase {
         private readonly OrderController orderController = new(new MyDbContext());
 
@@ -27,10 +30,10 @@
 
         // 获取用户最近20条订单
         [HttpGet("i/a/{userId}")]
-        public async Task<IActionResult> GetOderByUserId(int orderId) {
+        public async Task<IActionResult> GetOderByUserId(int userId) {
             List<Order> orderList;
             try {
-                orderList = await orderController.GetOrderByUserId(orderId);
+                orderList = await orderController.GetOrderByUserId(userId);
 
             } catch (Exception e) {
 #if DEBUG
@@ -48,6 +51,7 @@
         }
 
         // 计算租金
+        [AllowAnonymous]// 允许匿名访问
         [HttpGet("calculate")]
         public IActionResult CalculateRent(GetCalculateRent getCalculateRent) {
             decimal cost = 0;
@@ -66,13 +70,14 @@
             if (data.UserName == string.Empty)
                 return StatusCode(403, "请检查名字格式");
 
-            if (data.IdentityCard == string.Empty)
+            if (!(data.DepositRequired) &&
+                (!Regex.IsMatch(data.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase)))
                 return StatusCode(403, "请检查身份证号格式");
 
             if (data.StartingTime != DateTime.Today)
                 return StatusCode(403, "起始时间只能为今日");
 
-            if (data.UserPhone == string.Empty || System.Text.RegularExpressions.Regex.IsMatch(data.UserPhone, @"^1(3[0-9]|4[01456879]|5[0-35-9]|6[2567]|7[0-8]|8[0-9]|9[0-35-9])\d{8}$") == false)
+            if ((!Regex.IsMatch(data.UserPhone, @"^1(3[0-9]|4[01456879]|5[0-35-9]|6[2567]|7[0-8]|8[0-9]|9[0-35-9])\d{8}$")))
                 return StatusCode(403, "请检查手机号码格式");
 
             // 检查是否有订单待付款
@@ -121,6 +126,7 @@
 
             Order order = new() {
                 TheUser = data.TheUser,
+                Vehicle = data.Vehicle,// 车辆
                 UserName = data.UserName,// 用户姓名
                 UserPhone = data.UserPhone,// 用户手机号
                 IdentityCard = data.IdentityCard,// 身份证号
@@ -130,7 +136,6 @@
                 LongTermLease = data.LongTermLease, // 长租
                 Deposit = 0,// 押金
                 Rent = 0,// 租金
-                Notes = data.Notes,// 备注
                 Status = Order.OrderStatus.待付款,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
@@ -143,8 +148,7 @@
                 }
             } catch (Exception e) {
 #if DEBUG
-                Console.WriteLine($"[错误]AddOrder，创建订单异常: {e},\n" +
-                    $"order:{order}");
+                Console.WriteLine($"[错误]AddOrder，创建订单异常: {e}, order:{order}");
 #endif
                 return StatusCode(403, "创建订单失败，请联系管理员");
             }
@@ -187,7 +191,7 @@
         // 检查未支付订单并取消超过10分钟的订单
         public async Task CheckOrderPayment() {
             using MyDbContext _dbContext = new();
-            var now = DateTime.UtcNow; // 获取当前时间
+            var now = DateTime.Now; // 获取当前时间
             var threshold = now.AddMinutes(-10); // 计算10分钟前的时间
 
             // 查询所有超过10分钟未支付的待付款订单
@@ -199,7 +203,7 @@
                 order.Status = Order.OrderStatus.已取消;
                 order.UpdatedAt = now; // 更新取消时间
 #if DEBUG
-                Console.WriteLine($"[日志]CheckOrderPayment 订单取消：order: {order}");
+                Console.WriteLine($"[日志]CheckOrderPayment 订单取消：orderId: {order.OrderId}");
 #endif
             }
 
@@ -224,6 +228,7 @@
     // 获取创建订单信息
     public class GetOrder {
         public int TheUser { get; set; }
+        public bool DepositRequired { get; set; }// 需要押金
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
         public string IdentityCard { get; set; }// 身份证号

@@ -1,13 +1,21 @@
-﻿using NuGet.Protocol;
+﻿using aspnetapp.Models;
+using Microsoft.IdentityModel.Tokens;
+using NuGet.Protocol;
 using Senparc.Weixin.MP.AdvancedAPIs;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace aspnetapp.Controllers.API {
 
     [Route("user")]
     [ApiController]
     public class UserAPI : ControllerBase {
-        UserController UserController = new(new MyDbContext());
-        StoreController storeController = new(new MyDbContext());
+        private readonly UserController UserController = new(new MyDbContext());
+        private readonly IOptionsSnapshot<JWTSettings> JWTSettingsOpt;
+
+        public UserAPI(IOptionsSnapshot<JWTSettings> jWTSettingsOpt) {
+            JWTSettingsOpt = jWTSettingsOpt;
+        }
 
         // 获取用户基础信息
         [HttpGet("i/{id}")]
@@ -55,7 +63,7 @@ namespace aspnetapp.Controllers.API {
             if (password is null)
                 return StatusCode(403, "密码为空");
 
-            if (PasswordFormatDetermination(password) == false)
+            if (!(PasswordFormatDetermination(password)))
                 return StatusCode(403, "密码格式错误");
 
             User? user;
@@ -75,10 +83,16 @@ namespace aspnetapp.Controllers.API {
             if (user.Password is null) 
                 return StatusCode(403, "用户未设置密码");
 
-            if (VerifyPassword(password, user.Password) == false)
+            if (!(VerifyPassword(password, user.Password)))
                 return StatusCode(403, "帐号或密码错误");
 
-            return StatusCode(200, new UserPro(user));
+            // JWT
+            List<Claim> claims = new() {
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Role, "user")
+            };
+
+            return StatusCode(200, GetJwtToken(claims));
         }
 
         // 获取用户所有信息
@@ -87,7 +101,7 @@ namespace aspnetapp.Controllers.API {
             if (password is null)
                 return StatusCode(403, "密码为空");
 
-            if (PasswordFormatDetermination(password) == false)
+            if (!(PasswordFormatDetermination(password)))
                 return StatusCode(403, "密码格式错误");
 
             User? user;
@@ -107,10 +121,16 @@ namespace aspnetapp.Controllers.API {
             if (user.Password is null)
                 return StatusCode(403, "用户未设置密码");
 
-            if (VerifyPassword(password, user.Password) == false)
+            if (!(VerifyPassword(password, user.Password)))
                 return StatusCode(403, "帐号或密码错误");
 
-            return StatusCode(200, new UserPro(user));
+            // JWT
+            List<Claim> claims = new() {
+                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                new Claim(ClaimTypes.Role, "user")
+            };
+
+            return StatusCode(200, GetJwtToken(claims));
         }
 
         // 快速登录
@@ -152,6 +172,7 @@ namespace aspnetapp.Controllers.API {
                 return StatusCode(500);
             }
 
+            List<Claim> claims;
             // 未注册
             if (user is null) {
                 int changeSum;
@@ -177,10 +198,22 @@ namespace aspnetapp.Controllers.API {
                     return StatusCode(403, "注册失败，请联系管理员");
                 }
 
-                return StatusCode(200, new UserBasic(user));
+                // JWT
+                claims = new() {
+                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                    new Claim(ClaimTypes.Role, "user")
+                };
+
+                return StatusCode(200, GetJwtToken(claims));
             }
 
-            return StatusCode(200, new { user = new UserBasic(user), result.phone_info.purePhoneNumber });
+            // 已注册
+            claims = new() {
+                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+                    new Claim(ClaimTypes.Role, "user")
+            };
+
+            return StatusCode(200, GetJwtToken(claims));
         }
 
         // 根据手机号获取收藏门店
@@ -207,6 +240,25 @@ namespace aspnetapp.Controllers.API {
         }*/
 
         /// <summary>
+        /// JWT 令牌计算
+        /// </summary>
+        /// <param name="claims"></param>
+        /// <returns></returns>
+        public string GetJwtToken(List<Claim> claims) {
+            // 读取配置
+            string key = JWTSettingsOpt.Value.SecKey;
+            DateTime expires = DateTime.Now.AddDays(JWTSettingsOpt.Value.ExpireDays);
+            // 计算
+            byte[] secBytes = Encoding.UTF8.GetBytes(key);
+            var secKey = new SymmetricSecurityKey(secBytes);
+            var credentials = new SigningCredentials(secKey, SecurityAlgorithms.HmacSha256Signature);
+            var tokenDescriptor = new JwtSecurityToken(claims: claims,
+                expires: expires, signingCredentials: credentials);
+            string jwt = new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
+            return jwt;
+        }
+
+        /// <summary>
         /// 密码格式判断
         /// </summary>
         /// <param name="password"></param>
@@ -227,7 +279,8 @@ namespace aspnetapp.Controllers.API {
         /// <returns></returns>
         public static bool VerifyPassword(string password, string hashedPassword) {
             // 对输入的密码进行SHA-256哈希
-            string hashedInputPassword = HashPassword(password);
+            //string hashedInputPassword = HashPassword(password);
+            string hashedInputPassword = password;
 
             return hashedInputPassword == hashedPassword;
         }
@@ -252,7 +305,7 @@ namespace aspnetapp.Controllers.API {
                 }
 
                 // 返回哈希后的密码
-                return builder.ToString(); 
+                return builder.ToString();
             }
         }
     }
