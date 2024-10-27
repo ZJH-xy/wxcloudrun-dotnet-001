@@ -1,7 +1,10 @@
-﻿namespace aspnetapp.Controllers.API {
+﻿using Microsoft.AspNetCore.Authorization;
+
+namespace aspnetapp.Controllers.API {
 
     [Route("order")]
     [ApiController]
+    [Authorize]// 方法受到限制
     public class OrderAPI : ControllerBase {
         private readonly OrderController orderController = new(new MyDbContext());
 
@@ -48,6 +51,7 @@
         }
 
         // 计算租金
+        [AllowAnonymous]// 允许匿名访问
         [HttpGet("calculate")]
         public IActionResult CalculateRent(GetCalculateRent getCalculateRent) {
             decimal cost = 0;
@@ -66,7 +70,7 @@
             if (data.UserName == string.Empty)
                 return StatusCode(403, "请检查名字格式");
 
-            if (data.DepositRequired &&
+            if (!(data.DepositRequired) &&
                 (!Regex.IsMatch(data.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase)))
                 return StatusCode(403, "请检查身份证号格式");
 
@@ -187,7 +191,7 @@
         // 检查未支付订单并取消超过10分钟的订单
         public async Task CheckOrderPayment() {
             using MyDbContext _dbContext = new();
-            var now = DateTime.UtcNow; // 获取当前时间
+            var now = DateTime.Now; // 获取当前时间
             var threshold = now.AddMinutes(-10); // 计算10分钟前的时间
 
             // 查询所有超过10分钟未支付的待付款订单
@@ -199,7 +203,7 @@
                 order.Status = Order.OrderStatus.已取消;
                 order.UpdatedAt = now; // 更新取消时间
 #if DEBUG
-                Console.WriteLine($"[日志]CheckOrderPayment 订单取消：order: {order}");
+                Console.WriteLine($"[日志]CheckOrderPayment 订单取消：orderId: {order.OrderId}");
 #endif
             }
 

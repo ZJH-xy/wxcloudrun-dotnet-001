@@ -1,3 +1,7 @@
+using aspnetapp;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -13,6 +17,22 @@ builder.Services.AddScoped<IOrderRepository, OrderController>();
 
 builder.Services.AddScoped<OrderAPI>(); // 注册 OrderAPI
 builder.Services.AddHostedService<TimedHostedService>();
+
+
+builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
+    opt => {
+    var jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>();
+    byte[] keyBytes = Encoding.UTF8.GetBytes(jwtSettings.SecKey);
+    var secKey = new SymmetricSecurityKey(keyBytes);
+        opt.TokenValidationParameters = new() {
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = secKey
+    };
+});
 
 
 // 用于完成 Senparc.Weixin 的注册。
@@ -73,6 +93,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapRazorPages();
