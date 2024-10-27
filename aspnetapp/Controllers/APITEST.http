@@ -49,9 +49,17 @@ GET {{localhost}}/vehicle/a/1 HTTP/1.1
 GET {{localhost}}/vehicle/1 HTTP/1.1
 
 
+###
+GET {{localhost}}/vehicle/model/1 HTTP/1.1
+
+
 ### ======================== 订单 ===========================
 ### StoreId 查询单个订单
 GET {{localhost}}/order/i/{{id}} HTTP/1.1
+
+
+### StoreId 查询订单
+GET {{localhost}}/order/i/a/1 HTTP/1.1
 
 
 ### StoreId 添加单个订单

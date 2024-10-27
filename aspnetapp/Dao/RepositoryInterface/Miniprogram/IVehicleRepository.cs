@@ -8,5 +8,7 @@
         Task<List<Vehicle>> GetVehicleByStoreId(int storeId);
         // 
         Task<Vehicle?> GetVehicleById(int vehicleId);
+        // 查询车辆模型
+        Task<Object?> GetVehicleQueryableById(int vehicleId);
     }
 }

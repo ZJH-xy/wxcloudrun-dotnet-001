@@ -27,10 +27,10 @@
 
         // 获取用户最近20条订单
         [HttpGet("i/a/{userId}")]
-        public async Task<IActionResult> GetOderByUserId(int orderId) {
+        public async Task<IActionResult> GetOderByUserId(int userId) {
             List<Order> orderList;
             try {
-                orderList = await orderController.GetOrderByUserId(orderId);
+                orderList = await orderController.GetOrderByUserId(userId);
 
             } catch (Exception e) {
 #if DEBUG
