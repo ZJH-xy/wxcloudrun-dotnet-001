@@ -23,3 +23,4 @@ global using System.Security.Cryptography;
 global using System.Text;
 global using aspnetapp.Controllers.API.Background;
 global using aspnetapp.Controllers.API;
+global using System.Text.RegularExpressions;
