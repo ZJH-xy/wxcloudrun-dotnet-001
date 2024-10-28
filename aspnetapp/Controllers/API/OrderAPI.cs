@@ -196,13 +196,14 @@ namespace aspnetapp.Controllers.API {
             var threshold = now.AddMinutes(-10); // 计算10分钟前的时间
 
             // 查询所有超过10分钟未支付的待付款订单
-            var ordersToCancel = await _dbContext.Order
+            List<Order> ordersToCancel = await _dbContext.Order
                 .Where(o => o.Status == Order.OrderStatus.待付款 && o.CreatedAt < threshold)
                 .ToListAsync();
 
             foreach (var order in ordersToCancel) {
                 order.Status = Order.OrderStatus.已取消;
                 order.UpdatedAt = now; // 更新取消时间
+                
 #if DEBUG
                 Console.WriteLine($"[日志]CheckOrderPayment 订单取消：orderId: {order.OrderId}");
 #endif

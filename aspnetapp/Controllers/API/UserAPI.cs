@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
 
 namespace aspnetapp.Controllers.API {
 
@@ -103,7 +102,7 @@ namespace aspnetapp.Controllers.API {
             if ((!Regex.IsMatch(real.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase)))
                 return StatusCode(403, "请检查身份证号格式");
 
-            // 调用外部API 判断信息
+            // 调用外部API 判断信息正确性
 
             //
 
