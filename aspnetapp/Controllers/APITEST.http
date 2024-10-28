@@ -1,7 +1,9 @@
-@localhost = https://localhost:63295
+@localhost = https://localhost:60835
 @id = 1
 @phone = 13000000000
 @password = 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
+@authorization = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJ1c2VyIiwiZXhwIjoxNzMyNjk2ODAzfQ.Fk7FZ3cTCLJqw_cdAwg8qoJmg4ECPqnZUHJtghcsovI
+
 
 ### id 获取用户”基础信息”
 GET {{localhost}}/user/i/{{id}} HTTP/1.1
@@ -11,18 +13,14 @@ GET {{localhost}}/user/i/{{id}} HTTP/1.1
 GET {{localhost}}/user/p/{{phone}} HTTP/1.1
 
 
-###
-GET {{localhost}}/user/a/i/{{id}}/{{password}} HTTP/1.1
-content-type: application/json
-
-
 ### phone/password，登录
-GET {{localhost}}/user/l/{{phone}} HTTP/1.1
-content-type: application/json
+GET {{localhost}}/user/login/phone/{{phone}}/{{password}} HTTP/1.1
 
-{
-    "Password": "{{password}}"
-}
+
+###
+GET {{localhost}}/user/all/i HTTP/1.1
+Authorization: Bearer {{authorization}}
+
 
 ### code，如未注册则创建用户，反之则返回用户“基础信息”
 # POST {{localhost}}/user/ql/1 HTTP/1.1
@@ -57,12 +55,12 @@ GET {{localhost}}/order/i/{{id}} HTTP/1.1
 
 ### 
 GET {{localhost}}/order/i/2 HTTP/1.1
-Authorization: Bearer eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJ1c2VyIiwiZXhwIjoxNzMwMDQ4MjA2fQ.zSdD2ids2TB6r5JHdabLHKlY4muu5sihXkqhhJPmxQ8
+Authorization: Bearer {{authorization}}
 
 
 ### 
 GET {{localhost}}/order/i/a/0 HTTP/1.1
-Authorization: Bearer eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJ1c2VyIiwiZXhwIjoxNzMwMDQ4MjA2fQ.zSdD2ids2TB6r5JHdabLHKlY4muu5sihXkqhhJPmxQ8
+Authorization: Bearer {{authorization}}
 
 
 ### StoreId 查询订单

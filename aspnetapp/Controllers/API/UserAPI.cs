@@ -1,9 +1,7 @@
-﻿using aspnetapp.Models;
-using Microsoft.IdentityModel.Tokens;
-using NuGet.Protocol;
-using Senparc.Weixin.MP.AdvancedAPIs;
-using System.IdentityModel.Tokens.Jwt;
+﻿using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
 
 namespace aspnetapp.Controllers.API {
 
@@ -18,7 +16,7 @@ namespace aspnetapp.Controllers.API {
         }
 
         // 获取用户基础信息
-        [HttpGet("i/{id}")]
+        [HttpGet("id/{id}")]
         public async Task<IActionResult> GetUserById(int id) {
             User? user;
             try {
@@ -38,7 +36,7 @@ namespace aspnetapp.Controllers.API {
         }
 
         // 获取用户基础信息
-        [HttpGet("p/{phone}")]
+        [HttpGet("phone/{phone}")]
         public async Task<IActionResult> GetUserByPhone(string phone) {
             User? user;
             try {
@@ -58,50 +56,152 @@ namespace aspnetapp.Controllers.API {
         }
 
         // 获取用户所有信息
-        [HttpGet("a/i/{id}/{password}")]
-        public async Task<IActionResult> GetUserPro(int id, string password) {
-            if (password is null)
-                return StatusCode(403, "密码为空");
-
-            if (!(PasswordFormatDetermination(password)))
-                return StatusCode(403, "密码格式错误");
-
+        [Authorize]// 方法受到限制
+        [HttpGet("all/i")]
+        public async Task<IActionResult> GetUserPro() {
             User? user;
             try {
-                user = await UserController.GetUser(id);
+                user = await UserController.GetUser(GetUserId());
 
             } catch (Exception e) {
 #if DEBUG
-                Console.WriteLine($"[错误]GetUser: {e}");
+                Console.WriteLine($"[错误]GetUserPro: {e}");
 #endif
                 return StatusCode(500);
             }
 
             if (user is null)
-                return StatusCode(403, "帐号或密码错误");
+                return StatusCode(404);
 
-            if (user.Password is null) 
-                return StatusCode(403, "用户未设置密码");
-
-            if (!(VerifyPassword(password, user.Password)))
-                return StatusCode(403, "帐号或密码错误");
-
-            // JWT
-            List<Claim> claims = new() {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Role, "user")
-            };
-
-            return StatusCode(200, GetJwtToken(claims));
+            return StatusCode(200, new UserPro(user));
         }
 
-        // 获取用户所有信息
-        [HttpGet("a/p/{phone}/{password}")]
+        // 实名认证
+        [Authorize]// 方法受到限制
+        [HttpPost("update/RealNameAuthentication")]
+        public async Task<IActionResult> RealNameAuthentication(RealNameAuthentication real) {
+            User? user;
+            try {
+                user = await UserController.GetUserById(GetUserId());
+
+            } catch (Exception e) {
+#if DEBUG
+                Console.WriteLine($"[错误]GetUserPro，获取用户: {e}");
+#endif
+                return StatusCode(500);
+            }
+
+            if (user is null)
+                return StatusCode(404);
+
+            if (user.Name is null || user.IdentityCard is null)// 已实名认证
+                return StatusCode(403, "当前已实名认证");
+
+            if (!(Judge.NameFormatDetermination(real.Name)))
+                return StatusCode(403, "请检查名字格式");
+
+            if ((!Regex.IsMatch(real.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase)))
+                return StatusCode(403, "请检查身份证号格式");
+
+            // 调用外部API 判断信息
+
+            //
+
+            int changSum = 0;
+            user.Name = real.Name;
+            user.IdentityCard = real.IdentityCard;
+            try {
+                changSum = await UserController.UpdateUser(user);
+
+            } catch (Exception e) {
+#if DEBUG
+                Console.WriteLine($"[错误]GetUserPro，修改信息: {e}");
+#endif
+                return StatusCode(500);
+            }
+#if DEBUG
+            Console.WriteLine($"[日志]GetUserPro，已修改行数：{changSum}");
+#endif
+            return StatusCode(200);
+        }
+
+        // 更新（昵称、手机号）
+        [Authorize]
+        [HttpPost("update/i")]
+        public async Task<IActionResult> UpdateUser(UpdateUser updateUser) {
+            User? user;
+            try {
+                user = await UserController.GetUserById(GetUserId());
+
+            } catch (Exception e) {
+#if DEBUG
+                Console.WriteLine($"[错误]UpdateUser: {e}");
+#endif
+                return StatusCode(500);
+            }
+
+            if (user is null)
+                return StatusCode(404);
+
+            if (!(Judge.PhoneFormatDetermination(updateUser.Phone)))
+                return StatusCode(403, "请检查手机号码格式");
+
+            if (updateUser.Nickname.Length < 2 || updateUser.Nickname.Length > 8)
+                return StatusCode(403, "请检查昵称格式");
+
+            return StatusCode(200);
+        }
+
+        // 更改密码
+        [Authorize]
+        [HttpPost("update/password")]
+        public async Task<IActionResult> UpdatePassword(UpdatePassword updatePassword) {
+            User? user;
+            string id = this.User.FindFirstValue(ClaimTypes.NameIdentifier);// 获取用户id
+            try {
+                user = await UserController.GetUserById(int.Parse(id));
+
+            } catch (Exception e) {
+#if DEBUG
+                Console.WriteLine($"[错误]GetUserPro，获取用户: {e}");
+#endif
+                return StatusCode(500);
+            }
+
+            if (user is null)
+                return StatusCode(404);
+
+            if (user.Password is null)
+                return StatusCode(403, "未实名认证");
+
+            if (!(VerifyPassword(updatePassword.OldPassword, user.Password)))
+                return StatusCode(403, "密码错误");
+
+            int changSum = 0;
+            try {
+                user.Password = updatePassword.NewPassword;
+                changSum = await UserController.UpdateUser(user);
+
+            } catch (Exception e) {
+#if DEBUG
+                Console.WriteLine($"[错误]GetUserPro，密码修改: {e}");
+#endif
+                return StatusCode(500);
+            }
+#if DEBUG
+            Console.WriteLine($"[日志]GetUserPro，已修改行数：{changSum}");
+#endif
+
+            return StatusCode(200);
+        }
+
+        // 登录
+        [HttpGet("login/phone/{phone}/{password}")]
         public async Task<IActionResult> GetUserproByPhone(string phone, string password) {
             if (password is null)
                 return StatusCode(403, "密码为空");
 
-            if (!(PasswordFormatDetermination(password)))
+            if (!(Judge.PasswordFormatDetermination(password)))
                 return StatusCode(403, "密码格式错误");
 
             User? user;
@@ -193,7 +293,7 @@ namespace aspnetapp.Controllers.API {
 
                 if (0 == changeSum) {
 #if DEBUG
-                    Console.WriteLine($"[异常]QuickLogin 用户注册失败，userJson: {user.ToJson()}");
+                    Console.WriteLine($"[异常]QuickLogin 用户注册失败，userId: {user.UserId}");
 #endif
                     return StatusCode(403, "注册失败，请联系管理员");
                 }
@@ -240,6 +340,14 @@ namespace aspnetapp.Controllers.API {
         }*/
 
         /// <summary>
+        /// JWT 获取用户id
+        /// </summary>
+        /// <returns></returns>
+        public int GetUserId() {
+            return int.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        }
+
+        /// <summary>
         /// JWT 令牌计算
         /// </summary>
         /// <param name="claims"></param>
@@ -247,7 +355,10 @@ namespace aspnetapp.Controllers.API {
         public string GetJwtToken(List<Claim> claims) {
             // 读取配置
             string key = JWTSettingsOpt.Value.SecKey;
-            DateTime expires = DateTime.Now.AddDays(JWTSettingsOpt.Value.ExpireDays);
+            DateTime expires = DateTime.Now.AddDays(JWTSettingsOpt.Value.ExpireDays);// 读取配置过期时间
+#if DEBUG
+            Console.WriteLine($"Now:{DateTime.Now};expires:{expires}");
+#endif
             // 计算
             byte[] secBytes = Encoding.UTF8.GetBytes(key);
             var secKey = new SymmetricSecurityKey(secBytes);
@@ -259,24 +370,11 @@ namespace aspnetapp.Controllers.API {
         }
 
         /// <summary>
-        /// 密码格式判断
-        /// </summary>
-        /// <param name="password"></param>
-        /// <returns></returns>
-        public static bool PasswordFormatDetermination(string password) {
-            return true;
-            //if (password.Length < 8 ||  password.Length > 12)
-            //    return false;
-
-            //return true;
-        }
-
-        /// <summary>
         /// 验证密码
         /// </summary>
         /// <param name="password"></param>
         /// <param name="hashedPassword"></param>
-        /// <returns></returns>
+        /// <returns>等于true，否则false</returns>
         public static bool VerifyPassword(string password, string hashedPassword) {
             // 对输入的密码进行SHA-256哈希
             //string hashedInputPassword = HashPassword(password);
@@ -310,24 +408,35 @@ namespace aspnetapp.Controllers.API {
         }
     }
 
+    public class RealNameAuthentication {
+        public string Name { get; set; }// 姓名
+        public string IdentityCard { get; set; }// 身份证号
+    }
+
+    public class UpdateUser {
+        public string Phone { get; set; }// 手机号码
+        public string Nickname { get; set; }// 昵称
+    }
+
+    public class UpdatePassword {
+        public string OldPassword { get; set; }
+        public string NewPassword { get; set; }
+    }
+
     public struct UserBasic {
         public UserBasic(User user) {
-            UserId = user.UserId;
             Nickname = user.Nickname ?? string.Empty;
         }
-        public int UserId { get; set; }
         public string Nickname { get; set; }
     }
 
     public struct UserPro {
         public UserPro(User user) {
-            UserId = user.UserId;
             Phone = user.Phone;
             Name = user.Name;
             IdentityCard = user.IdentityCard;
             Nickname = user.Nickname;
         }
-        public int UserId { get; set; }
         public string Phone { get; set; }
         public string? Name { get; set; }
         public string? IdentityCard { get; set; }

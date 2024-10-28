@@ -1,4 +1,6 @@
+using aspnetapp.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace aspnetapp.Controllers.API {
 
@@ -21,7 +23,7 @@ namespace aspnetapp.Controllers.API {
 #endif
                 return StatusCode(500);
             }
-            
+
             if (order == null)
                 return StatusCode(404);
 
@@ -29,11 +31,11 @@ namespace aspnetapp.Controllers.API {
         }
 
         // 获取用户最近20条订单
-        [HttpGet("i/a/{userId}")]
-        public async Task<IActionResult> GetOderByUserId(int userId) {
+        [HttpGet("a")]
+        public async Task<IActionResult> GetOderByUserId() {
             List<Order> orderList;
             try {
-                orderList = await orderController.GetOrderByUserId(userId);
+                orderList = await orderController.GetOrderByUserId(GetUserId());
 
             } catch (Exception e) {
 #if DEBUG
@@ -59,19 +61,18 @@ namespace aspnetapp.Controllers.API {
         }
 
         // 创建订单
-        [HttpPost("a")]
+        [HttpPost("add")]
         public async Task<IActionResult> AddOrder(GetOrder data) {
             // 订单信息合法性验证
             using MyDbContext dbcontext = new();
 
-            if (await dbcontext.User.SingleOrDefaultAsync(u => u.UserId == data.TheUser) is null)
+            if (await dbcontext.User.SingleOrDefaultAsync(u => u.UserId == GetUserId()) is null)
                 return StatusCode(403, "用户不存在");
 
             if (data.UserName == string.Empty)
                 return StatusCode(403, "请检查名字格式");
 
-            if (!(data.DepositRequired) &&
-                (!Regex.IsMatch(data.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase)))
+            if ((!Regex.IsMatch(data.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase)))
                 return StatusCode(403, "请检查身份证号格式");
 
             if (data.StartingTime != DateTime.Today)
@@ -82,7 +83,7 @@ namespace aspnetapp.Controllers.API {
 
             // 检查是否有订单待付款
             try {
-                if (await dbcontext.Order.Where(o => o.TheUser == data.TheUser).
+                if (await dbcontext.Order.Where(o => o.TheUser == GetUserId()).
                     AnyAsync(o => o.Status == Order.OrderStatus.待付款)) {
                     return StatusCode(403, "当前有待付款的订单");
                 }
@@ -125,7 +126,7 @@ namespace aspnetapp.Controllers.API {
             }
 
             Order order = new() {
-                TheUser = data.TheUser,
+                TheUser = GetUserId(),
                 Vehicle = data.Vehicle,// 车辆
                 UserName = data.UserName,// 用户姓名
                 UserPhone = data.UserPhone,// 用户手机号
@@ -216,6 +217,13 @@ namespace aspnetapp.Controllers.API {
 #endif
             }
         }
+        /// <summary>
+        /// JWT 获取用户id
+        /// </summary>
+        /// <returns></returns>
+        public int GetUserId() {
+            return int.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        }
     }
 
     // 计算租用费用
@@ -227,7 +235,6 @@ namespace aspnetapp.Controllers.API {
 
     // 获取创建订单信息
     public class GetOrder {
-        public int TheUser { get; set; }
         public bool DepositRequired { get; set; }// 需要押金
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
@@ -244,7 +251,6 @@ namespace aspnetapp.Controllers.API {
     public struct ReturnOrder {
         public ReturnOrder(Order order) {
             OrderId = order.OrderId;
-            TheUser = order.TheUser;
             StartingTime = order.StartingTime;
             ExpectedReturnTime = order.ExpectedReturnTime;
             ActualReturnTime = order.ActualReturnTime;
@@ -263,9 +269,8 @@ namespace aspnetapp.Controllers.API {
             Status = order.Status;
             Notes = order.Notes;
             CreatedAt = order.CreatedAt;
-    }
+        }
         public int OrderId { get; init; }// 订单编号
-        public int TheUser { get; set; }
         public DateTime StartingTime { get; set; }// 起始时间
         public DateTime ExpectedReturnTime { get; set; }// 预计归还时间
         public DateTime? ActualReturnTime { get; set; }// 实际归还时间
