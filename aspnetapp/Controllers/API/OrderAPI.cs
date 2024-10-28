@@ -70,8 +70,7 @@ namespace aspnetapp.Controllers.API {
             if (data.UserName == string.Empty)
                 return StatusCode(403, "请检查名字格式");
 
-            if (!(data.DepositRequired) &&
-                (!Regex.IsMatch(data.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase)))
+            if ((!Regex.IsMatch(data.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase)))
                 return StatusCode(403, "请检查身份证号格式");
 
             if (data.StartingTime != DateTime.Today)
