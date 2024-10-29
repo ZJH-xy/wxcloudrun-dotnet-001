@@ -21,7 +21,7 @@ namespace aspnetapp.Pages.Admin
             if (Username == "admin" && Password == "password") // 示例验证
             {
                 // 登录成功，跳转到主页或其他页面
-                return RedirectToPage("/Index");
+                return RedirectToPage("/Admin/home");
             } else {
                 // 登录失败，显示错误信息
                 ErrorMessage = "用户名或密码错误";

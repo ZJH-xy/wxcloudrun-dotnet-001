@@ -1,0 +1,298 @@
+﻿@page
+@model aspnetapp.Pages.Admin.homeModel
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Server
+@{
+    ViewData["Title"] = "后台管理";
+    Layout = "_Layout";
+
+    // // 初始化一个变量用于存储要加载的页面
+    // string selectedPage = "Subpages/Overview/StatisticsData"; // 默认页面
+    // // 检查请求的页面参数
+    // if (Request.Query.ContainsKey("page"))
+    // {
+    //     string page = Request.Query["page"];
+
+    //     // 使用 switch 语句根据页面选择加载不同的内容
+    //     switch (page)
+    //     {
+    //         case "统计数据":
+    //             selectedPage = "Subpages/Overview/StatisticsData";
+    //             break;
+    //         case "车辆总览":
+    //             selectedPage = "Subpages/VehicleManagement/VehicleOverview";
+    //             break;
+    //         case "订单总览":
+    //             selectedPage = "Subpages/OrderManagement/OrderOverview";
+    //             break;
+    //         case "门店总览":
+    //             selectedPage = "Subpages/StoreManagement/StoreOverview";
+    //             break;
+    //         case "申请审核":
+    //             selectedPage = "Subpages/StoreManagement/ApplyForReview";
+    //             break;
+    //         case "用户总览":
+    //             selectedPage = "Subpages/UserManagement/UserOverview";
+    //             break;
+    //         case "广告总览":
+    //             selectedPage = "Subpages/MiniProgramManagement/AdvertisingOverview";
+    //             break;
+    //         case "公告总览":
+    //             selectedPage = "Subpages/MiniProgramManagement/AnnouncementOverview";
+    //             break;
+    //         default:
+    //             selectedPage = "Subpages/Overview/StatisticsData"; // 默认页面
+    //             break;
+    //     }
+    // }
+}
+<!-- navbar.html -->
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页</title>
+
+</head>
+
+<body>
+    <!-- 侧边栏区域 -->
+    <nav>
+        <div class="sidebar">
+            <h2>导航菜单</h2>
+            <ul class="menu">
+                <li><a href="#" onclick="toggleSubMenu(event)">概览</a>
+                    <ul>
+                        <li><a href="#" onclick="loadPage('统计数据', this)">统计数据</a></li>
+                    </ul>
+                </li>
+                <li><a href="#" onclick="toggleSubMenu(event)">车辆管理</a>
+                    <ul>
+                        <li><a href="#" onclick="loadPage('车辆总览', this)">车辆总览</a></li>
+                    </ul>
+                </li>
+                <li><a href="#" onclick="toggleSubMenu(event)">订单管理</a>
+                    <ul>
+                        <li><a href="#" onclick="loadPage('订单总览', this)">订单总览</a></li>
+                    </ul>
+                </li>
+                <li><a href="#" onclick="toggleSubMenu(event)">门店管理</a>
+                    <ul>
+                        <li><a href="#" onclick="loadPage('门店总览', this)">门店总览</a></li>
+                        <li><a href="#" onclick="loadPage('申请审核', this)">申请审核</a></li>
+                    </ul>
+                </li>
+                <li><a href="#" onclick="toggleSubMenu(event)">用户管理</a>
+                    <ul>
+                        <li><a href="#" onclick="loadPage('用户总览', this)">用户总览</a></li>
+                    </ul>
+                </li>
+                <li><a href="#" onclick="toggleSubMenu(event)">首页管理</a>
+                    <ul>
+                        <li><a href="#" onclick="loadPage('广告总览', this)">广告总览</a></li>
+                        <li><a href="#" onclick="loadPage('公告总览', this)">公告总览</a></li>
+
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <div class="main-content">
+        @* 根据选择的页面动态加载内容 *@
+        <iframe id="contentFrame" src="about:blank"></iframe>
+    </div>
+
+    <!-- JavaScript 用于切换子菜单显示 -->
+    <script>
+        window.addEventListener('beforeunload', function (e) {
+            e.preventDefault(); // 阻止默认行为
+            e.returnValue = ''; // Chrome 要求的操作
+        });
+        // 加载默认界面
+        window.onload = function () {
+            loadPage("统计数据", document.querySelector('.menu > li > ul > li > a'));
+        };
+        function loadPage(pageName, clickedLink) {
+            const frame = document.getElementById('contentFrame');
+
+            // 更新 selectedPage 变量
+            switch (pageName) {
+                case "统计数据":
+                    selectedPage = "Subpages/Overview/StatisticsData";
+                    break;
+                case "车辆总览":
+                    selectedPage = "Subpages/VehicleManagement/VehicleOverview";
+                    break;
+                case "订单总览":
+                    selectedPage = "Subpages/OrderManagement/OrderOverview";
+                    break;
+                case "门店总览":
+                    selectedPage = "Subpages/StoreManagement/StoreOverview";
+                    break;
+                case "申请审核":
+                    selectedPage = "Subpages/StoreManagement/ApplyForReview";
+                    break;
+                case "用户总览":
+                    selectedPage = "Subpages/UserManagement/UserOverview";
+                    break;
+                case "广告总览":
+                    selectedPage = "Subpages/MiniProgramManagement/AdvertisingOverview";
+                    break;
+                case "公告总览":
+                    selectedPage = "Subpages/MiniProgramManagement/AnnouncementOverview";
+                    break;
+                default:
+                    selectedPage = "Subpages/Overview/StatisticsData"; // 默认页面
+                    break;
+            }
+
+            frame.src = selectedPage; // 设置 iframe 的 src
+
+            // 移除所有子菜单项的选中状态
+            const allMenuItems = document.querySelectorAll('.menu > li > ul > li');
+            allMenuItems.forEach(function (menuItem) {
+                menuItem.classList.remove('selected');
+            });
+
+            // 为当前点击的子菜单项添加选中状态
+            clickedLink.classList.add('selected');
+        }
+
+
+        function toggleSubMenu(event) {
+            event.preventDefault(); // 阻止默认点击行为
+            // 获取当前被点击的主菜单项
+            const clickedLink = event.target;
+            const submenu = clickedLink.nextElementSibling; // 获取当前链接的子菜单
+
+            // 获取当前子菜单的展开状态
+            const isOpen = submenu.classList.contains('show'); // 检查当前子菜单是否已展开
+
+            // 隐藏所有子菜单
+            const allSubMenus = document.querySelectorAll('.menu > li > ul');
+            allSubMenus.forEach(function(menu) {
+                menu.classList.remove('show'); // 移除展开状态
+            });
+
+            // 移除所有主菜单的选中状态
+            const allLinks = document.querySelectorAll('.menu > li > a');
+            allLinks.forEach(function(link) {
+                link.classList.remove('selected'); // 移除选中状态
+            });
+
+            // 如果当前子菜单未展开，则展开它并添加选中状态
+            if (!isOpen) {
+                submenu.classList.add('show'); // 展开当前子菜单
+                clickedLink.classList.add('selected'); // 添加选中状态
+            }
+
+        }
+    </script>
+
+    <style>
+        iframe {
+            width: 100%; /* 让 iframe 宽度适应父元素 */
+            height: 100%; /* 设置一个固定高度 */
+            border: none;
+        }
+        /* 页面基础样式 */
+        body {
+            font-family: Arial, sans-serif; /* 设置字体 */
+            margin: 0; /* 移除默认边距 */
+            padding: 0; /* 移除默认内边距 */
+            display: flex; /* 使用弹性盒子布局 */
+        }
+
+        /* 侧边栏样式 */
+        .sidebar {
+            width: 250px; /* 侧边栏宽度 */
+            background-color: #333; /* 背景颜色 */
+            height: 100vh; /* 侧边栏高度全屏 */
+            color: #fff; /* 字体颜色 */
+            padding-top: 20px; /* 顶部内边距 */
+            position: fixed; /* 固定位置 */
+            left: 0; /* 靠左对齐 */
+            top: 0; /* 靠上对齐 */
+            overflow-y: auto; /* 支持垂直滚动 */
+        }
+
+        /* 侧边栏内链接样式 */
+        .sidebar a {
+            padding: 10px 15px; /* 内边距 */
+            text-decoration: none; /* 移除下划线 */
+            color: #fff; /* 字体颜色 */
+            display: block; /* 块级元素 */
+            font-size: 16px; /* 字体大小 */
+        }
+
+        /* 链接的悬停效果 */
+        .sidebar a:hover {
+            background-color: #575757; /* 悬停背景颜色 */
+        }
+
+        /* 主内容区域样式 */
+        .main-content {
+            margin-left: 250px; /* 留出侧边栏宽度的空间 */
+            padding: 20px; /* 内边距 */
+            flex: 1; /* 自动填充剩余空间 */
+        }
+
+        /* 顶层菜单样式 */
+        .menu {
+            padding: 0; /* 内边距 */
+            margin: 0; /* 外边距 */
+        }
+
+        /* 顶层菜单项样式 */
+        .menu > li {
+            list-style-type: none; /* 移除列表样式 */
+            position: relative; /* 相对定位 */
+        }
+
+        /* 子菜单样式 */
+        .menu > li > ul {
+            max-height: 0; /* 默认隐藏 */
+            opacity: 0; /* 默认不透明 */
+            overflow: hidden; /* 超出隐藏 */
+            transition: max-height 0.3s ease, opacity 0.3s ease; /* 过渡效果 */
+            background-color: #575757; /* 子菜单背景颜色 */
+            padding: 0; /* 内边距 */
+            margin: 0; /* 外边距 */
+            width: 100%; /* 子菜单宽度与主菜单对齐 */
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2); /* 阴影效果 */
+            z-index: 1; /* 层级 */
+        }
+
+        /* 子菜单项样式 */
+        .menu > li > ul > li {
+            padding: 10px; /* 内边距 */
+            color: #fff; /* 字体颜色 */
+            font-size: 14px; /* 字体大小 */
+            list-style-type: none; /* 移除列表样式 */
+        }
+
+        /* 子菜单项悬停效果 */
+        .menu > li > ul > li:hover {
+            background-color: #777; /* 子菜单项悬停背景颜色 */
+        }
+
+        /* 子菜单展开时的状态 */
+        .menu > li > ul.show {
+            max-height: 200px; /* 展开时设置一个足够大的高度 */
+            opacity: 1; /* 变为完全不透明 */
+        }
+
+        /* 选中状态的背景颜色 */
+        .selected {
+            background-color: #575757 !important; /* 被选中时的背景颜色 */
+            color: white; /* 选中时字体颜色 */
+        }
+    </style>
+</body>
+</html>
+
+
