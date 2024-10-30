@@ -17,6 +17,8 @@
 
         public string? IdentityCard {  get; set; }// 身份证号
 
+        public string? IdentityCardPictures { get; set; }// 身份证照片
+
         public string? Nickname { get; set; }// 昵称
 
         public DateTime CreatedAt { get; set; }

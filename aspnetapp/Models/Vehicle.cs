@@ -30,6 +30,8 @@
 
         public string? VehicleIntroduction { get; set; }// 车辆介绍
 
+        public string? Pictures { get; set; }// 车辆图片
+
         public Estates State { get; set; }// 车辆状态
 
         public bool IsCase { get; set; } = false; // 是否涉案
@@ -47,7 +49,8 @@
             已出租,
             充电中,
             故障,
-            锁定
+            锁定,
+            侍确认
         }
 
         // 车辆型号

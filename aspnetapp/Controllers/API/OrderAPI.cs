@@ -233,9 +233,18 @@ namespace aspnetapp.Controllers.API {
             }
         }
 
+        /// <summary>
+        /// JWT 获取用户id
+        /// </summary>
+        /// <returns></returns>
+        public int GetUserId() {
+            return int.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        }
+    }
 
-        // 计算租用费用
-        public class GetCalculateRent {
+
+    // 计算租用费用
+    public class GetCalculateRent {
         public int RentalLocation { get; set; }// 租车点（StoreId）
         public DateTime StartingTime { get; set; }// 起始时间
         public DateTime ExpectedReturnTime { get; set; }// 预计归还时间
