@@ -11,18 +11,8 @@ namespace aspnetapp.Pages.Admin
             public int Age;
         }
         public List<User> List { get; set; } = new List<User>();
-        public IActionResult OnGet()
+        public void OnGet()
         {
-            for(int i = 0; i < 10; i++)
-            {
-                List.Add(new User
-                {
-                    Name = "aaa",
-                    Age = 18+ i
-                });
-            }
-
-            return Page();
         }
 
     }

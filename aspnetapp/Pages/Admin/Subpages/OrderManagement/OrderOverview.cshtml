@@ -1,8 +1,118 @@
 ﻿@page
 @model aspnetapp.Pages.Admin.Subpages.OrderManagement.OrderOverviewModel
 @{
+    // 创建订单的模拟数据
+    var orderList = new List<dynamic>
+    {
+        new { Index = 1, OrderNumber = "ORD001", UserID = 101, StartTime = "2024-01-10 08:00", ExpectedReturn = "2024-01-15 18:00", ActualReturn = "2024-01-15 16:30", RentPoint = "深圳租车点A", ExchangePoint = "广州换车点B", ReturnPoint = "深圳还车点A", Deposit = 3000, Rent = 500, DispatchFee = 50, OtherCost = 20, AmountPaid = 570, DepositRefunded = 3000, OrderStatus = "已完成", CreatedDate = "2024-01-01", Note = "无" },
+        new { Index = 2, OrderNumber = "ORD002", UserID = 102, StartTime = "2024-01-12 10:00", ExpectedReturn = "2024-01-17 14:00", ActualReturn = "2024-01-17 13:50", RentPoint = "广州租车点C", ExchangePoint = "深圳换车点D", ReturnPoint = "广州还车点C", Deposit = 3000, Rent = 600, DispatchFee = 50, OtherCost = 0, AmountPaid = 650, DepositRefunded = 3000, OrderStatus = "已完成", CreatedDate = "2024-01-05", Note = "正常" },
+        new { Index = 3, OrderNumber = "ORD003", UserID = 103, StartTime = "2024-01-15 09:00", ExpectedReturn = "2024-01-20 17:00", ActualReturn = "", RentPoint = "上海租车点E", ExchangePoint = "", ReturnPoint = "", Deposit = 3000, Rent = 700, DispatchFee = 60, OtherCost = 10, AmountPaid = 0, DepositRefunded = 0, OrderStatus = "进行中", CreatedDate = "2024-01-10", Note = "客户延迟" }
+    };
 }
+<link rel="stylesheet" href="~/css/table.css" />
 <div>
-    <h1>订单总览</h1>
-    <p>这里是内容。</p>
+    <div class="header">
+        <div class="header-item">
+            <button>刷新</button>
+            <button>添加</button>
+            <button>导出</button>
+        </div>
+        <div class="header-item">
+            <input placeholder="搜索" />
+            <button>搜索</button>
+        </div>
+    </div>
+
+    <table id="userTable">
+        <tr>
+            <th>序号</th>
+            <th>订单编号</th>
+            <th>用户ID</th>
+            <th>起始时间</th>
+            <th>预计归还</th>
+            <th>实际归还</th>
+            <th>租车点</th>
+            <th>换车点</th>
+            <th>还车点</th>
+            <th>押金</th>
+            <th>租金</th>
+            <th>调度费</th>
+            <th>其他费用</th>
+            <th>已付金额</th>
+            <th>已退押金</th>
+            <th>订单状态</th>
+            <th>创建时间</th>
+            <th>备注</th>
+            <th>操作</th>
+        </tr>
+
+        @for (int i = 0; i < orderList.Count; i++)
+        {
+            <tr>
+                <td>@orderList[i].Index</td>
+                <td>@orderList[i].OrderNumber</td>
+                <td>@orderList[i].UserID</td>
+                <td>@orderList[i].StartTime</td>
+                <td>@orderList[i].ExpectedReturn</td>
+                <td>@(string.IsNullOrEmpty(orderList[i].ActualReturn) ? "未归还" : orderList[i].ActualReturn)</td>
+                <td>@orderList[i].RentPoint</td>
+                <td>@(string.IsNullOrEmpty(orderList[i].ExchangePoint) ? "无" : orderList[i].ExchangePoint)</td>
+                <td>@(string.IsNullOrEmpty(orderList[i].ReturnPoint) ? "未归还" : orderList[i].ReturnPoint)</td>
+                <td>@orderList[i].Deposit</td>
+                <td>@orderList[i].Rent</td>
+                <td>@orderList[i].DispatchFee</td>
+                <td>@orderList[i].OtherCost</td>
+                <td>@orderList[i].AmountPaid</td>
+                <td>@orderList[i].DepositRefunded</td>
+                <td>@orderList[i].OrderStatus</td>
+                <td>@orderList[i].CreatedDate</td>
+                <td>@orderList[i].Note</td>
+                <td><button class="modalBtn">编辑</button></td>
+            </tr>
+        }
+    </table>
+    <div class="bottom">
+        <div class="bottom-item">
+            <text>显示第 1 到第 10 条记录，总共 100 条记录</text>
+        </div>
+        <div class="bottom-item">
+            <input placeholder="请输入页数" />
+            <button>跳转</button>
+            <button>上一页</button>
+            <button>下一页</button>
+        </div>
+    </div>
+
+    <!-- 模态窗口 -->
+    <div class="modal" id="myModal">
+        <div class="modal-content">
+            <span class="close" id="closeBtn">&times;</span>
+            <h2>模态窗口</h2>
+            <p>这是一个弹出的模态窗口。</p>
+        </div>
+    </div>
 </div>
+<script>
+    // 获取模态窗口
+    var modal = document.getElementById("myModal");
+    var span = document.getElementById("closeBtn");
+
+    // 使用事件委托
+    document.getElementById("userTable").addEventListener("click", function (event) {
+        if (event.target.classList.contains("modalBtn")) {
+            modal.style.display = "block";
+        }
+    });
+
+    // 点击关闭按钮时关闭模态窗口
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    // 点击模态窗口外部时关闭模态窗口
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>

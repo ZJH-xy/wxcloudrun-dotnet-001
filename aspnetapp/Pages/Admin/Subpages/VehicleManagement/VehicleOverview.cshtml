@@ -1,8 +1,102 @@
 ﻿@page
 @model aspnetapp.Pages.Admin.Subpages.VehicleManagement.VehicleOverviewModel
 @{
+    var vehicleList = new List<dynamic>
+    {
+        new { Index = 1, ID = "V001", PlateNumber = "粤A12345", VIN = "1HGCM82633A123456", Certificate = "HG123456789", License = "LC123456", PurchaseDate = "2023-05-10", Model = "Toyota Corolla", Status = "空闲", CreatedDate = "2023-05-12" },
+        new { Index = 2, ID = "V002", PlateNumber = "粤B23456", VIN = "2T1BR32E53C456789", Certificate = "HG987654321", License = "LC654321", PurchaseDate = "2023-06-15", Model = "Honda Civic", Status = "充电中", CreatedDate = "2023-06-20" },
+        new { Index = 3, ID = "V003", PlateNumber = "粤C34567", VIN = "JHMFA16526S789012", Certificate = "HG135792468", License = "LC246813", PurchaseDate = "2023-07-20", Model = "Mazda 3", Status = "已出租", CreatedDate = "2023-07-25" }
+    };
 }
+<link rel="stylesheet" href="~/css/table.css" />
 <div>
-    <h1>车辆总览</h1>
-    <p>这里是内容。</p>
+    <div class="header">
+        <div class="header-item">
+            <button>刷新</button>
+            <button>添加</button>
+            <button>导出</button>
+        </div>
+        <div class="header-item">
+            <input placeholder="搜索" />
+            <button>搜索</button>
+        </div>
+    </div>
+
+    <table id="userTable">
+        <tr>
+            <th>序号</th>
+            <th>ID</th>
+            <th>车牌号</th>
+            <th>车架号</th>
+            <th>合格证</th>
+            <th>行驶证</th>
+            <th>购入登记时间</th>
+            <th>车辆型号</th>
+            <th>车辆状态</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+
+        <!-- 使用循环遍历列表数据，动态生成表格行 -->
+        @for (int i = 0; i < vehicleList.Count; i++)
+        {
+            <tr>
+                <td>@vehicleList[i].Index</td>
+                <td>@vehicleList[i].ID</td>
+                <td>@vehicleList[i].PlateNumber</td>
+                <td>@vehicleList[i].VIN</td>
+                <td>@vehicleList[i].Certificate</td>
+                <td>@vehicleList[i].License</td>
+                <td>@vehicleList[i].PurchaseDate</td>
+                <td>@vehicleList[i].Model</td>
+                <td>@vehicleList[i].Status</td>
+                <td>@vehicleList[i].CreatedDate</td>
+                <td><button class="modalBtn">编辑</button></td>
+            </tr>
+        }
+    </table>
+    <div class="bottom">
+        <div class="bottom-item">
+            <text>显示第 1 到第 10 条记录，总共 100 条记录</text>
+        </div>
+        <div class="bottom-item">
+            <input placeholder="请输入页数" />
+            <button>跳转</button>
+            <button>上一页</button>
+            <button>下一页</button>
+        </div>
+    </div>
+
+    <!-- 模态窗口 -->
+    <div class="modal" id="myModal">
+        <div class="modal-content">
+            <span class="close" id="closeBtn">&times;</span>
+            <h2>模态窗口</h2>
+            <p>这是一个弹出的模态窗口。</p>
+        </div>
+    </div>
 </div>
+<script>
+    // 获取模态窗口
+    var modal = document.getElementById("myModal");
+    var span = document.getElementById("closeBtn");
+
+    // 使用事件委托
+    document.getElementById("userTable").addEventListener("click", function (event) {
+        if (event.target.classList.contains("modalBtn")) {
+            modal.style.display = "block";
+        }
+    });
+
+    // 点击关闭按钮时关闭模态窗口
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    // 点击模态窗口外部时关闭模态窗口
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>

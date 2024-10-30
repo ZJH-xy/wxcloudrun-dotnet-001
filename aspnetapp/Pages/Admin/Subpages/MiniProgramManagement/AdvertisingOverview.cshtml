@@ -1,8 +1,92 @@
 ﻿@page
 @model aspnetapp.Pages.Admin.Subpages.MiniProgramManagement.AdvertisingOverviewModel
 @{
+    // 创建广告的模拟数据
+    var adList = new List<dynamic>
+    {
+        new { Index = 1, AdID = "AD001", Image = "https://example.com/ad1.jpg", CreatedDate = "2024-01-10", UpdatedDate = "2024-01-15" },
+        new { Index = 2, AdID = "AD002", Image = "https://example.com/ad2.jpg", CreatedDate = "2024-01-12", UpdatedDate = "2024-01-18" },
+        new { Index = 3, AdID = "AD003", Image = "https://example.com/ad3.jpg", CreatedDate = "2024-01-20", UpdatedDate = "2024-01-25" }
+    };
 }
+<link rel="stylesheet" href="~/css/table.css" />
 <div>
-    <h1>广告概览</h1>
-    <p>这里是内容。</p>
+    <div class="header">
+        <div class="header-item">
+            <button>刷新</button>
+            <button>添加</button>
+            <button>导出</button>
+        </div>
+        <div class="header-item">
+            <input placeholder="搜索" />
+            <button>搜索</button>
+        </div>
+    </div>
+
+    <table id="userTable">
+        <tr>
+            <th>序号</th>
+            <th>广告ID</th>
+            <th>图片</th>
+            <th>创建时间</th>
+            <th>更新时间</th>
+            <th>操作</th>
+        </tr>
+
+        @for (int i = 0; i < adList.Count; i++)
+        {
+            <tr>
+                <td>@adList[i].Index</td>
+                <td>@adList[i].AdID</td>
+                <td><img src="@adList[i].Image" alt="广告图片" width="60" height="40"></td>
+                <td>@adList[i].CreatedDate</td>
+                <td>@adList[i].UpdatedDate</td>
+                <td><button class="modalBtn">编辑</button></td>
+            </tr>
+        }
+    </table>
+    <div class="bottom">
+        <div class="bottom-item">
+            <text>显示第 1 到第 10 条记录，总共 100 条记录</text>
+        </div>
+        <div class="bottom-item">
+            <input placeholder="请输入页数" />
+            <button>跳转</button>
+            <button>上一页</button>
+            <button>下一页</button>
+        </div>
+    </div>
+
+    <!-- 模态窗口 -->
+    <div class="modal" id="myModal">
+        <div class="modal-content">
+            <span class="close" id="closeBtn">&times;</span>
+            <h2>模态窗口</h2>
+            <p>这是一个弹出的模态窗口。</p>
+        </div>
+    </div>
 </div>
+<script>
+    // 获取模态窗口
+    var modal = document.getElementById("myModal");
+    var span = document.getElementById("closeBtn");
+
+    // 使用事件委托
+    document.getElementById("userTable").addEventListener("click", function (event) {
+        if (event.target.classList.contains("modalBtn")) {
+            modal.style.display = "block";
+        }
+    });
+
+    // 点击关闭按钮时关闭模态窗口
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    // 点击模态窗口外部时关闭模态窗口
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
