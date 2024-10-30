@@ -3,7 +3,12 @@
     [Route("store")]
     [ApiController]
     public class StoreAPI : ControllerBase {
-        StoreController storeController = new(new MyDbContext());
+        private readonly StoreController storeController = new(new MyDbContext());
+        private readonly ILogger<OrderAPI> _logger;
+
+        public StoreAPI(ILogger<OrderAPI> logger) {
+            _logger = logger;
+        }
 
         // 获取所有门店
         [HttpGet("a")]
@@ -13,9 +18,8 @@
                 storeList = await storeController.GetAllStore();
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]GetStores: {e}");
-#endif
+                _logger.LogError(e, "获取所有门店");
+
                 return StatusCode(500);
             }
 

@@ -3,9 +3,14 @@
     [Route("vehicle")]
     [ApiController]
     public class VehicleAPI : ControllerBase {
-        VehicleController vehicleController = new(new MyDbContext());
+        private readonly VehicleController vehicleController = new(new MyDbContext());
+        private readonly ILogger<OrderAPI> _logger;
 
-        // 获取门店所有车辆
+        public VehicleAPI(ILogger<OrderAPI> logger) {
+            _logger = logger;
+        }
+
+        // Id获取门店所有车辆
         [HttpGet("a/{storeId}")]
         public async Task<IActionResult> Getvehicles(int storeId) {
             List<Vehicle> vehicleList;
@@ -13,9 +18,8 @@
                 vehicleList = await vehicleController.GetVehicleByStoreId(storeId);
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]GetStores: {e}");
-#endif
+                _logger.LogError(e, "获取门店{StoreId}所有车辆", storeId);
+
                 return StatusCode(500);
             }
 
@@ -28,7 +32,7 @@
             return StatusCode(200, vehiclesBasicsList);
         }
 
-        // 获取车辆信息
+        // Id获取车辆信息
         [HttpGet("{id}")]
         public async Task<IActionResult> GetVehicleById(int id) {
             Vehicle? vehicle;
@@ -36,9 +40,8 @@
                 vehicle = await vehicleController.GetVehicleById(id);
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]GetUserById: {e}");
-#endif
+                _logger.LogError(e, "获取车辆{VehicleId}信息", id);
+
                 return StatusCode(500);
             }
 
@@ -48,7 +51,7 @@
             return StatusCode(200, new VehiclePro(vehicle));
         }
 
-        // 查询车辆模型、车牌
+        // 查询车辆model、车牌
         [HttpGet("model/{id}")]
         public async Task<IActionResult> GetVehicleModelById(int id) {
             object? vehicle;
@@ -56,9 +59,8 @@
                 vehicle = await vehicleController.GetVehicleQueryableById(id);
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]GetVehicleModelById: {e}");
-#endif
+                _logger.LogError(e, "查询车辆{VehicleId}", id);
+
                 return StatusCode(500);
             }
 

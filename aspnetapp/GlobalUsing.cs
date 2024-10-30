@@ -23,5 +23,8 @@ global using aspnetapp.Controllers.API.Background;
 global using aspnetapp.Controllers.API;
 global using System.Text.RegularExpressions;
 global using aspnetapp;
+global using NuGet.Protocol;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.IdentityModel.Tokens;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Extensions.Logging.Console;
