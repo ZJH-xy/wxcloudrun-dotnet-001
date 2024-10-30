@@ -1,5 +1,6 @@
 ﻿using aspnetapp.Models;
 using Microsoft.AspNetCore.Authorization;
+using Polly;
 using System.Security.Claims;
 
 namespace aspnetapp.Controllers.API {
@@ -10,7 +11,15 @@ namespace aspnetapp.Controllers.API {
     public class OrderAPI : ControllerBase {
         private readonly OrderController orderController = new(new MyDbContext());
 
-        // 查询单个订单
+        // 计算租金
+        [AllowAnonymous]// 允许匿名访问
+        [HttpGet("calculate")]
+        public IActionResult CalculateRent(GetCalculateRent getCalculateRent) {
+            decimal cost = 0;
+            return StatusCode(200, cost);
+        }
+
+        // 用户查询单个订单
         [HttpGet("i/{orderId}")]
         public async Task<IActionResult> GetOderById(int orderId) {
             Order? order;
@@ -50,14 +59,6 @@ namespace aspnetapp.Controllers.API {
                 returnOrderorderList.Add(new ReturnOrder(order));
 
             return StatusCode(200, returnOrderorderList);
-        }
-
-        // 计算租金
-        [AllowAnonymous]// 允许匿名访问
-        [HttpGet("calculate")]
-        public IActionResult CalculateRent(GetCalculateRent getCalculateRent) {
-            decimal cost = 0;
-            return StatusCode(200, cost);
         }
 
         // 创建订单
@@ -110,6 +111,7 @@ namespace aspnetapp.Controllers.API {
             if (vehicle.State != Vehicle.Estates.空闲)
                 return StatusCode(403, "手慢了，请更换车辆");
 
+            // 锁定车辆，更新时间
             vehicle.State = Vehicle.Estates.锁定;
             vehicle.StateUpdatedAt = DateTime.Now;
             vehicle.UpdatedAt = DateTime.Now;
@@ -120,7 +122,7 @@ namespace aspnetapp.Controllers.API {
 
             } catch (Exception e) {
 #if DEBUG
-                Console.WriteLine($"[错误]AddOrder，车辆锁定异常: {e}");
+                Console.WriteLine($"[错误]AddOrder，车辆锁定异常: {e}，车辆Id：{vehicle.VehicleId}");
 #endif
                 return StatusCode(500, "车辆锁定失败");
             }
@@ -192,43 +194,48 @@ namespace aspnetapp.Controllers.API {
         // 检查未支付订单并取消超过10分钟的订单
         public async Task CheckOrderPayment() {
             using MyDbContext _dbContext = new();
-            var now = DateTime.Now; // 获取当前时间
-            var threshold = now.AddMinutes(-10); // 计算10分钟前的时间
+            DateTime now = DateTime.Now;// 获取当前时间
+            DateTime threshold = now.AddMinutes(-10);// 计算10分钟前的时间
 
             // 查询所有超过10分钟未支付的待付款订单
             List<Order> ordersToCancel = await _dbContext.Order
                 .Where(o => o.Status == Order.OrderStatus.待付款 && o.CreatedAt < threshold)
                 .ToListAsync();
 
-            foreach (var order in ordersToCancel) {
-                order.Status = Order.OrderStatus.已取消;
-                order.UpdatedAt = now; // 更新取消时间
-                
-#if DEBUG
-                Console.WriteLine($"[日志]CheckOrderPayment 订单取消：orderId: {order.OrderId}");
-#endif
-            }
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
             try {
-                await _dbContext.SaveChangesAsync(); // 保存更改
+                foreach (var order in ordersToCancel) {
+                    // 更新订单状态
+                    order.Status = Order.OrderStatus.已取消;
+                    order.UpdatedAt = now;
 
-            } catch (Exception) {
+                    // 查询并更新与订单关联的车辆状态为空闲
+                    Vehicle? vehicle = await _dbContext.Vehicle
+                        .SingleOrDefaultAsync(v => v.VehicleId == order.Vehicle);
+
+                    if (vehicle is not null) {
+                        vehicle.State = Vehicle.Estates.空闲;
+                        vehicle.UpdatedAt = now;
+                    }
 #if DEBUG
-                Console.WriteLine($"[错误]CheckOrderPayment，订单状态修改异常");
+                    Console.WriteLine($"[日志]CheckOrderPayment 订单取消：orderId: {order.OrderId}, 车辆状态更新为：{vehicle?.State}");
 #endif
+                }
+
+                await _dbContext.SaveChangesAsync();// 保存所有更改
+                await transaction.CommitAsync();// 提交事务
+            } catch (Exception e) {
+#if DEBUG
+                Console.WriteLine($"[错误]CheckOrderPayment，订单或车辆状态更新失败: {e}");
+#endif
+                await transaction.RollbackAsync();// 回滚事务
             }
         }
-        /// <summary>
-        /// JWT 获取用户id
-        /// </summary>
-        /// <returns></returns>
-        public int GetUserId() {
-            return int.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier));
-        }
-    }
 
-    // 计算租用费用
-    public class GetCalculateRent {
+
+        // 计算租用费用
+        public class GetCalculateRent {
         public int RentalLocation { get; set; }// 租车点（StoreId）
         public DateTime StartingTime { get; set; }// 起始时间
         public DateTime ExpectedReturnTime { get; set; }// 预计归还时间
