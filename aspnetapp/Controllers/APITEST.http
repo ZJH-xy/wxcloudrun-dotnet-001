@@ -49,6 +49,15 @@ GET {{localhost}}/vehicle/model/1 HTTP/1.1
 
 
 ### ======================== 订单 ===========================
+###
+GET {{localhost}}/order/calculate HTTP/1.1
+content-type: application/json
+
+{
+    "RentalLocation": 1,
+    "MenuId": 2
+}
+
 ### Id 查询单个订单
 GET {{localhost}}/order/i/20 HTTP/1.1
 Authorization: Bearer {{authorization}}

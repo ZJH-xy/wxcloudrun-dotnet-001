@@ -20,14 +20,18 @@ namespace aspnetapp.Controllers.API {
         // 计算租金
         [AllowAnonymous]// 允许匿名访问
         [HttpGet("calculate")]
-        public IActionResult CalculateRent(GetCalculateRent getCalculateRent) {
+        public async Task<IActionResult> CalculateRent(GetCalculateRent getCalculateRent) {
             using MyDbContext dbcontext = new();
-            decimal cost = 0;
 
-            dbcontext.Store.SingleOrDefaultAsync(s => s.IsDelete == false && s.BusinessStatus && s.Id == getCalculateRent.RentalLocation);
+            Store? store = await dbcontext.Store.SingleOrDefaultAsync(s => s.Id == getCalculateRent.RentalLocation && !s.IsDelete);
+            if (store is null)
+                return StatusCode(404);
 
+            StoreMenu? storeMenus = await dbcontext.StoreMenus.SingleOrDefaultAsync(sm => sm.Id == getCalculateRent.MenuId && sm.TheStore == store.Id && !sm.IsDelete);
+            if (storeMenus is null)
+                return StatusCode(404);
 
-            return StatusCode(200, cost);
+            return StatusCode(200, storeMenus.Rent + storeMenus.Deposit);
         }
 
         // 用户查询单个订单
@@ -49,7 +53,7 @@ namespace aspnetapp.Controllers.API {
             return StatusCode(200, new ReturnOrder(order));
         }
         
-        // 获取用户最近20条订单
+        // 获取用户最近10条订单
         [HttpGet("a")]
         public async Task<IActionResult> GetOderByUserId() {
             List<Order> orderList = new();
@@ -251,10 +255,16 @@ namespace aspnetapp.Controllers.API {
     }
 
 
-    // 计算租用费用
+    // 计算租用费用获取
     public class GetCalculateRent {
-        public int RentalLocation { get; set; }// 租车点（StoreId）
-        public int MenuId { get; set; }// 套餐Id
+        /// <summary>
+        /// 租车点（StoreId）
+        /// </summary>
+        public int RentalLocation { get; set; }
+        /// <summary>
+        /// 套餐Id
+        /// </summary>
+        public int MenuId { get; set; }
     }
 
     // 获取创建订单信息
