@@ -30,7 +30,7 @@ namespace aspnetapp.Controllers.API {
         public async Task<IActionResult> GetOderById(int orderId) {
             Order? order;
             try {
-                order = await orderController.GetById(orderId);
+                order = await orderController.GetById(GetUserIdInt(), orderId);
 
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}查询订单{order}信息", GetUserIdInt(), orderId);
@@ -164,18 +164,7 @@ namespace aspnetapp.Controllers.API {
             }
 
             // 获取新建订单的id
-            Order newOrder;
-            try {
-                /* 待付款的订单最多只能有一条 */
-                newOrder = await dbcontext.Order.SingleAsync(o => o.TheUser == order.TheUser && o.Status == Order.OrderStatus.待付款);
-
-            } catch (Exception e) {
-                _logger.LogError(e, "查询用户{UserId}订单{OrderId}结果异常，可能存在多条待付款订单", GetUserIdInt(), order.Id);
-
-                return StatusCode(403, "订单状态异常");
-            }
-
-            return StatusCode(201, newOrder.Id);
+            return StatusCode(201, order.Id);
         }
 
         // 支付接口，支付成功后取消自动取消计时器
@@ -269,6 +258,29 @@ namespace aspnetapp.Controllers.API {
         public bool LongTermLease { get; set; }// 长租
         public string Notes { get; set; }// 备注
     }
+
+    //public struct ReturnOrderBasic {
+    //    public int OrderId { get; init; }// 订单编号
+    //    public DateTime StartingTime { get; set; }// 起始时间
+    //    public DateTime ExpectedReturnTime { get; set; }// 预计归还时间
+    //    public DateTime? ActualStartingTime { get; set; }// 实际起始时间
+    //    public DateTime? ActualReturnTime { get; set; }// 实际归还时间
+    //    public int Vehicle { get; set; }// 租用车辆
+    //    public int RentalLocation { get; set; }// 租车点（StoreId）
+    //    public int? ReturnThePoint { get; set; }// 还车点（StoreId）
+    //    public string UserName { get; set; }// 用户姓名
+    //    public string UserPhone { get; set; }// 用户手机号
+    //    public bool LongTermLease { get; set; } = false;// 长租
+    //    public decimal Deposit { get; set; }// 押金
+    //    public decimal Rent { get; set; }// 租金
+    //    public decimal DispatchFee { get; set; }// 调度费
+    //    public decimal OtherFees { get; set; }// 其他费用
+    //    public decimal Paid { get; set; }// 已付
+    //    public decimal DepositRefunded { get; set; }// 已退押金
+    //    public Order.OrderStatus Status { get; set; }// 订单状态
+    //    public string? Notes { get; set; }// 备注
+    //    public DateTime CreatedAt { get; set; }
+    //}
 
     // 返回订单格式
     public struct ReturnOrder {
