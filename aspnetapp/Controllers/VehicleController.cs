@@ -8,15 +8,15 @@
         }
 
         public async Task<Vehicle?> GetVehicleById(int vehicleId) {
-            return await _context.Vehicle.SingleOrDefaultAsync(v => v.IsDelete == false && v.VehicleId == vehicleId);
+            return await _context.Vehicle.SingleOrDefaultAsync(v => v.IsDelete == false && v.Id == vehicleId);
         }
 
         public async Task<List<Vehicle>> GetVehicleByStoreId(int storeId) {
-            return await _context.Vehicle.Where(s => s.IsDelete == false && s.CurrentStore == storeId).ToListAsync();
+            return await _context.Vehicle.Where(s => s.IsDelete == false && s.TheCurrentStore == storeId).ToListAsync();
         }
 
         public async Task<Object?> GetVehicleQueryableById(int vehicleId) {
-            return await _context.Vehicle.Where(v => v.VehicleId.Equals(vehicleId) && ! v.IsDelete).Select(v => new { v.Model, v.PlateNumber }).ToArrayAsync();
+            return await _context.Vehicle.Where(v => v.Id.Equals(vehicleId) && ! v.IsDelete).Select(v => new { v.Model, v.PlateNumber }).ToArrayAsync();
         }
     }
 }

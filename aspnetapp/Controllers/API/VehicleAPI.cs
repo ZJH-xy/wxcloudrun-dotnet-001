@@ -72,7 +72,7 @@
     }
     public struct VehicleBasic {
         public VehicleBasic(Vehicle store) {
-            VehicleId = store.VehicleId;
+            VehicleId = store.Id;
             Model = store.Model;
             State = store.State;
         }
@@ -84,7 +84,7 @@
 
     public struct VehiclePro {
         public VehiclePro(Vehicle store) {
-            VehicleId = store.VehicleId;
+            VehicleId = store.Id;
             Model = store.Model;
             PlateNumber = store.PlateNumber;
             FrameNumber = store.FrameNumber;

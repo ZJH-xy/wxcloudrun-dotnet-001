@@ -13,7 +13,7 @@
         }
 
         public async  Task<Order?> GetById(int id) {
-            return await _context.Order.SingleOrDefaultAsync(o => o.OrderId == id);
+            return await _context.Order.SingleOrDefaultAsync(o => o.Id == id);
         }
 
         public async Task<List<Order>> GetOrderByUserId(int userId) {

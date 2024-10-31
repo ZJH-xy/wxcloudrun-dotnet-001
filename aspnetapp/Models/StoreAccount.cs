@@ -1,0 +1,18 @@
+﻿namespace aspnetapp.Models {
+    /// <summary>
+    /// 商家帐号表
+    /// </summary>
+    [Table("T_StoreAccount")]
+    [Index(nameof(TheStore), IsUnique = true)]
+    public class StoreAccount {
+        [Key]
+        public int Id { get; set; }
+
+        /* 逻辑指向门店 */
+        public int TheStore { get; set; }
+
+        public string Account { get; set; }// 帐号
+
+        public string Password { get; set; }// 密码
+    }
+}

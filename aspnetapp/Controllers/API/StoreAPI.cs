@@ -35,7 +35,7 @@
 
     public struct StoreBasic {
         public StoreBasic(Store store) {
-            StoreId = store.StoreId;
+            StoreId = store.Id;
             Name = store.Name;
             BusinessHoursStart = store.BusinessHoursStart;
             BusinessHoursBegin = store.BusinessHoursBegin;

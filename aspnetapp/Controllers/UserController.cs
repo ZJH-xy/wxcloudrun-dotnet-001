@@ -17,12 +17,12 @@
         }
 
         public async Task<User?> GetUser(int id) {
-            User? user = await _context.User.SingleOrDefaultAsync(u => u.UserId == id);
+            User? user = await _context.User.SingleOrDefaultAsync(u => u.Id == id);
             return user;
         }
 
         public async Task<User?> GetUserById(int id) {
-            return await _context.User.SingleOrDefaultAsync(u => u.UserId == id);
+            return await _context.User.SingleOrDefaultAsync(u => u.Id == id);
         }
 
         public async Task<User?> GetUserByPhone(string phone) {

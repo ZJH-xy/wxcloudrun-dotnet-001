@@ -213,7 +213,7 @@ namespace aspnetapp.Controllers.API {
             if (!(VerifyPassword(password, user.Password)))
                 return StatusCode(403, "帐号或密码错误");
 
-            return StatusCode(200, GetJwtToken(CreateClaim(user.UserId.ToString(), "user")));
+            return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));
         }
 
         // 快速登录
@@ -272,11 +272,11 @@ namespace aspnetapp.Controllers.API {
                     return StatusCode(403, "注册失败，请联系管理员");
                 }
 
-                return StatusCode(200, GetJwtToken(CreateClaim(user.UserId.ToString(), "user")));
+                return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));
             }
 
             // 已注册
-            return StatusCode(200, GetJwtToken(CreateClaim(user.UserId.ToString(), "user")));
+            return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));
         }
 
         // 根据手机号获取收藏门店

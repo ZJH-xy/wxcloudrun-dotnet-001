@@ -52,7 +52,7 @@ namespace aspnetapp.Controllers.API {
                 orderList = await orderController.GetOrderByUserId(GetUserIdInt());
 
             } catch (Exception e) {
-                _logger.LogError(e, "用户{UserId}查询订单{OrderList}信息", GetUserIdInt(), orderList.Select(o => o.OrderId).ToArray());
+                _logger.LogError(e, "用户{UserId}查询订单{OrderList}信息", GetUserIdInt(), orderList.Select(o => o.Id).ToArray());
 #if DEBUG
                 Console.WriteLine($"[错误]GetOderByUserId: {e}");
 #endif
@@ -73,7 +73,7 @@ namespace aspnetapp.Controllers.API {
             // 订单信息合法性验证
             using MyDbContext dbcontext = new();
 
-            if (await dbcontext.User.SingleOrDefaultAsync(u => u.UserId == GetUserIdInt()) is null)
+            if (await dbcontext.User.SingleOrDefaultAsync(u => u.Id == GetUserIdInt()) is null)
                 return StatusCode(403, "用户不存在");
 
             if (data.UserName == string.Empty)
@@ -102,7 +102,7 @@ namespace aspnetapp.Controllers.API {
 
             Vehicle? vehicle;
             try {
-                vehicle = await dbcontext.Vehicle.SingleOrDefaultAsync(v => v.IsDelete == false && v.VehicleId == data.Vehicle);
+                vehicle = await dbcontext.Vehicle.SingleOrDefaultAsync(v => v.IsDelete == false && v.Id == data.Vehicle);
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取车辆{VehicleId}信息", data.Vehicle);
@@ -125,20 +125,20 @@ namespace aspnetapp.Controllers.API {
                 await dbcontext.SaveChangesAsync();
 
             } catch (Exception e) {
-                _logger.LogError(e, "车辆{Vehicle}锁定", vehicle.VehicleId);
+                _logger.LogError(e, "车辆{Vehicle}锁定", vehicle.Id);
 
                 return StatusCode(500, "车辆锁定失败");
             }
 
             Order order = new() {
                 TheUser = GetUserIdInt(),
-                Vehicle = data.Vehicle,// 车辆
+                TheVehicle = data.Vehicle,// 车辆
                 UserName = data.UserName,// 用户姓名
                 UserPhone = data.UserPhone,// 用户手机号
                 IdentityCard = data.IdentityCard,// 身份证号
                 StartingTime = data.StartingTime,// 起始时间
                 ExpectedReturnTime = data.ExpectedReturnTime,// 预计归还时间
-                RentalLocation = data.RentalLocation,// 租车点
+                TheRentalLocation = data.RentalLocation,// 租车点
                 LongTermLease = data.LongTermLease, // 长租
                 Deposit = 0,// 押金
                 Rent = 0,// 租金
@@ -155,10 +155,10 @@ namespace aspnetapp.Controllers.API {
                     throw new Exception("新增行数为0");
                 }
 
-                _logger.LogInformation("订单{OrderId}创建", order.OrderId);
+                _logger.LogInformation("订单{OrderId}创建", order.Id);
 
             } catch (Exception e) {
-                _logger.LogError(e, "创建订单{OrderId}", order.OrderId);
+                _logger.LogError(e, "创建订单{OrderId}", order.Id);
 
                 return StatusCode(403, "创建订单失败，请联系管理员");
             }
@@ -170,12 +170,12 @@ namespace aspnetapp.Controllers.API {
                 newOrder = await dbcontext.Order.SingleAsync(o => o.TheUser == order.TheUser && o.Status == Order.OrderStatus.待付款);
 
             } catch (Exception e) {
-                _logger.LogError(e, "查询用户{UserId}订单{OrderId}结果异常，可能存在多条待付款订单", GetUserIdInt(), order.OrderId);
+                _logger.LogError(e, "查询用户{UserId}订单{OrderId}结果异常，可能存在多条待付款订单", GetUserIdInt(), order.Id);
 
                 return StatusCode(403, "订单状态异常");
             }
 
-            return StatusCode(201, newOrder.OrderId);
+            return StatusCode(201, newOrder.Id);
         }
 
         // 支付接口，支付成功后取消自动取消计时器
@@ -219,12 +219,12 @@ namespace aspnetapp.Controllers.API {
 
                 // 查询并更新与订单关联的车辆状态为空闲
                 Vehicle vehicle = await _dbContext.Vehicle
-                    .SingleAsync(v => v.VehicleId == order.Vehicle);
+                    .SingleAsync(v => v.Id == order.TheVehicle);
                     
                 vehicle.State = Vehicle.Estates.空闲;
                 vehicle.UpdatedAt = now;
                     
-                _logger.LogInformation("订单{OrderId}取消, 车辆{VehicleId}状态更新为空闲", order.OrderId, vehicle.VehicleId);
+                _logger.LogInformation("订单{OrderId}取消, 车辆{VehicleId}状态更新为空闲", order.Id, vehicle.Id);
             }
 
             try {
@@ -233,7 +233,7 @@ namespace aspnetapp.Controllers.API {
 
             } catch (Exception e) {
                 _logger.LogCritical(e, "订单或车辆状态更新失败，ordersToCancel{OrdersToCancel}",
-                    ordersToCancel.Select(o => o.OrderId).ToArray());
+                    ordersToCancel.Select(o => o.Id).ToArray());
 
                 await transaction.RollbackAsync();// 回滚事务
             }
@@ -273,13 +273,14 @@ namespace aspnetapp.Controllers.API {
     // 返回订单格式
     public struct ReturnOrder {
         public ReturnOrder(Order order) {
-            OrderId = order.OrderId;
+            OrderId = order.Id;
             StartingTime = order.StartingTime;
             ExpectedReturnTime = order.ExpectedReturnTime;
+            ActualStartingTime = order.ActualStartingTime;
             ActualReturnTime = order.ActualReturnTime;
-            Vehicle = order.Vehicle;
-            RentalLocation = order.RentalLocation;
-            ReturnThePoint = order.ReturnThePoint;
+            Vehicle = order.TheVehicle;
+            RentalLocation = order.TheRentalLocation;
+            ReturnThePoint = order.TheReturnThePoint;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
             LongTermLease = order.LongTermLease;
@@ -296,6 +297,7 @@ namespace aspnetapp.Controllers.API {
         public int OrderId { get; init; }// 订单编号
         public DateTime StartingTime { get; set; }// 起始时间
         public DateTime ExpectedReturnTime { get; set; }// 预计归还时间
+        public DateTime? ActualStartingTime { get; set; }// 实际起始时间
         public DateTime? ActualReturnTime { get; set; }// 实际归还时间
         public int Vehicle { get; set; }// 租用车辆
         public int RentalLocation { get; set; }// 租车点（StoreId）

@@ -8,7 +8,13 @@
         public DbSet<Store> Store { get; set; } = null!;
         public DbSet<Vehicle> Vehicle { get; set; } = null!;
         public DbSet<Order> Order { get; set; } = null!;
-        public DbSet<HomepageAd> HomepageAds { get; set; } = null!;
+        public DbSet<HomepageAd> HomepageAd { get; set; } = null!;
+        public DbSet<StoreMenu> StoreMenus { get; set; } = null!;
+        public DbSet<VehicleReplacementRecord> VehicleReplacementRecord { get; set; } = null!;
+        public DbSet<UserFavoritesStore> UserFavoritesStore { get; set; } = null!;
+        public DbSet<StoreAccount> StoreAccount { get; set; } = null!;
+        public DbSet<RevenueStatistics> RevenueStatistic { get; set; } = null!;
+        public DbSet<AdminAccount> AdminAccount { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
             // 配置数据库连接
