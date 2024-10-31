@@ -31,6 +31,14 @@
 
             return StatusCode(200, storeBasicList);
         }
+
+        // 获取门店套餐
+        [HttpGet("storeMenus/{storeId}")]
+        public async Task<IActionResult> CalculateRent(int storeId) {
+            using MyDbContext dbcontext = new();
+
+            return StatusCode(200, await dbcontext.StoreMenus.Where(sm => sm.TheStore == storeId && !sm.IsDelete).ToListAsync());
+        }
     }
 
     public struct StoreBasic {

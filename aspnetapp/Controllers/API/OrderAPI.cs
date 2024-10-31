@@ -17,7 +17,7 @@ namespace aspnetapp.Controllers.API {
             _logger = logger;
         }
 
-        // 计算租金
+        // 计算总租金
         [AllowAnonymous]// 允许匿名访问
         [HttpGet("calculate")]
         public async Task<IActionResult> CalculateRent(GetCalculateRent getCalculateRent) {
