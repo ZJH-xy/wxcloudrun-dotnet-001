@@ -1,0 +1,127 @@
+﻿body {
+    background-color:white;
+    padding: 20px;
+}
+
+/* 表格整体样式 */
+table {
+    width: 100%; /* 表格宽度占满父容器 */
+    border-collapse: collapse; /* 合并边框 */
+}
+
+/* 表头样式 */
+th {
+    background-color: #fff; /* 背景颜色 */
+    color: black; /* 字体颜色 */
+    padding: 10px; /* 内边距 */
+    text-align: left; /* 左对齐 */
+    border: 1px solid #ddd; /* 单元格边框 */
+}
+
+/* 单元格样式 */
+td {
+    border: 1px solid #ddd; /* 单元格边框 */
+    padding: 8px; /* 内边距 */
+}
+
+/* 奇数行背景色 */
+tr:nth-child(odd) {
+    background-color: #f2f2f2; /* 奇数行背景颜色 */
+}
+
+/* 鼠标悬停效果 */
+tr:hover {
+    background-color: #ddd; /* 鼠标悬停时的背景颜色 */
+}
+
+/* 表格字体样式 */
+td, th {
+    font-family: Arial, sans-serif; /* 字体 */
+    font-size: 14px; /* 字体大小 */
+    justify-content: center;
+    align-items: center; 
+    text-align: center; /* 文本居中 */
+
+}
+button {
+    background-color: #4CAF50; /* 按钮背景颜色 */
+    color: rgb(255, 255, 255); /* 按钮文字颜色 */
+    padding: 0 20px; /* 内边距 */
+    text-align: center; /* 文本居中 */
+    text-decoration: none; /* 去掉下划线 */
+    display: inline-block; /* 使元素内联块 */
+    font-size: 16px; /* 字体大小 */
+    margin: 4px 2px; /* 外边距 */
+    cursor: pointer; /* 鼠标样式 */
+    border: none; /* 去掉边框 */
+    border-radius: 5px; /* 圆角 */
+    transition: background-color 0.3s; /* 过渡效果 */
+    height: 30px;
+}
+
+/* 悬停效果 */
+button:hover {
+    background-color: #45a049; /* 悬停时的背景颜色 */
+}
+/* 点击效果 */
+button:active {
+    transform: scale(0.95); /* 按下时缩小 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* 添加阴影 */
+}
+/* 设置输入框的基本样式 */
+input{
+    border: 1px solid rgb(194, 194, 194); /* 边框颜色 */
+    border-radius: 5px; /* 圆角 */
+    font-size: 16px; /* 字体大小 */
+    color: gray; /* 文字颜色 */
+    transition: border-color 0.3s, box-shadow 0.3s; /* 过渡效果 */
+    font-size: small;
+    height: 30px;
+}
+
+.bottom,.header{
+    gap: 20px;
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    text-align: center; /* 文本居中 */
+}
+
+/* 背景遮罩样式 */
+.modal {
+    display: none; /* 初始隐藏 */
+    position: fixed; /* 固定定位 */
+    z-index: 1; /* 层级 */
+    left: 0;
+    top: 0;
+    width: 100%; /* 全宽 */
+    height: 100%; /* 全高 */
+    background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+}
+
+/* 模态窗口样式 */
+.modal-content {
+    background-color: #fff; /* 白色背景 */
+    margin: 15% auto; /* 上下居中 */
+    padding: 20px; /* 内边距 */
+    border: 1px solid #888; /* 边框 */
+    width: 300px; /* 固定宽度 */
+    border-radius: 5px; /* 圆角 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 阴影效果 */
+}
+
+/* 关闭按钮样式 */
+.close {
+    color: #aaa; /* 关闭按钮颜色 */
+    float: right; /* 右对齐 */
+    font-size: 28px; /* 字体大小 */
+    font-weight: bold; /* 加粗 */
+    align-self: flex-end;
+}
+
+.close:hover,
+.close:focus {
+    color: black; /* 悬停时颜色 */
+    text-decoration: none; /* 去掉下划线 */
+    cursor: pointer; /* 鼠标样式 */
+}

@@ -1,0 +1,108 @@
+﻿@page
+@model aspnetapp.Pages.Admin.Subpages.StoreManagement.StoreOverviewModel
+@{
+    // 创建门店的模拟数据
+    var storeList = new List<dynamic>
+    {
+        new { Index = 1, StoreID = "S001", StoreName = "深圳南山店", BusinessHours = "08:00 - 18:00", BusinessStatus = "营业中", ContactPhone = "0755-12345678", WeChat = "nanshan_store", Address = "深圳市南山区科技园路10号", Coordinates = "22.543096, 114.057865", Image = "https://example.com/image1.jpg", Description = "提供豪华车租赁服务", CreatedDate = "2024-01-01", UpdatedDate = "2024-01-15" },
+        new { Index = 2, StoreID = "S002", StoreName = "广州天河店", BusinessHours = "09:00 - 20:00", BusinessStatus = "休息中", ContactPhone = "020-87654321", WeChat = "tianhe_store", Address = "广州市天河区珠江新城10号", Coordinates = "23.129163, 113.264435", Image = "https://example.com/image2.jpg", Description = "专业豪车租赁及维护服务", CreatedDate = "2024-02-01", UpdatedDate = "2024-02-15" },
+        new { Index = 3, StoreID = "S003", StoreName = "上海浦东店", BusinessHours = "10:00 - 22:00", BusinessStatus = "营业中", ContactPhone = "021-65432100", WeChat = "pudong_store", Address = "上海市浦东新区陆家嘴街道5号", Coordinates = "31.230416, 121.473701", Image = "https://example.com/image3.jpg", Description = "豪车租赁与商务接待", CreatedDate = "2024-03-01", UpdatedDate = "2024-03-10" }
+    };
+}
+<link rel="stylesheet" href="~/css/table.css" />
+<div>
+    <div class="header">
+        <div class="header-item">
+            <button>刷新</button>
+            <button>添加</button>
+            <button>导出</button>
+        </div>
+        <div class="header-item">
+            <input placeholder="搜索" />
+            <button>搜索</button>
+        </div>
+    </div>
+
+    <table id="userTable">
+        <tr>
+            <th>序号</th>
+            <th>门店ID</th>
+            <th>门店名称</th>
+            <th>营业时间</th>
+            <th>营业状态</th>
+            <th>联系电话</th>
+            <th>微信</th>
+            <th>地址</th>
+            <th>经纬度</th>
+            <th>图片</th>
+            <th>门店介绍</th>
+            <th>创建时间</th>
+            <th>更新时间</th>
+            <th>操作</th>
+        </tr>
+
+        @for (int i = 0; i < storeList.Count; i++)
+        {
+            <tr>
+                <td>@storeList[i].Index</td>
+                <td>@storeList[i].StoreID</td>
+                <td>@storeList[i].StoreName</td>
+                <td>@storeList[i].BusinessHours</td>
+                <td>@storeList[i].BusinessStatus</td>
+                <td>@storeList[i].ContactPhone</td>
+                <td>@storeList[i].WeChat</td>
+                <td>@storeList[i].Address</td>
+                <td>@storeList[i].Coordinates</td>
+                <td><img src="@storeList[i].Image" alt="门店图片" width="60" height="40"></td>
+                <td>@storeList[i].Description</td>
+                <td>@storeList[i].CreatedDate</td>
+                <td>@storeList[i].UpdatedDate</td>
+                <td><button class="modalBtn">编辑</button></td>
+            </tr>
+        }
+    </table>
+    <div class="bottom">
+        <div class="bottom-item">
+            <text>显示第 1 到第 10 条记录，总共 100 条记录</text>
+        </div>
+        <div class="bottom-item">
+            <input placeholder="请输入页数" />
+            <button>跳转</button>
+            <button>上一页</button>
+            <button>下一页</button>
+        </div>
+    </div>
+
+    <!-- 模态窗口 -->
+    <div class="modal" id="myModal">
+        <div class="modal-content">
+            <span class="close" id="closeBtn">&times;</span>
+            <h2>模态窗口</h2>
+            <p>这是一个弹出的模态窗口。</p>
+        </div>
+    </div>
+</div>
+<script>
+    // 获取模态窗口
+    var modal = document.getElementById("myModal");
+    var span = document.getElementById("closeBtn");
+
+    // 使用事件委托
+    document.getElementById("userTable").addEventListener("click", function (event) {
+        if (event.target.classList.contains("modalBtn")) {
+            modal.style.display = "block";
+        }
+    });
+
+    // 点击关闭按钮时关闭模态窗口
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    // 点击模态窗口外部时关闭模态窗口
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
