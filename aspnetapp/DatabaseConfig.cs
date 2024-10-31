@@ -11,7 +11,7 @@
             var password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "Abc*123*";
             var host = Environment.GetEnvironmentVariable("DB_HOST") ?? "sh-cynosdbmysql-grp-owvd31mk.sql.tencentcdb.com";
             var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "26679";
-            var database = Environment.GetEnvironmentVariable("DB_DATABASE") ?? "wxcloudrun-dotnet-001";
+            var database = Environment.GetEnvironmentVariable("DB_DATABASE") ?? "wxcloudrun-dotnet-002";
 
             // 输出一些调试信息
             Console.WriteLine($"host: {host}, port: {port}, username: {username}");

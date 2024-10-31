@@ -17,9 +17,11 @@
         /* 逻辑指向订单 */
         public int TheOrder { get; set; }
 
-        public decimal? StoreA_Amount { get; set; }// 门店A 金额
+        [Precision(10, 2)]
+        public decimal? MoneyStoreA { get; set; }// 门店A 金额
 
-        public decimal? StoreB_Amount { get; set; }// 门店B 金额
+        [Precision(10, 2)]
+        public decimal? MoneyStoreB { get; set; }// 门店B 金额
 
         public DateTime CreatedAt { get; set; }
 

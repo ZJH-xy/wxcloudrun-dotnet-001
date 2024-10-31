@@ -38,7 +38,7 @@
             StoreId = store.Id;
             Name = store.Name;
             BusinessHoursStart = store.BusinessHoursStart;
-            BusinessHoursBegin = store.BusinessHoursBegin;
+            BusinessHoursBegin = store.BusinessHoursEnd;
             BusinessStatus = store.BusinessStatus;
             Telephone = store.Telephone;
             Address = store.Address;

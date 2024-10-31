@@ -11,8 +11,8 @@ using aspnetapp.Dao;
 namespace aspnetapp.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20241031103251_v0.0.7_门店套餐表天数改为小时时长")]
-    partial class v007_门店套餐表天数改为小时时长
+    [Migration("20241031132137_V_0.1.0_重生")]
+    partial class V_010_重生
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

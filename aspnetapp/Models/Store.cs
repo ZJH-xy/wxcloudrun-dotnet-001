@@ -16,7 +16,7 @@
 
         [DataType(DataType.Time)]// HH:MM:SS
         [Required(ErrorMessage = "营业结束时间不可为空")]
-        public TimeSpan BusinessHoursBegin { get; set; }// 营业结束时间
+        public TimeSpan BusinessHoursEnd { get; set; }// 营业结束时间
 
         public bool BusinessStatus { get; set; } = true;// 营业状态
 
@@ -39,5 +39,10 @@
         public DateTime UpdatedAt { get; set; }
         
         public bool IsDelete { get; set; } = false;
+
+        public bool IsOpen() {
+            var now = DateTime.Now.TimeOfDay; // 获取当前时间的时间部分
+            return now >= BusinessHoursStart && now <= BusinessHoursEnd; // 判断是否在营业时间内
+        }
     }
 }

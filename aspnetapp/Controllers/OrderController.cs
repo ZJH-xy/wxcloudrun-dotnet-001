@@ -12,8 +12,8 @@
             return await _context.SaveChangesAsync();
         }
 
-        public async  Task<Order?> GetById(int id) {
-            return await _context.Order.SingleOrDefaultAsync(o => o.Id == id);
+        public async Task<Order?> GetById(int userId, int orderid) {
+            return await _context.Order.Where(o => o.TheUser == userId).SingleOrDefaultAsync(o => o.Id == orderid);
         }
 
         public async Task<List<Order>> GetOrderByUserId(int userId) {

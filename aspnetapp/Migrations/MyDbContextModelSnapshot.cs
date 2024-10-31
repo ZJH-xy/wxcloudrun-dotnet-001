@@ -91,9 +91,6 @@ namespace aspnetapp.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<DateTime>("ExpectedReturnTime")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<string>("IdentityCard")
                         .HasColumnType("longtext");
 
@@ -115,9 +112,6 @@ namespace aspnetapp.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<DateTime>("StartingTime")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -127,7 +121,7 @@ namespace aspnetapp.Migrations
                     b.Property<int?>("TheReturnThePoint")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TheTransferPoint")
+                    b.Property<int>("TheStoreMenu")
                         .HasColumnType("int");
 
                     b.Property<int>("TheUser")
@@ -163,11 +157,13 @@ namespace aspnetapp.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<decimal?>("StoreA_Amount")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<decimal?>("MoneyStoreA")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
-                    b.Property<decimal?>("StoreB_Amount")
-                        .HasColumnType("decimal(65,30)");
+                    b.Property<decimal?>("MoneyStoreB")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<int>("TheOrder")
                         .HasColumnType("int");
@@ -197,7 +193,7 @@ namespace aspnetapp.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("longtext");
 
-                    b.Property<TimeSpan>("BusinessHoursBegin")
+                    b.Property<TimeSpan>("BusinessHoursEnd")
                         .HasColumnType("time(6)");
 
                     b.Property<TimeSpan>("BusinessHoursStart")
