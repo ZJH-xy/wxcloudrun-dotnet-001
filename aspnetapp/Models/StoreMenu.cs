@@ -11,7 +11,7 @@
         /* 逻辑指向门店 */
         public int TheStore { get; set; }
 
-        public int Days { get; set; }// 天数时长
+        public int Duration { get; set; }// 小时时长
 
         [Precision(10, 2)]
         public decimal Rent { get; set; }// 租金
