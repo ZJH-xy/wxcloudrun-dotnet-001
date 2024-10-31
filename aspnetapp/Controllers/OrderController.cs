@@ -17,7 +17,7 @@
         }
 
         public async Task<List<Order>> GetOrderByUserId(int userId) {
-            List<Order> oderList = await _context.Order.Where(o => o.TheUser == userId).Take(10).ToListAsync();// 获取20条
+            List<Order> oderList = await _context.Order.Where(o => o.TheUser == userId).OrderByDescending(o => o.CreatedAt).Take(10).ToListAsync();// 获取10条
             return oderList;
         }
 
