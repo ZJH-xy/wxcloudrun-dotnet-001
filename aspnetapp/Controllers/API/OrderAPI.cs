@@ -21,7 +21,12 @@ namespace aspnetapp.Controllers.API {
         [AllowAnonymous]// 允许匿名访问
         [HttpGet("calculate")]
         public IActionResult CalculateRent(GetCalculateRent getCalculateRent) {
+            using MyDbContext dbcontext = new();
             decimal cost = 0;
+
+            dbcontext.Store.SingleOrDefaultAsync(s => s.IsDelete == false && s.BusinessStatus && s.Id == getCalculateRent.RentalLocation);
+
+
             return StatusCode(200, cost);
         }
 
@@ -43,7 +48,7 @@ namespace aspnetapp.Controllers.API {
 
             return StatusCode(200, new ReturnOrder(order));
         }
-
+        
         // 获取用户最近20条订单
         [HttpGet("a")]
         public async Task<IActionResult> GetOderByUserId() {
@@ -52,17 +57,15 @@ namespace aspnetapp.Controllers.API {
                 orderList = await orderController.GetOrderByUserId(GetUserIdInt());
 
             } catch (Exception e) {
-                _logger.LogError(e, "用户{UserId}查询订单{OrderList}信息", GetUserIdInt(), orderList.Select(o => o.Id).ToArray());
-#if DEBUG
-                Console.WriteLine($"[错误]GetOderByUserId: {e}");
-#endif
+                _logger.LogError(e, "用户{UserId}查询订单信息", GetUserIdInt());
+
                 return StatusCode(500);
             }
 
-            List<ReturnOrder> returnOrderorderList = new();
+            List<ReturnOrderBasic> returnOrderorderList = new();
 
             foreach (Order order in orderList)
-                returnOrderorderList.Add(new ReturnOrder(order));
+                returnOrderorderList.Add(new ReturnOrderBasic(order));
 
             return StatusCode(200, returnOrderorderList);
         }
@@ -70,25 +73,24 @@ namespace aspnetapp.Controllers.API {
         // 创建订单
         [HttpPost("add")]
         public async Task<IActionResult> AddOrder(GetOrder data) {
-            // 订单信息合法性验证
             using MyDbContext dbcontext = new();
+            // 订单信息合法性验证
 
             if (await dbcontext.User.SingleOrDefaultAsync(u => u.Id == GetUserIdInt()) is null)
                 return StatusCode(403, "用户不存在");
 
+            if (!data.DepositRequired) {
+                if (!Regex.IsMatch(data.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase))
+                    return StatusCode(403, "请检查身份证号格式");
+            }
+
             if (data.UserName == string.Empty)
                 return StatusCode(403, "请检查名字格式");
 
-            if ((!Regex.IsMatch(data.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase)))
-                return StatusCode(403, "请检查身份证号格式");
-
-            if (data.StartingTime != DateTime.Today)
-                return StatusCode(403, "起始时间只能为今日");
-
-            if ((!Regex.IsMatch(data.UserPhone, @"^1(3[0-9]|4[01456879]|5[0-35-9]|6[2567]|7[0-8]|8[0-9]|9[0-35-9])\d{8}$")))
+            if (!Regex.IsMatch(data.UserPhone, @"^1(3[0-9]|4[01456879]|5[0-35-9]|6[2567]|7[0-8]|8[0-9]|9[0-35-9])\d{8}$"))
                 return StatusCode(403, "请检查手机号码格式");
 
-            // 检查是否有订单待付款
+            // 检查用户订单状态
             try {
                 if (await dbcontext.Order.Where(o => o.TheUser == GetUserIdInt()).
                     AnyAsync(o => o.Status == Order.OrderStatus.待付款)) {
@@ -100,6 +102,21 @@ namespace aspnetapp.Controllers.API {
                 return StatusCode(404, "订单信息获取错误");
             }
 
+            // 检查门店状态
+            Store? store;
+            var storeMenus = await dbcontext.StoreMenus.SingleOrDefaultAsync(sm => sm.Id == data.StoreMenuId && !sm.IsDelete);
+            if (storeMenus == null)
+                return StatusCode(403, "请检查套餐信息");
+
+            store = await dbcontext.Store.SingleOrDefaultAsync(s => s.IsDelete == false && s.Id == storeMenus.TheStore);
+
+            if (store == null)
+                return StatusCode(404);
+
+            if (!(store.BusinessStatus && store.IsOpen()))
+                return StatusCode(403, "门店未营业");
+
+            // 检查车辆状态
             Vehicle? vehicle;
             try {
                 vehicle = await dbcontext.Vehicle.SingleOrDefaultAsync(v => v.IsDelete == false && v.Id == data.Vehicle);
@@ -136,10 +153,6 @@ namespace aspnetapp.Controllers.API {
                 UserName = data.UserName,// 用户姓名
                 UserPhone = data.UserPhone,// 用户手机号
                 IdentityCard = data.IdentityCard,// 身份证号
-                StartingTime = data.StartingTime,// 起始时间
-                ExpectedReturnTime = data.ExpectedReturnTime,// 预计归还时间
-                TheRentalLocation = data.RentalLocation,// 租车点
-                LongTermLease = data.LongTermLease, // 长租
                 Deposit = 0,// 押金
                 Rent = 0,// 租金
                 Status = Order.OrderStatus.待付款,
@@ -241,58 +254,60 @@ namespace aspnetapp.Controllers.API {
     // 计算租用费用
     public class GetCalculateRent {
         public int RentalLocation { get; set; }// 租车点（StoreId）
-        public DateTime StartingTime { get; set; }// 起始时间
-        public DateTime ExpectedReturnTime { get; set; }// 预计归还时间
+        public int MenuId { get; set; }// 套餐Id
     }
 
     // 获取创建订单信息
     public class GetOrder {
+        public int StoreMenuId { get; set; }// 套餐Id
         public bool DepositRequired { get; set; }// 需要押金
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
         public string IdentityCard { get; set; }// 身份证号
         public int Vehicle { get; set; }// 租用车辆
-        public DateTime StartingTime { get; set; }// 起始时间
-        public DateTime ExpectedReturnTime { get; set; }// 预计归还时间
-        public int RentalLocation { get; set; }// 租车点（StoreId）
-        public bool LongTermLease { get; set; }// 长租
-        public string Notes { get; set; }// 备注
     }
 
-    //public struct ReturnOrderBasic {
-    //    public int OrderId { get; init; }// 订单编号
-    //    public DateTime StartingTime { get; set; }// 起始时间
-    //    public DateTime ExpectedReturnTime { get; set; }// 预计归还时间
-    //    public DateTime? ActualStartingTime { get; set; }// 实际起始时间
-    //    public DateTime? ActualReturnTime { get; set; }// 实际归还时间
-    //    public int Vehicle { get; set; }// 租用车辆
-    //    public int RentalLocation { get; set; }// 租车点（StoreId）
-    //    public int? ReturnThePoint { get; set; }// 还车点（StoreId）
-    //    public string UserName { get; set; }// 用户姓名
-    //    public string UserPhone { get; set; }// 用户手机号
-    //    public bool LongTermLease { get; set; } = false;// 长租
-    //    public decimal Deposit { get; set; }// 押金
-    //    public decimal Rent { get; set; }// 租金
-    //    public decimal DispatchFee { get; set; }// 调度费
-    //    public decimal OtherFees { get; set; }// 其他费用
-    //    public decimal Paid { get; set; }// 已付
-    //    public decimal DepositRefunded { get; set; }// 已退押金
-    //    public Order.OrderStatus Status { get; set; }// 订单状态
-    //    public string? Notes { get; set; }// 备注
-    //    public DateTime CreatedAt { get; set; }
-    //}
+    // 基础返回订单
+    public struct ReturnOrderBasic {
+        public ReturnOrderBasic(Order order) {
+            OrderId = order.Id;
+            TheVehicle = order.TheVehicle;
+            UserName = order.UserName;
+            UserPhone = order.UserPhone;
+            LongTermLease = order.LongTermLease;
+            Deposit = order.Deposit;
+            Rent = order.Rent;
+            DispatchFee = order.DispatchFee;
+            OtherFees = order.OtherFees;
+            Paid = order.Paid;
+            DepositRefunded = order.DepositRefunded;
+            Status = order.Status;
+            CreatedAt = order.CreatedAt;
+        }
+        public int OrderId { get; init; }// 订单编号
+        public int TheVehicle { get; set; }// 租用车辆
+        public string UserName { get; set; }// 用户姓名
+        public string UserPhone { get; set; }// 用户手机号
+        public bool LongTermLease { get; set; }// 长租
+        public decimal Deposit { get; set; }// 押金
+        public decimal Rent { get; set; }// 租金
+        public decimal DispatchFee { get; set; }// 调度费
+        public decimal OtherFees { get; set; }// 其他费用
+        public decimal Paid { get; set; }// 已付
+        public decimal DepositRefunded { get; set; }// 已退押金
+        public Order.OrderStatus Status { get; set; }// 订单状态
+        public DateTime CreatedAt { get; set; }
+    }
 
-    // 返回订单格式
+    // 详细返回订单格式
     public struct ReturnOrder {
         public ReturnOrder(Order order) {
             OrderId = order.Id;
-            StartingTime = order.StartingTime;
-            ExpectedReturnTime = order.ExpectedReturnTime;
             ActualStartingTime = order.ActualStartingTime;
             ActualReturnTime = order.ActualReturnTime;
-            Vehicle = order.TheVehicle;
-            RentalLocation = order.TheRentalLocation;
-            ReturnThePoint = order.TheReturnThePoint;
+            TheVehicle = order.TheVehicle;
+            TheRentalLocation = order.TheRentalLocation;
+            TheReturnThePoint = order.TheReturnThePoint;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
             LongTermLease = order.LongTermLease;
@@ -307,13 +322,11 @@ namespace aspnetapp.Controllers.API {
             CreatedAt = order.CreatedAt;
         }
         public int OrderId { get; init; }// 订单编号
-        public DateTime StartingTime { get; set; }// 起始时间
-        public DateTime ExpectedReturnTime { get; set; }// 预计归还时间
         public DateTime? ActualStartingTime { get; set; }// 实际起始时间
         public DateTime? ActualReturnTime { get; set; }// 实际归还时间
-        public int Vehicle { get; set; }// 租用车辆
-        public int RentalLocation { get; set; }// 租车点（StoreId）
-        public int? ReturnThePoint { get; set; }// 还车点（StoreId）
+        public int TheVehicle { get; set; }// 租用车辆
+        public int TheRentalLocation { get; set; }// 租车点（StoreId）
+        public int? TheReturnThePoint { get; set; }// 还车点（StoreId）
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
         public bool LongTermLease { get; set; } = false;// 长租

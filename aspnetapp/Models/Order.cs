@@ -11,11 +11,8 @@
         /* 逻辑指向用户 */
         public int TheUser { get; set; }
 
-        [DataType(DataType.Date)]// YYYY-MM-DD
-        public DateTime StartingTime { get; set; }// 租用起始时间
-
-        [DataType(DataType.Date)]// YYYY-MM-DD
-        public DateTime ExpectedReturnTime { get; set; }// 预计归还时间
+        /* 逻辑指向套餐 */
+        public int TheStoreMenu { get; set; }// 套餐
 
         public DateTime? ActualStartingTime { get; set; }// 实际起始时间
 
@@ -26,9 +23,6 @@
 
         /* 逻辑指向门店 */
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
-
-        /* 逻辑指向门店 */
-        public int? TheTransferPoint { get; set; }// 换车点（StoreId）
 
         /* 逻辑指向门店 */
         public int? TheReturnThePoint { get; set; }// 还车点（StoreId）

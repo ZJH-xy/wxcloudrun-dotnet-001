@@ -63,7 +63,7 @@ namespace aspnetapp.Controllers.API {
                 user = await UserController.GetUser(GetUserIdInt());
 
             } catch (Exception e) {
-                _logger.LogError(e, "获取用户{UserId}所有信息", GetUserIdInt());
+                _logger.LogError(e, "获取用户{UserId}所有信息", GetUserIdInt()); 
 
                 return StatusCode(500);
             }

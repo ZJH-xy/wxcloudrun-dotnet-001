@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using aspnetapp.Dao;
 
@@ -10,9 +11,10 @@ using aspnetapp.Dao;
 namespace aspnetapp.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241031170356_V_0.1.1_订单时间类型_重命名")]
+    partial class V_011_订单时间类型_重命名
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,6 +93,9 @@ namespace aspnetapp.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<DateTime>("ExpectedReturnTime")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("IdentityCard")
                         .HasColumnType("longtext");
 
@@ -112,6 +117,9 @@ namespace aspnetapp.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<DateTime>("StartingTime")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -121,7 +129,7 @@ namespace aspnetapp.Migrations
                     b.Property<int?>("TheReturnThePoint")
                         .HasColumnType("int");
 
-                    b.Property<int>("TheStoreMenu")
+                    b.Property<int?>("TheTransferPoint")
                         .HasColumnType("int");
 
                     b.Property<int>("TheUser")
@@ -193,7 +201,7 @@ namespace aspnetapp.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("longtext");
 
-                    b.Property<TimeSpan>("BusinessHoursEnd")
+                    b.Property<TimeSpan>("BusinessHoursBegin")
                         .HasColumnType("time(6)");
 
                     b.Property<TimeSpan>("BusinessHoursStart")
