@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
 
 namespace aspnetapp.Controllers.API {
 
@@ -10,12 +9,14 @@ namespace aspnetapp.Controllers.API {
     public class UserAPI : ControllerBase {
         private readonly UserController UserController = new(new MyDbContext());
         private readonly IOptionsSnapshot<JWTSettings> JWTSettingsOpt;
+        private readonly ILogger<OrderAPI> _logger;
 
-        public UserAPI(IOptionsSnapshot<JWTSettings> jWTSettingsOpt) {
+        public UserAPI(IOptionsSnapshot<JWTSettings> jWTSettingsOpt, ILogger<OrderAPI> logger) {
             JWTSettingsOpt = jWTSettingsOpt;
+            _logger = logger;
         }
 
-        // 获取用户基础信息
+        // Id获取用户基础信息
         [HttpGet("id/{id}")]
         public async Task<IActionResult> GetUserById(int id) {
             User? user;
@@ -23,9 +24,8 @@ namespace aspnetapp.Controllers.API {
                 user = await UserController.GetUserById(id);
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]GetUserById: {e}");
-#endif
+                _logger.LogError(e, "Id获取用户{UserId}基础信息", id);
+
                 return StatusCode(500);
             }
 
@@ -35,7 +35,7 @@ namespace aspnetapp.Controllers.API {
             return StatusCode(200, new UserBasic(user));
         }
 
-        // 获取用户基础信息
+        // 手机号获取用户基础信息
         [HttpGet("phone/{phone}")]
         public async Task<IActionResult> GetUserByPhone(string phone) {
             User? user;
@@ -43,9 +43,8 @@ namespace aspnetapp.Controllers.API {
                 user = await UserController.GetUserByPhone(phone);
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]GetUserByPhone: {e}");
-#endif
+                _logger.LogError(e, "手机号获取用户{Phone}基础信息", phone);
+
                 return StatusCode(500);
             }
 
@@ -61,12 +60,11 @@ namespace aspnetapp.Controllers.API {
         public async Task<IActionResult> GetUserPro() {
             User? user;
             try {
-                user = await UserController.GetUser(GetUserId());
+                user = await UserController.GetUser(GetUserIdInt());
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]GetUserPro: {e}");
-#endif
+                _logger.LogError(e, "获取用户{UserId}所有信息", GetUserIdInt());
+
                 return StatusCode(500);
             }
 
@@ -82,12 +80,11 @@ namespace aspnetapp.Controllers.API {
         public async Task<IActionResult> RealNameAuthentication(RealNameAuthentication real) {
             User? user;
             try {
-                user = await UserController.GetUserById(GetUserId());
+                user = await UserController.GetUserById(GetUserIdInt());
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]GetUserPro，获取用户: {e}");
-#endif
+                _logger.LogError(e, "获取用户{UserId}", GetUserIdInt());
+
                 return StatusCode(500);
             }
 
@@ -103,25 +100,23 @@ namespace aspnetapp.Controllers.API {
             if ((!Regex.IsMatch(real.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase)))
                 return StatusCode(403, "请检查身份证号格式");
 
-            // 调用外部API 判断信息
+            // 调用外部API 判断信息正确性
 
             //
 
-            int changSum = 0;
+            int changSum;
             user.Name = real.Name;
             user.IdentityCard = real.IdentityCard;
             try {
                 changSum = await UserController.UpdateUser(user);
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]GetUserPro，修改信息: {e}");
-#endif
+                _logger.LogError(e, "用户{UserId}实名认证，更新数据", GetUserIdInt());
+
                 return StatusCode(500);
             }
-#if DEBUG
-            Console.WriteLine($"[日志]GetUserPro，已修改行数：{changSum}");
-#endif
+            _logger.LogInformation("用户{UserId}实名认证成功，已修改行数{ChangSum}", GetUserIdInt(), changSum);
+
             return StatusCode(200);
         }
 
@@ -131,12 +126,11 @@ namespace aspnetapp.Controllers.API {
         public async Task<IActionResult> UpdateUser(UpdateUser updateUser) {
             User? user;
             try {
-                user = await UserController.GetUserById(GetUserId());
+                user = await UserController.GetUserById(GetUserIdInt());
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]UpdateUser: {e}");
-#endif
+                _logger.LogError(e, "获取用户{UserId}", GetUserIdInt());
+
                 return StatusCode(500);
             }
 
@@ -162,9 +156,8 @@ namespace aspnetapp.Controllers.API {
                 user = await UserController.GetUserById(int.Parse(id));
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]GetUserPro，获取用户: {e}");
-#endif
+                _logger.LogError(e, "获取用户{UserId}", GetUserIdInt());
+
                 return StatusCode(500);
             }
 
@@ -183,14 +176,11 @@ namespace aspnetapp.Controllers.API {
                 changSum = await UserController.UpdateUser(user);
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]GetUserPro，密码修改: {e}");
-#endif
+                _logger.LogError(e, "用户{UserId}修改密码", GetUserIdInt());
+
                 return StatusCode(500);
             }
-#if DEBUG
-            Console.WriteLine($"[日志]GetUserPro，已修改行数：{changSum}");
-#endif
+            _logger.LogInformation("用户{UserId}修改密码成功，已修改行数{ChangSum}", GetUserIdInt(), changSum);
 
             return StatusCode(200);
         }
@@ -209,9 +199,8 @@ namespace aspnetapp.Controllers.API {
                 user = await UserController.GetUserByPhone(phone);
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]Login: {e}");
-#endif
+                _logger.LogError(e, "用户{UserId}登录", GetUserIdInt());
+
                 return StatusCode(500);
             }
 
@@ -224,13 +213,7 @@ namespace aspnetapp.Controllers.API {
             if (!(VerifyPassword(password, user.Password)))
                 return StatusCode(403, "帐号或密码错误");
 
-            // JWT
-            List<Claim> claims = new() {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Role, "user")
-            };
-
-            return StatusCode(200, GetJwtToken(claims));
+            return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));
         }
 
         // 快速登录
@@ -249,15 +232,13 @@ namespace aspnetapp.Controllers.API {
                     return StatusCode(403, "code 无效");
 
                 case ReturnCode.不合法的APPID:
-#if DEBUG
-                    Console.WriteLine($"[错误]QuickLogin: 不合法的APPID，errcode: {result.errcode};");
-#endif
+                    _logger.LogCritical("用户快速登录，errcode：{Errcode}", result.errcode);
+
                     return StatusCode(500);
 
                 default:
-#if DEBUG
-                    Console.WriteLine($"[错误]QuickLogin: errcode: {result.errcode};");
-#endif
+                    _logger.LogError("用户快速登录，errcode：{Errcode}", result.errcode);
+
                     return StatusCode(500);
             }
 
@@ -266,9 +247,8 @@ namespace aspnetapp.Controllers.API {
                 user = await UserController.GetUserByPhone(result.phone_info.purePhoneNumber);
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]QuickLogin 手机号获取用户: {e}");
-#endif
+                _logger.LogError(e, "手机号获取用户{Phone}", result.phone_info.purePhoneNumber);
+
                 return StatusCode(500);
             }
 
@@ -283,37 +263,20 @@ namespace aspnetapp.Controllers.API {
                 };
                 try {
                     changeSum = await UserController.AddUser(user);
+                    if (0 == changeSum)
+                        throw new Exception("新增行数为0");
 
                 } catch (Exception e) {
-#if DEBUG
-                    Console.WriteLine($"[错误]QuickLogin 新用户注册: {e}");
-#endif
-                    return StatusCode(500);
-                }
+                    _logger.LogError(e, "新用户注册");
 
-                if (0 == changeSum) {
-#if DEBUG
-                    Console.WriteLine($"[异常]QuickLogin 用户注册失败，userId: {user.UserId}");
-#endif
                     return StatusCode(403, "注册失败，请联系管理员");
                 }
 
-                // JWT
-                claims = new() {
-                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                    new Claim(ClaimTypes.Role, "user")
-                };
-
-                return StatusCode(200, GetJwtToken(claims));
+                return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));
             }
 
             // 已注册
-            claims = new() {
-                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                    new Claim(ClaimTypes.Role, "user")
-            };
-
-            return StatusCode(200, GetJwtToken(claims));
+            return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));
         }
 
         // 根据手机号获取收藏门店
@@ -343,8 +306,27 @@ namespace aspnetapp.Controllers.API {
         /// JWT 获取用户id
         /// </summary>
         /// <returns></returns>
-        public int GetUserId() {
+        public int GetUserIdInt() {
             return int.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        }
+
+        // JWT 获取用户id
+        public string GetUserIdString() {
+            return this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+
+        /// <summary>
+        /// 创建Claim
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="role">角色</param>
+        /// <returns>List<Claim> 对象</returns>
+        public List<Claim> CreateClaim(string id, string role) {
+            List<Claim> claims = new() {
+                new Claim(ClaimTypes.NameIdentifier, id),
+                new Claim(ClaimTypes.Role, role)
+            };
+            return claims;
         }
 
         /// <summary>
@@ -356,9 +338,7 @@ namespace aspnetapp.Controllers.API {
             // 读取配置
             string key = JWTSettingsOpt.Value.SecKey;
             DateTime expires = DateTime.Now.AddDays(JWTSettingsOpt.Value.ExpireDays);// 读取配置过期时间
-#if DEBUG
-            Console.WriteLine($"Now:{DateTime.Now};expires:{expires}");
-#endif
+
             // 计算
             byte[] secBytes = Encoding.UTF8.GetBytes(key);
             var secKey = new SymmetricSecurityKey(secBytes);
@@ -366,6 +346,11 @@ namespace aspnetapp.Controllers.API {
             var tokenDescriptor = new JwtSecurityToken(claims: claims,
                 expires: expires, signingCredentials: credentials);
             string jwt = new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
+
+            _logger.LogDebug("角色：{Role}，ID：{NameIdentifier}生成新JWTtoken：{claims}",
+                claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value,
+                claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value,
+                claims.ToJToken());
             return jwt;
         }
 

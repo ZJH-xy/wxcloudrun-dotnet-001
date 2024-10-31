@@ -1,7 +1,3 @@
-using aspnetapp;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -40,6 +36,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 
 //Senparc.Weixin 注册（必须）
 builder.Services.AddSenparcWeixin(builder.Configuration);
+
+
+// 配置日志
+builder.Logging.ClearProviders();                    // 清除默认日志提供程序
+builder.Logging.AddConsole();                        // 添加控制台日志
+//builder.Logging.AddDebug();                          // 添加 Debug 输出日志（适合调试环境）
+//builder.Logging.AddEventLog();                       // Windows 事件日志
+builder.Logging.SetMinimumLevel(LogLevel.Information); // 设置最小日志级别
+
+// 还可以从 appsettings.json 中读取配置
+builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
+
+
 
 var app = builder.Build();
 

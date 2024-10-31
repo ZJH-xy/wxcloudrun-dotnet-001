@@ -1,9 +1,11 @@
 ﻿namespace aspnetapp.Models {
-    // 首页广告表
+    /// <summary>
+    /// 首页广告表
+    /// </summary>
     [Table("T_HomepageAd")]
     public class HomepageAd {
         [Key]
-        public int AdId { get; init; }// 广告编号
+        public int Id { get; init; }// 广告编号
 
         public string? PictureLink { get; set; }// 图片链接
 

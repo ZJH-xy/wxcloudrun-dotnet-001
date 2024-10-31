@@ -1,9 +1,11 @@
 ﻿namespace aspnetapp.Models {
-    // 门店总表
+    /// <summary>
+    /// 门店总表
+    /// </summary>
     [Table("T_StoreSummary")]
     public class Store {
         [Key]
-        public int StoreId { get; init; }// 门店编号
+        public int Id { get; init; }// 门店编号
 
         [Required(ErrorMessage = "门店名称不可为空")]
         public string Name { get; set; } = string.Empty;// 门店名称

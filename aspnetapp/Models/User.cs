@@ -1,9 +1,12 @@
 ﻿namespace aspnetapp.Models {
-    // 用户信息表
+    /// <summary>
+    /// 用户信息表
+    /// </summary>
     [Table("T_Users")]
+    [Index(nameof(Phone), IsUnique = true)]
     public class User {
         [Key]
-        public int UserId { get; init; }// 用户编号
+        public int Id { get; init; }// 用户编号
 
         // 使用 Data Annotations 进行格式验证
         //[RegularExpression(@"^1(3[0-9]|4[01456879]|5[0-35-9]|6[2567]|7[0-8]|8[0-9]|9[0-35-9])\d{8}$", ErrorMessage = "手机号格式无效
@@ -16,6 +19,8 @@
         public string? Name { get; set; }// 姓名
 
         public string? IdentityCard {  get; set; }// 身份证号
+
+        public string? IdentityCardPictures { get; set; }// 身份证照片
 
         public string? Nickname { get; set; }// 昵称
 

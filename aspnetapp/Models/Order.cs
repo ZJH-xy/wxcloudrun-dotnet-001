@@ -1,31 +1,37 @@
 ﻿namespace aspnetapp.Models {
-    // 订单表
+    /// <summary>
+    /// 订单表
+    /// </summary>
     [Table("T_OrderForm")]
-    [Index(nameof(TheUser))]
+    [Index(nameof(TheUser), nameof(Status))]
     public class Order {
         [Key]
-        public int OrderId { get; init; }// 订单编号
+        public int Id { get; init; }// 订单编号
 
         /* 逻辑指向用户 */
         public int TheUser { get; set; }
 
-        public DateTime StartingTime { get; set; }// 起始时间
+        [DataType(DataType.Date)]// YYYY-MM-DD
+        public DateTime StartingTime { get; set; }// 租用起始时间
 
+        [DataType(DataType.Date)]// YYYY-MM-DD
         public DateTime ExpectedReturnTime { get; set; }// 预计归还时间
+
+        public DateTime? ActualStartingTime { get; set; }// 实际起始时间
 
         public DateTime? ActualReturnTime { get; set; }// 实际归还时间
 
         /* 逻辑指向车辆 */
-        public int Vehicle { get; set; }// 租用车辆
+        public int TheVehicle { get; set; }// 租用车辆
 
         /* 逻辑指向门店 */
-        public int RentalLocation { get; set; }// 租车点（StoreId）
+        public int TheRentalLocation { get; set; }// 租车点（StoreId）
 
         /* 逻辑指向门店 */
-        public int? TransferPoint { get; set; }// 换车点（StoreId）
+        public int? TheTransferPoint { get; set; }// 换车点（StoreId）
 
         /* 逻辑指向门店 */
-        public int? ReturnThePoint { get; set; }// 还车点（StoreId）
+        public int? TheReturnThePoint { get; set; }// 还车点（StoreId）
 
         public string UserName { get; set; }// 用户姓名
 
@@ -67,7 +73,8 @@
             已退款,
             待确认,
             进行中,
-            已完成
+            已完成,
+            付款中
         }
     }
 }

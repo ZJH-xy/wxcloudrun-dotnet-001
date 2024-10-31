@@ -1,16 +1,18 @@
 ﻿namespace aspnetapp.Models {
-    // 车辆总表
+    /// <summary>
+    /// 车辆总表
+    /// </summary>
     [Table("T_VehicleSummary")]
-    [Index(nameof(OriginalStore), nameof(CurrentStore))]
+    [Index(nameof(TheOriginalStore), nameof(TheCurrentStore), nameof(State))]
     public class Vehicle {
         [Key]
-        public int VehicleId { get; init; }// 车辆编号
+        public int Id { get; init; }// 车辆编号
 
         /* 逻辑指向门店 */
-        public int? OriginalStore { get; set; }// 原始门店
+        public int? TheOriginalStore { get; set; }// 原始门店
 
         /* 逻辑指向门店 */
-        public int? CurrentStore { get; set; }// 当前门店
+        public int? TheCurrentStore { get; set; }// 当前门店
 
         public Emodel Model { get; set; } = Emodel.未知;// 车辆型号
 
@@ -30,6 +32,8 @@
 
         public string? VehicleIntroduction { get; set; }// 车辆介绍
 
+        public string? Pictures { get; set; }// 车辆图片
+
         public Estates State { get; set; }// 车辆状态
 
         public bool IsCase { get; set; } = false; // 是否涉案
@@ -47,7 +51,8 @@
             已出租,
             充电中,
             故障,
-            锁定
+            锁定,
+            侍确认
         }
 
         // 车辆型号

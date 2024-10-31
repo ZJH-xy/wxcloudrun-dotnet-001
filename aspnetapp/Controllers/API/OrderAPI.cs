@@ -1,5 +1,7 @@
 using aspnetapp.Models;
 using Microsoft.AspNetCore.Authorization;
+using Polly;
+using Senparc.Weixin.WxOpen.AdvancedAPIs.WxApp.WxAppJson;
 using System.Security.Claims;
 
 namespace aspnetapp.Controllers.API {
@@ -9,8 +11,21 @@ namespace aspnetapp.Controllers.API {
     [Authorize]// 方法受到限制
     public class OrderAPI : ControllerBase {
         private readonly OrderController orderController = new(new MyDbContext());
+        private readonly ILogger<OrderAPI> _logger;
 
-        // 查询单个订单
+        public OrderAPI(ILogger<OrderAPI> logger) {
+            _logger = logger;
+        }
+
+        // 计算租金
+        [AllowAnonymous]// 允许匿名访问
+        [HttpGet("calculate")]
+        public IActionResult CalculateRent(GetCalculateRent getCalculateRent) {
+            decimal cost = 0;
+            return StatusCode(200, cost);
+        }
+
+        // 用户查询单个订单
         [HttpGet("i/{orderId}")]
         public async Task<IActionResult> GetOderById(int orderId) {
             Order? order;
@@ -18,9 +33,8 @@ namespace aspnetapp.Controllers.API {
                 order = await orderController.GetById(orderId);
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]GetOderByUserId: {e}");
-#endif
+                _logger.LogError(e, "用户{UserId}查询订单{order}信息", GetUserIdInt(), orderId);
+
                 return StatusCode(500);
             }
 
@@ -33,11 +47,12 @@ namespace aspnetapp.Controllers.API {
         // 获取用户最近20条订单
         [HttpGet("a")]
         public async Task<IActionResult> GetOderByUserId() {
-            List<Order> orderList;
+            List<Order> orderList = new();
             try {
-                orderList = await orderController.GetOrderByUserId(GetUserId());
+                orderList = await orderController.GetOrderByUserId(GetUserIdInt());
 
             } catch (Exception e) {
+                _logger.LogError(e, "用户{UserId}查询订单{OrderList}信息", GetUserIdInt(), orderList.Select(o => o.Id).ToArray());
 #if DEBUG
                 Console.WriteLine($"[错误]GetOderByUserId: {e}");
 #endif
@@ -52,21 +67,13 @@ namespace aspnetapp.Controllers.API {
             return StatusCode(200, returnOrderorderList);
         }
 
-        // 计算租金
-        [AllowAnonymous]// 允许匿名访问
-        [HttpGet("calculate")]
-        public IActionResult CalculateRent(GetCalculateRent getCalculateRent) {
-            decimal cost = 0;
-            return StatusCode(200, cost);
-        }
-
         // 创建订单
         [HttpPost("add")]
         public async Task<IActionResult> AddOrder(GetOrder data) {
             // 订单信息合法性验证
             using MyDbContext dbcontext = new();
 
-            if (await dbcontext.User.SingleOrDefaultAsync(u => u.UserId == GetUserId()) is null)
+            if (await dbcontext.User.SingleOrDefaultAsync(u => u.Id == GetUserIdInt()) is null)
                 return StatusCode(403, "用户不存在");
 
             if (data.UserName == string.Empty)
@@ -83,25 +90,23 @@ namespace aspnetapp.Controllers.API {
 
             // 检查是否有订单待付款
             try {
-                if (await dbcontext.Order.Where(o => o.TheUser == GetUserId()).
+                if (await dbcontext.Order.Where(o => o.TheUser == GetUserIdInt()).
                     AnyAsync(o => o.Status == Order.OrderStatus.待付款)) {
                     return StatusCode(403, "当前有待付款的订单");
                 }
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]AddOrder，获取用户订单信息异常: {e}");
-#endif
+                _logger.LogError(e, "查询用户{UserId}未完成的订单信息", GetUserIdInt());
+
                 return StatusCode(404, "订单信息获取错误");
             }
 
             Vehicle? vehicle;
             try {
-                vehicle = await dbcontext.Vehicle.SingleOrDefaultAsync(v => v.IsDelete == false && v.VehicleId == data.Vehicle);
+                vehicle = await dbcontext.Vehicle.SingleOrDefaultAsync(v => v.IsDelete == false && v.Id == data.Vehicle);
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]AddOrder，获取车辆信息异常: {e}");
-#endif
+                _logger.LogError(e, "获取车辆{VehicleId}信息", data.Vehicle);
+
                 return StatusCode(505);
             }
             if (vehicle is null)
@@ -110,6 +115,7 @@ namespace aspnetapp.Controllers.API {
             if (vehicle.State != Vehicle.Estates.空闲)
                 return StatusCode(403, "手慢了，请更换车辆");
 
+            // 锁定车辆，更新时间
             vehicle.State = Vehicle.Estates.锁定;
             vehicle.StateUpdatedAt = DateTime.Now;
             vehicle.UpdatedAt = DateTime.Now;
@@ -119,21 +125,20 @@ namespace aspnetapp.Controllers.API {
                 await dbcontext.SaveChangesAsync();
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]AddOrder，车辆锁定异常: {e}");
-#endif
+                _logger.LogError(e, "车辆{Vehicle}锁定", vehicle.Id);
+
                 return StatusCode(500, "车辆锁定失败");
             }
 
             Order order = new() {
-                TheUser = GetUserId(),
-                Vehicle = data.Vehicle,// 车辆
+                TheUser = GetUserIdInt(),
+                TheVehicle = data.Vehicle,// 车辆
                 UserName = data.UserName,// 用户姓名
                 UserPhone = data.UserPhone,// 用户手机号
                 IdentityCard = data.IdentityCard,// 身份证号
                 StartingTime = data.StartingTime,// 起始时间
                 ExpectedReturnTime = data.ExpectedReturnTime,// 预计归还时间
-                RentalLocation = data.RentalLocation,// 租车点
+                TheRentalLocation = data.RentalLocation,// 租车点
                 LongTermLease = data.LongTermLease, // 长租
                 Deposit = 0,// 押金
                 Rent = 0,// 租金
@@ -142,32 +147,35 @@ namespace aspnetapp.Controllers.API {
                 UpdatedAt = DateTime.Now
             };
 
+            _logger.LogDebug("订单创建信息{Order}", order.ToJson());
+
             try {
                 int changes = await orderController.AddOrder(order);
                 if (0 == changes) {
                     throw new Exception("新增行数为0");
                 }
+
+                _logger.LogInformation("订单{OrderId}创建", order.Id);
+
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]AddOrder，创建订单异常: {e}, order:{order}");
-#endif
+                _logger.LogError(e, "创建订单{OrderId}", order.Id);
+
                 return StatusCode(403, "创建订单失败，请联系管理员");
             }
 
-            // 获取新建的订单id
+            // 获取新建订单的id
             Order newOrder;
             try {
                 /* 待付款的订单最多只能有一条 */
                 newOrder = await dbcontext.Order.SingleAsync(o => o.TheUser == order.TheUser && o.Status == Order.OrderStatus.待付款);
 
             } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]AddOrder，查询订单结果异常: {e}");
-#endif
+                _logger.LogError(e, "查询用户{UserId}订单{OrderId}结果异常，可能存在多条待付款订单", GetUserIdInt(), order.Id);
+
                 return StatusCode(403, "订单状态异常");
             }
 
-            return StatusCode(201, newOrder.OrderId);
+            return StatusCode(201, newOrder.Id);
         }
 
         // 支付接口，支付成功后取消自动取消计时器
@@ -186,45 +194,60 @@ namespace aspnetapp.Controllers.API {
 
             // 取消自动取消计时任务
 
+            _logger.LogInformation("用户{UserId}订单{OrderId}支付成功", GetUserIdInt(), orderId);
+
             return StatusCode(200, "支付成功");
         }
 
         // 检查未支付订单并取消超过10分钟的订单
         public async Task CheckOrderPayment() {
             using MyDbContext _dbContext = new();
-            var now = DateTime.Now; // 获取当前时间
-            var threshold = now.AddMinutes(-10); // 计算10分钟前的时间
+            DateTime now = DateTime.Now;// 获取当前时间
+            DateTime threshold = now.AddMinutes(-10);// 计算10分钟前的时间
 
             // 查询所有超过10分钟未支付的待付款订单
-            var ordersToCancel = await _dbContext.Order
+            List<Order> ordersToCancel = await _dbContext.Order
                 .Where(o => o.Status == Order.OrderStatus.待付款 && o.CreatedAt < threshold)
                 .ToListAsync();
 
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
             foreach (var order in ordersToCancel) {
+                // 更新订单状态
                 order.Status = Order.OrderStatus.已取消;
-                order.UpdatedAt = now; // 更新取消时间
-#if DEBUG
-                Console.WriteLine($"[日志]CheckOrderPayment 订单取消：orderId: {order.OrderId}");
-#endif
+                order.UpdatedAt = now;
+
+                // 查询并更新与订单关联的车辆状态为空闲
+                Vehicle vehicle = await _dbContext.Vehicle
+                    .SingleAsync(v => v.Id == order.TheVehicle);
+                    
+                vehicle.State = Vehicle.Estates.空闲;
+                vehicle.UpdatedAt = now;
+                    
+                _logger.LogInformation("订单{OrderId}取消, 车辆{VehicleId}状态更新为空闲", order.Id, vehicle.Id);
             }
 
             try {
-                await _dbContext.SaveChangesAsync(); // 保存更改
+                await _dbContext.SaveChangesAsync();// 保存所有更改
+                await transaction.CommitAsync();// 提交事务
 
-            } catch (Exception) {
-#if DEBUG
-                Console.WriteLine($"[错误]CheckOrderPayment，订单状态修改异常");
-#endif
+            } catch (Exception e) {
+                _logger.LogCritical(e, "订单或车辆状态更新失败，ordersToCancel{OrdersToCancel}",
+                    ordersToCancel.Select(o => o.Id).ToArray());
+
+                await transaction.RollbackAsync();// 回滚事务
             }
         }
+
         /// <summary>
         /// JWT 获取用户id
         /// </summary>
         /// <returns></returns>
-        public int GetUserId() {
+        public int GetUserIdInt() {
             return int.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
     }
+
 
     // 计算租用费用
     public class GetCalculateRent {
@@ -250,13 +273,14 @@ namespace aspnetapp.Controllers.API {
     // 返回订单格式
     public struct ReturnOrder {
         public ReturnOrder(Order order) {
-            OrderId = order.OrderId;
+            OrderId = order.Id;
             StartingTime = order.StartingTime;
             ExpectedReturnTime = order.ExpectedReturnTime;
+            ActualStartingTime = order.ActualStartingTime;
             ActualReturnTime = order.ActualReturnTime;
-            Vehicle = order.Vehicle;
-            RentalLocation = order.RentalLocation;
-            ReturnThePoint = order.ReturnThePoint;
+            Vehicle = order.TheVehicle;
+            RentalLocation = order.TheRentalLocation;
+            ReturnThePoint = order.TheReturnThePoint;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
             LongTermLease = order.LongTermLease;
@@ -273,6 +297,7 @@ namespace aspnetapp.Controllers.API {
         public int OrderId { get; init; }// 订单编号
         public DateTime StartingTime { get; set; }// 起始时间
         public DateTime ExpectedReturnTime { get; set; }// 预计归还时间
+        public DateTime? ActualStartingTime { get; set; }// 实际起始时间
         public DateTime? ActualReturnTime { get; set; }// 实际归还时间
         public int Vehicle { get; set; }// 租用车辆
         public int RentalLocation { get; set; }// 租车点（StoreId）

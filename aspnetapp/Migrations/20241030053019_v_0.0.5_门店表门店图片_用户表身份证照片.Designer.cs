@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using aspnetapp.Dao;
 
@@ -10,9 +11,10 @@ using aspnetapp.Dao;
 namespace aspnetapp.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241030053019_v_0.0.5_门店表门店图片_用户表身份证照片")]
+    partial class v_005_门店表门店图片_用户表身份证照片
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,28 +24,9 @@ namespace aspnetapp.Migrations
 
             MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8");
 
-            modelBuilder.Entity("aspnetapp.Models.AdminAccount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("Account")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("T_AdminAccount");
-                });
-
             modelBuilder.Entity("aspnetapp.Models.HomepageAd", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("AdId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
@@ -59,21 +42,18 @@ namespace aspnetapp.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.HasKey("Id");
+                    b.HasKey("AdId");
 
                     b.ToTable("T_HomepageAd");
                 });
 
             modelBuilder.Entity("aspnetapp.Models.Order", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("OrderId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("ActualReturnTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("ActualStartingTime")
                         .HasColumnType("datetime(6)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -115,25 +95,22 @@ namespace aspnetapp.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<int>("RentalLocation")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ReturnThePoint")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartingTime")
                         .HasColumnType("datetime(6)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int>("TheRentalLocation")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TheReturnThePoint")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TheTransferPoint")
-                        .HasColumnType("int");
-
                     b.Property<int>("TheUser")
                         .HasColumnType("int");
 
-                    b.Property<int>("TheVehicle")
+                    b.Property<int?>("TransferPoint")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -147,50 +124,19 @@ namespace aspnetapp.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.HasKey("Id");
+                    b.Property<int>("Vehicle")
+                        .HasColumnType("int");
 
-                    b.HasIndex("TheUser", "Status");
+                    b.HasKey("OrderId");
+
+                    b.HasIndex("TheUser");
 
                     b.ToTable("T_OrderForm");
                 });
 
-            modelBuilder.Entity("aspnetapp.Models.RevenueStatistics", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<decimal?>("StoreA_Amount")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<decimal?>("StoreB_Amount")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<int>("TheOrder")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TheStoreA")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TheStoreB")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TheStoreA", "TheStoreB");
-
-                    b.ToTable("T_RevenueStatistics");
-                });
-
             modelBuilder.Entity("aspnetapp.Models.Store", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("StoreId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
@@ -237,69 +183,14 @@ namespace aspnetapp.Migrations
                     b.Property<string>("WeChat")
                         .HasColumnType("longtext");
 
-                    b.HasKey("Id");
+                    b.HasKey("StoreId");
 
                     b.ToTable("T_StoreSummary");
                 });
 
-            modelBuilder.Entity("aspnetapp.Models.StoreAccount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("Account")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("TheStore")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TheStore")
-                        .IsUnique();
-
-                    b.ToTable("T_StoreAccount");
-                });
-
-            modelBuilder.Entity("aspnetapp.Models.StoreMenu", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Deposit")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<int>("Duration")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsDelete")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<decimal>("Rent")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<int>("TheStore")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TheStore");
-
-                    b.ToTable("T_StoreMenu");
-                });
-
             modelBuilder.Entity("aspnetapp.Models.User", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("UserId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
@@ -323,47 +214,19 @@ namespace aspnetapp.Migrations
 
                     b.Property<string>("Phone")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("Phone")
-                        .IsUnique();
+                    b.HasKey("UserId");
 
                     b.ToTable("T_Users");
                 });
 
-            modelBuilder.Entity("aspnetapp.Models.UserFavoritesStore", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("IsDelete")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<int>("TheStore")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TheUser")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TheUser");
-
-                    b.ToTable("T_UserFavoritesStore");
-                });
-
             modelBuilder.Entity("aspnetapp.Models.Vehicle", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("VehicleId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
@@ -372,6 +235,9 @@ namespace aspnetapp.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CurrentStore")
+                        .HasColumnType("int");
 
                     b.Property<bool?>("Drivinglicense")
                         .HasColumnType("tinyint(1)");
@@ -389,6 +255,9 @@ namespace aspnetapp.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<int>("Model")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("OriginalStore")
                         .HasColumnType("int");
 
                     b.Property<string>("Owner")
@@ -409,48 +278,17 @@ namespace aspnetapp.Migrations
                     b.Property<DateTime>("StateUpdatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int?>("TheCurrentStore")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TheOriginalStore")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("VehicleIntroduction")
                         .HasColumnType("longtext");
 
-                    b.HasKey("Id");
+                    b.HasKey("VehicleId");
 
-                    b.HasIndex("TheOriginalStore", "TheCurrentStore", "State");
+                    b.HasIndex("OriginalStore", "CurrentStore");
 
                     b.ToTable("T_VehicleSummary");
-                });
-
-            modelBuilder.Entity("aspnetapp.Models.VehicleReplacementRecord", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("TheNewVehicles")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TheOldVehicles")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TheOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TheOrder");
-
-                    b.ToTable("T_VehicleReplacementRecord");
                 });
 #pragma warning restore 612, 618
         }
