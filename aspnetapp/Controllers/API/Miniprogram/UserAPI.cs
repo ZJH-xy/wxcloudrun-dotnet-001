@@ -8,11 +8,11 @@ namespace aspnetapp.Controllers.API.Miniprogram {
     [ApiController]
     public class UserAPI : ControllerBase {
         private readonly UserController UserController = new(new MyDbContext());
-        private readonly IOptionsSnapshot<JWTSettings> JWTSettingsOpt;
+        private readonly IOptionsSnapshot<JWTSettings> _JWTSettingsOpt;
         private readonly ILogger<OrderAPI> _logger;
 
         public UserAPI(IOptionsSnapshot<JWTSettings> jWTSettingsOpt, ILogger<OrderAPI> logger) {
-            JWTSettingsOpt = jWTSettingsOpt;
+            _JWTSettingsOpt = jWTSettingsOpt;
             _logger = logger;
         }
 
@@ -167,7 +167,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             if (user.Password is null)
                 return StatusCode(403, "未实名认证");
 
-            if (!VerifyPassword(updatePassword.OldPassword, user.Password))
+            if (!(updatePassword.OldPassword == user.Password))
                 return StatusCode(403, "密码错误");
 
             int changSum = 0;
@@ -210,7 +210,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             if (user.Password is null)
                 return StatusCode(403, "用户未设置密码");
 
-            if (!VerifyPassword(password, user.Password))
+            if (!(password == user.Password))
                 return StatusCode(403, "帐号或密码错误");
 
             return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));
@@ -336,8 +336,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         /// <returns></returns>
         public string GetJwtToken(List<Claim> claims) {
             // 读取配置
-            string key = JWTSettingsOpt.Value.SecKey;
-            DateTime expires = DateTime.Now.AddDays(JWTSettingsOpt.Value.ExpireDays);// 读取配置过期时间
+            string key = _JWTSettingsOpt.Value.SecKey;
+            DateTime expires = DateTime.Now.AddDays(_JWTSettingsOpt.Value.ExpireDays);// 读取配置过期时间
 
             // 计算
             byte[] secBytes = Encoding.UTF8.GetBytes(key);
