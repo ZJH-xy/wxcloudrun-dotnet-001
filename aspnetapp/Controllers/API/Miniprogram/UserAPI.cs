@@ -2,7 +2,7 @@
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace aspnetapp.Controllers.API {
+namespace aspnetapp.Controllers.API.Miniprogram {
 
     [Route("user")]
     [ApiController]
@@ -63,7 +63,7 @@ namespace aspnetapp.Controllers.API {
                 user = await UserController.GetUser(GetUserIdInt());
 
             } catch (Exception e) {
-                _logger.LogError(e, "获取用户{UserId}所有信息", GetUserIdInt()); 
+                _logger.LogError(e, "获取用户{UserId}所有信息", GetUserIdInt());
 
                 return StatusCode(500);
             }
@@ -94,10 +94,10 @@ namespace aspnetapp.Controllers.API {
             if (user.Name is null || user.IdentityCard is null)// 已实名认证
                 return StatusCode(403, "当前已实名认证");
 
-            if (!(Judge.NameFormatDetermination(real.Name)))
+            if (!Judge.NameFormatDetermination(real.Name))
                 return StatusCode(403, "请检查名字格式");
 
-            if ((!Regex.IsMatch(real.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase)))
+            if (!Regex.IsMatch(real.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase))
                 return StatusCode(403, "请检查身份证号格式");
 
             // 调用外部API 判断信息正确性
@@ -137,7 +137,7 @@ namespace aspnetapp.Controllers.API {
             if (user is null)
                 return StatusCode(404);
 
-            if (!(Judge.PhoneFormatDetermination(updateUser.Phone)))
+            if (!Judge.PhoneFormatDetermination(updateUser.Phone))
                 return StatusCode(403, "请检查手机号码格式");
 
             if (updateUser.Nickname.Length < 2 || updateUser.Nickname.Length > 8)
@@ -151,7 +151,7 @@ namespace aspnetapp.Controllers.API {
         [HttpPost("update/password")]
         public async Task<IActionResult> UpdatePassword(UpdatePassword updatePassword) {
             User? user;
-            string id = this.User.FindFirstValue(ClaimTypes.NameIdentifier);// 获取用户id
+            string id = User.FindFirstValue(ClaimTypes.NameIdentifier);// 获取用户id
             try {
                 user = await UserController.GetUserById(int.Parse(id));
 
@@ -167,7 +167,7 @@ namespace aspnetapp.Controllers.API {
             if (user.Password is null)
                 return StatusCode(403, "未实名认证");
 
-            if (!(VerifyPassword(updatePassword.OldPassword, user.Password)))
+            if (!VerifyPassword(updatePassword.OldPassword, user.Password))
                 return StatusCode(403, "密码错误");
 
             int changSum = 0;
@@ -191,7 +191,7 @@ namespace aspnetapp.Controllers.API {
             if (password is null)
                 return StatusCode(403, "密码为空");
 
-            if (!(Judge.PasswordFormatDetermination(password)))
+            if (!Judge.PasswordFormatDetermination(password))
                 return StatusCode(403, "密码格式错误");
 
             User? user;
@@ -210,7 +210,7 @@ namespace aspnetapp.Controllers.API {
             if (user.Password is null)
                 return StatusCode(403, "用户未设置密码");
 
-            if (!(VerifyPassword(password, user.Password)))
+            if (!VerifyPassword(password, user.Password))
                 return StatusCode(403, "帐号或密码错误");
 
             return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));
@@ -307,12 +307,12 @@ namespace aspnetapp.Controllers.API {
         /// </summary>
         /// <returns></returns>
         public int GetUserIdInt() {
-            return int.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier));
+            return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
 
         // JWT 获取用户id
         public string GetUserIdString() {
-            return this.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return User.FindFirstValue(ClaimTypes.NameIdentifier);
         }
 
         /// <summary>

@@ -1,4 +1,6 @@
-﻿namespace aspnetapp.Controllers.API.Background
+﻿using aspnetapp.Controllers.API.Miniprogram;
+
+namespace aspnetapp.Controllers.API.Background
 {
     public class TimedHostedService : BackgroundService {
         private readonly IServiceProvider _serviceProvider;

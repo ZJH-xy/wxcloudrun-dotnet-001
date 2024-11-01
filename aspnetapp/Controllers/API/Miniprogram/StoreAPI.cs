@@ -1,4 +1,4 @@
-﻿namespace aspnetapp.Controllers.API {
+﻿namespace aspnetapp.Controllers.API.Miniprogram {
 
     [Route("store")]
     [ApiController]

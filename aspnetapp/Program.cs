@@ -1,3 +1,5 @@
+using aspnetapp.Controllers.API.Miniprogram;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -11,7 +13,7 @@ builder.Services.AddScoped<IStoreRepository, StoreController>();
 builder.Services.AddScoped<IVehicleRepository, VehicleController>();
 builder.Services.AddScoped<IOrderRepository, OrderController>();
 
-builder.Services.AddScoped<OrderAPI>(); // 注册 OrderAPI
+builder.Services.AddScoped<OrderAPI>(); // 注册 OrderAPI，定时取消订单
 builder.Services.AddHostedService<TimedHostedService>();
 
 

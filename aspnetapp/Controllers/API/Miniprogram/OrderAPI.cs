@@ -1,10 +1,7 @@
-﻿using aspnetapp.Models;
-using Microsoft.AspNetCore.Authorization;
-using Polly;
-using Senparc.Weixin.WxOpen.AdvancedAPIs.WxApp.WxAppJson;
+﻿using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
-namespace aspnetapp.Controllers.API {
+namespace aspnetapp.Controllers.API.Miniprogram {
 
     [Route("order")]
     [ApiController]
@@ -52,7 +49,7 @@ namespace aspnetapp.Controllers.API {
 
             return StatusCode(200, new ReturnOrder(order));
         }
-        
+
         // 获取用户最近10条订单
         [HttpGet("a")]
         public async Task<IActionResult> GetOderByUserId() {
@@ -78,30 +75,30 @@ namespace aspnetapp.Controllers.API {
         [HttpPost("add")]
         public async Task<IActionResult> AddOrder(GetOrder data) {
             using MyDbContext dbcontext = new();
+            int userId = GetUserIdInt();
             // 订单信息合法性验证
 
-            if (await dbcontext.User.SingleOrDefaultAsync(u => u.Id == GetUserIdInt()) is null)
+            if (await dbcontext.User.SingleOrDefaultAsync(u => u.Id == userId) is null)
                 return StatusCode(403, "用户不存在");
 
-            if (!data.DepositRequired) {
-                if (!Regex.IsMatch(data.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase))
-                    return StatusCode(403, "请检查身份证号格式");
-            }
+            // 需要押金为假，检查身份证格式
+            if (!(data.DepositRequired || Judge.IdentityCardFormatDetermination(data.IdentityCard)))
+                return StatusCode(403, "请检查身份证号格式");
 
             if (data.UserName == string.Empty)
                 return StatusCode(403, "请检查名字格式");
 
-            if (!Regex.IsMatch(data.UserPhone, @"^1(3[0-9]|4[01456879]|5[0-35-9]|6[2567]|7[0-8]|8[0-9]|9[0-35-9])\d{8}$"))
+            if (!Judge.PhoneFormatDetermination(data.UserPhone))
                 return StatusCode(403, "请检查手机号码格式");
 
             // 检查用户订单状态
             try {
-                if (await dbcontext.Order.Where(o => o.TheUser == GetUserIdInt()).
+                if (await dbcontext.Order.Where(o => o.TheUser == userId).
                     AnyAsync(o => o.Status == Order.OrderStatus.待付款)) {
                     return StatusCode(403, "当前有待付款的订单");
                 }
             } catch (Exception e) {
-                _logger.LogError(e, "查询用户{UserId}未完成的订单信息", GetUserIdInt());
+                _logger.LogError(e, "查询用户{UserId}未完成的订单信息", userId);
 
                 return StatusCode(404, "订单信息获取错误");
             }
@@ -141,18 +138,17 @@ namespace aspnetapp.Controllers.API {
             vehicle.StateUpdatedAt = DateTime.Now;
             vehicle.UpdatedAt = DateTime.Now;
 
-            dbcontext.Vehicle.Update(vehicle);
             try {
-                await dbcontext.SaveChangesAsync();
+                await dbcontext.SaveChangesAsync();// 保存车辆状态
 
             } catch (Exception e) {
-                _logger.LogError(e, "车辆{Vehicle}锁定", vehicle.Id);
+                _logger.LogError(e, "车辆{Vehicle}锁定，操作用户{UserId}", vehicle.Id, userId);
 
                 return StatusCode(500, "车辆锁定失败");
             }
 
             Order order = new() {
-                TheUser = GetUserIdInt(),
+                TheUser = userId,
                 TheVehicle = data.Vehicle,// 车辆
                 UserName = data.UserName,// 用户姓名
                 UserPhone = data.UserPhone,// 用户手机号
@@ -184,23 +180,28 @@ namespace aspnetapp.Controllers.API {
             return StatusCode(201, order.Id);
         }
 
-        // 支付接口，支付成功后取消自动取消计时器
+        // 支付接口，支付成功后更改订单状态
         [HttpPost("pay/{orderId}")]
         public async Task<IActionResult> PayOrder(int orderId) {
             using MyDbContext dbContext = new();
-            Order? order = await dbContext.Order.FindAsync(orderId);
+            Order? order = await dbContext.Order.SingleOrDefaultAsync(o => o.Id == orderId);
 
-            if (order == null || order.Status != Order.OrderStatus.待付款) {
-                return StatusCode(404, "订单不存在或无法支付");
+            if (order is null || order.Status != Order.OrderStatus.待付款) {
+                return StatusCode(403, "订单不存在或无法支付");
             }
+
+            /* 微信支付流程 */
 
             order.Status = Order.OrderStatus.待确认;
             order.UpdatedAt = DateTime.Now;
-            await dbContext.SaveChangesAsync();
+            try {
+                await dbContext.SaveChangesAsync();
 
-            // 取消自动取消计时任务
+            } catch (Exception e) {
+                _logger.LogError(e, "保存订单信息{OrderId}", order.Id);
+            }
 
-            _logger.LogInformation("用户{UserId}订单{OrderId}支付成功", GetUserIdInt(), orderId);
+            _logger.LogInformation("用户{UserId}支付订单{OrderId}成功", GetUserIdInt(), orderId);
 
             return StatusCode(200, "支付成功");
         }
@@ -226,10 +227,10 @@ namespace aspnetapp.Controllers.API {
                 // 查询并更新与订单关联的车辆状态为空闲
                 Vehicle vehicle = await _dbContext.Vehicle
                     .SingleAsync(v => v.Id == order.TheVehicle);
-                    
+
                 vehicle.State = Vehicle.Estates.空闲;
                 vehicle.UpdatedAt = now;
-                    
+
                 _logger.LogInformation("订单{OrderId}取消, 车辆{VehicleId}状态更新为空闲", order.Id, vehicle.Id);
             }
 
@@ -250,7 +251,7 @@ namespace aspnetapp.Controllers.API {
         /// </summary>
         /// <returns></returns>
         public int GetUserIdInt() {
-            return int.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier));
+            return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
     }
 
