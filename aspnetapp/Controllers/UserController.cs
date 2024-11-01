@@ -7,10 +7,6 @@
             _context = context;
         }
 
-        public DbContext GetContext() {
-            return _context;
-        }
-
         public async Task<int> AddUser(User user) {
             await _context.User.AddAsync(user);
             return await _context.SaveChangesAsync();

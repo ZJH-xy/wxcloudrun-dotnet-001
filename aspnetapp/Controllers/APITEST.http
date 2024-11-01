@@ -2,7 +2,8 @@
 @id = 1
 @phone = 13000000000
 @password = 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
-@authorization = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjIiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJ1c2VyIiwiZXhwIjoxNzMyOTY3MTU0fQ.-NLoS6uRtBJLR_3vHskzRud3S6b373offEboo7pwcaA
+@authorization = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJ1c2VyIiwiZXhwIjoxNzMzMDU3NzMwfQ.S3tIjtR31EWRJPGeAEnO3nLMQ5a7wdkaCuGXQkw4xE4
+@storeAccountauthorization = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJzdG9yZSIsImV4cCI6MTczMzA1NzQxMH0.Kaxj-TmORw6dIskJAfJAxVcSTk4cNYPNwzwJt-H-xrM
 
 
 
@@ -74,16 +75,40 @@ Authorization: Bearer {{authorization}}
 content-type: application/json
 
 {
-    "TheUser": 1,
-    "UserName": "测试用户001",
-    "UserPhone": "13666666666",
-    "IdentityCard": "360000000000000000",
-    "Vehicle": 2,
-    "StartingTime": "2024-10-31",
-    "ExpectedReturnTime": "2024-11-25",
-    "RentalLocation": 1,
-    "LongTermLease": false,
-    "Deposit": 200,
-    "Rent": 30,
-    "Notes": "备注"
+    "StoreMenuId": 1,
+    "DepositRequired": true,
+    "UserName": "姓名",
+    "UserPhone": "13000000000",
+    "IdentityCard": "",
+    "Vehicle": 1
 }
+
+
+###
+POST {{localhost}}/order/pay/1 HTTP/1.1
+Authorization: Bearer {{authorization}}
+
+### ===================== 商家 =========================
+### 登录
+GET {{localhost}}/storeAccount/login/1/1 HTTP/1.1
+
+
+### 获取确认订单信息
+GET {{localhost}}/storeAccount/confirm/1 HTTP/1.1
+Authorization: Bearer {{storeAccountauthorization}}
+
+
+### 确认订单
+POST {{localhost}}/storeAccount/confirm HTTP/1.1
+Authorization: Bearer {{storeAccountauthorization}}
+content-type: application/json
+
+{
+    "OderId": 1,
+    "TheVehicle": 1
+}
+
+
+###
+GET {{localhost}}/storeAccount/test HTTP/1.1
+

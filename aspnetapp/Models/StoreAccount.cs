@@ -3,7 +3,7 @@
     /// 商家帐号表
     /// </summary>
     [Table("T_StoreAccount")]
-    [Index(nameof(TheStore), IsUnique = true)]
+    [Index(nameof(TheStore), nameof(Account), IsUnique = true)]
     public class StoreAccount {
         [Key]
         public int Id { get; set; }
