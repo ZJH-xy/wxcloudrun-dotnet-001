@@ -17,6 +17,16 @@
         /* 逻辑指向车辆 */
         public int TheNewVehicles { get; set; }// 新车辆
 
+        public Estates State { get; set; }
+
         public DateTime CreatedAt { get; set; }
+
+        public DateTime UpdatedAt { get; set; }
+
+        public enum Estates {
+            已取消,
+            侍确认,
+            已完成
+        }
     }
 }
