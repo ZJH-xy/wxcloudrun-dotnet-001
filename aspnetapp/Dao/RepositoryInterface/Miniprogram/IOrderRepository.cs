@@ -1,6 +1,11 @@
 ﻿namespace aspnetapp.Dao.RepositoryInterface.Miniprogram {
     public interface IOrderRepository {
-        // 获取订单
+        /// <summary>
+        /// 获取单个订单
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="orderid"></param>
+        /// <returns></returns>
         Task<Order?> GetById(int userId, int orderid);
         /// <summary>
         /// 添加订单

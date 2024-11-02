@@ -7,7 +7,7 @@
         /// <returns></returns>
         Task<StoreAccount?> GetStoreAccount(string account);
         /// <summary>
-        /// 商家确认时获取订单
+        /// 商家获取单个订单
         /// </summary>
         /// <param name="orderId"></param>
         /// <returns></returns>

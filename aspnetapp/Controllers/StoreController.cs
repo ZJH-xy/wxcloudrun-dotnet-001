@@ -12,7 +12,7 @@
         }
 
         public async Task<Store?> GetStoreById(int id) {
-            return await _context.Store.SingleOrDefaultAsync(s => s.Id == id && s.IsDelete == false);
+            return await _context.Store.FirstOrDefaultAsync(s => s.Id == id && s.IsDelete == false);
         }
     }
 }
