@@ -222,6 +222,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
             /* 微信支付流程 */
 
+            // 更新订单已付
+
             order.Status = Order.OrderStatus.待确认;
             order.UpdatedAt = DateTime.Now;
             try {
@@ -244,13 +246,14 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         /// <returns></returns>
         [HttpPost("replacement")]
         public async Task<IActionResult> Replacement(GetReplacementInfo getReplacementVehicle) {
+            // 检查订单状态
             Order? order = await orderController.GetById(GetUserIdInt(), getReplacementVehicle.OrderId);
-
             if (order is null || order.Status != Order.OrderStatus.进行中) {
                 _logger.LogDebug("订单{OrderId}状态非法", getReplacementVehicle.OrderId);
                 return StatusCode(403, "订单不存在或非法");
             }
 
+            // 检查车辆状态
             using MyDbContext dbContext = new();
             Vehicle? vehicle = await dbContext.Vehicle.SingleOrDefaultAsync(v => v.Id == getReplacementVehicle.ReplacementVehicleId);
             if (vehicle is null || vehicle.State != Vehicle.Estates.空闲)
@@ -268,10 +271,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
             // 添加至换车表
             VehicleReplacementRecord vrr = new() {
-                TheOrder = getReplacementVehicle.OrderId,
-                TheOldVehicles = order.TheVehicle,
-                TheNewVehicles = getReplacementVehicle.ReplacementVehicleId,
-                State = VehicleReplacementRecord.Estates.侍确认,
+                TheOrder = getReplacementVehicle.OrderId,// 订单Id
+                TheOldVehicles = order.TheVehicle,// 旧车辆
+                TheNewVehicles = getReplacementVehicle.ReplacementVehicleId,// 要更换的车辆
+                State = VehicleReplacementRecord.Estates.侍确认,// 状态
                 CreatedAt = DateTime.Now
             };
             try {
@@ -320,7 +323,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 await transaction.CommitAsync();// 提交事务
 
             } catch (Exception e) {
-                _logger.LogCritical(e, "订单或车辆状态更新失败，ordersToCancel{OrdersToCancel}",
+                _logger.LogCritical(e, "订单或车辆状态事务失败，ordersToCancel：{OrdersToCancel}",
                     vrrToCancel.Select(o => o.Id).ToArray());
 
                 await transaction.RollbackAsync();// 回滚事务
@@ -363,7 +366,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 await transaction.CommitAsync();// 提交事务
 
             } catch (Exception e) {
-                _logger.LogCritical(e, "订单或车辆状态更新失败，ordersToCancel{OrdersToCancel}",
+                _logger.LogCritical(e, "订单或车辆状态事务失败，ordersToCancel：{OrdersToCancel}",
                     ordersToCancel.Select(o => o.Id).ToArray());
 
                 await transaction.RollbackAsync();// 回滚事务
@@ -408,7 +411,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             TheVehicle = order.TheVehicle;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
-            LongTermLease = order.LongTermLease;
             Deposit = order.Deposit;
             Rent = order.Rent;
             DispatchFee = order.DispatchFee;
@@ -422,7 +424,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public int TheVehicle { get; set; }// 租用车辆
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
-        public bool LongTermLease { get; set; }// 长租
         public decimal Deposit { get; set; }// 押金
         public decimal Rent { get; set; }// 租金
         public decimal DispatchFee { get; set; }// 调度费
@@ -433,9 +434,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public DateTime CreatedAt { get; set; }
     }
 
-    /// <summary>
     /// 详细返回订单格式
-    /// </summary>
     public struct ReturnOrder {
         public ReturnOrder(Order order) {
             OrderId = order.Id;
@@ -446,7 +445,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             TheReturnThePoint = order.TheReturnThePoint;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
-            LongTermLease = order.LongTermLease;
             Deposit = order.Deposit;
             Rent = order.Rent;
             DispatchFee = order.DispatchFee;
@@ -465,7 +463,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public int? TheReturnThePoint { get; set; }// 还车点（StoreId）
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
-        public bool LongTermLease { get; set; } = false;// 长租
         public decimal Deposit { get; set; }// 押金
         public decimal Rent { get; set; }// 租金
         public decimal DispatchFee { get; set; }// 调度费
