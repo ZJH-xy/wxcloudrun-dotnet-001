@@ -408,6 +408,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
     public struct ReturnOrderBasic {
         public ReturnOrderBasic(Order order) {
             OrderId = order.Id;
+            TheRentalLocation = order.TheRentalLocation;
             TheVehicle = order.TheVehicle;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
@@ -421,6 +422,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             CreatedAt = order.CreatedAt;
         }
         public int OrderId { get; init; }// 订单编号
+        public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public int TheVehicle { get; set; }// 租用车辆
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
