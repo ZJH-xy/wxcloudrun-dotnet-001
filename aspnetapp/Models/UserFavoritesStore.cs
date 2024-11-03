@@ -15,7 +15,5 @@
         public int TheStore { get; set; }
 
         public DateTime CreatedAt { get; set; }
-
-        public bool IsDelete { get; set; } = false;
     }
 }

@@ -8,11 +8,11 @@
         }
 
         public async Task<Order?> GetConfirmOder(int orderId) {
-            return await _context.Order.FindAsync(orderId);
+            return await _context.Order.FirstOrDefaultAsync(o => o.Id == orderId);
         }
 
         public async Task<StoreAccount?> GetStoreAccount(string account) {
-            return await _context.StoreAccount.SingleOrDefaultAsync(x => x.Account == account);
+            return await _context.StoreAccount.FirstOrDefaultAsync(x => x.Account == account);
         }
     }
 }

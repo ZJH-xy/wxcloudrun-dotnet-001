@@ -33,8 +33,6 @@
 
         public string? IdentityCard { get; set; }// 身份证号
 
-        public bool LongTermLease { get; set; } = false;// 长租
-
         [Precision(10, 2)]
         public decimal Deposit { get; set; }// 押金
 

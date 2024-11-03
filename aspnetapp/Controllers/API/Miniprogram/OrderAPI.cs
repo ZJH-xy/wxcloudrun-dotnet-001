@@ -14,24 +14,33 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             _logger = logger;
         }
 
-        // 计算总租金
+        /// <summary>
+        /// 计算总租金
+        /// </summary>
+        /// <param name="rentalLocation">租车门店Id</param>
+        /// <param name="menuId">套餐Id</param>
+        /// <returns></returns>
         [AllowAnonymous]// 允许匿名访问
-        [HttpGet("calculate")]
-        public async Task<IActionResult> CalculateRent(GetCalculateRent getCalculateRent) {
+        [HttpGet("calculate/{rentalLocation}/{menuId}")]
+        public async Task<IActionResult> CalculateRent(int rentalLocation, int menuId) {
             using MyDbContext dbcontext = new();
 
-            Store? store = await dbcontext.Store.SingleOrDefaultAsync(s => s.Id == getCalculateRent.RentalLocation && !s.IsDelete);
+            Store? store = await dbcontext.Store.SingleOrDefaultAsync(s => s.Id == rentalLocation && !s.IsDelete);
             if (store is null)
                 return StatusCode(404);
 
-            StoreMenu? storeMenus = await dbcontext.StoreMenus.SingleOrDefaultAsync(sm => sm.Id == getCalculateRent.MenuId && sm.TheStore == store.Id && !sm.IsDelete);
+            StoreMenu? storeMenus = await dbcontext.StoreMenus.SingleOrDefaultAsync(sm => sm.Id == menuId && sm.TheStore == store.Id && !sm.IsDelete);
             if (storeMenus is null)
                 return StatusCode(404);
 
             return StatusCode(200, storeMenus.Rent + storeMenus.Deposit);
         }
 
-        // 用户查询单个订单
+        /// <summary>
+        /// 用户查询单个订单
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <returns></returns>
         [HttpGet("i/{orderId}")]
         public async Task<IActionResult> GetOderById(int orderId) {
             Order? order;
@@ -50,7 +59,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             return StatusCode(200, new ReturnOrder(order));
         }
 
-        // 获取用户最近10条订单
+        /// <summary>
+        /// 获取用户最近10条订单
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("a")]
         public async Task<IActionResult> GetOderByUserId() {
             List<Order> orderList = new();
@@ -71,7 +83,11 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             return StatusCode(200, returnOrderorderList);
         }
 
-        // 创建订单
+        /// <summary>
+        /// 创建订单
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         [HttpPost("add")]
         public async Task<IActionResult> AddOrder(GetOrder data) {
             using MyDbContext dbcontext = new();
@@ -180,17 +196,33 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             return StatusCode(201, order.Id);
         }
 
-        // 支付接口，支付成功后更改订单状态
+        /// <summary>
+        /// 支付接口，支付成功后更改订单状态
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <returns></returns>
         [HttpPost("pay/{orderId}")]
         public async Task<IActionResult> PayOrder(int orderId) {
             using MyDbContext dbContext = new();
-            Order? order = await dbContext.Order.SingleOrDefaultAsync(o => o.Id == orderId);
+            //Order? order = await dbContext.Order.SingleOrDefaultAsync(o => o.Id == orderId);
+            Order? order = await orderController.GetById(GetUserIdInt(), orderId);
 
             if (order is null || order.Status != Order.OrderStatus.待付款) {
                 return StatusCode(403, "订单不存在或无法支付");
             }
 
+            order.Status = Order.OrderStatus.付款中;
+            try {
+                await dbContext.SaveChangesAsync();
+
+            } catch (Exception e) {
+                _logger.LogError(e, "更改订单{OrderId}状态为付款中", order.Id);
+
+            }
+
             /* 微信支付流程 */
+
+            // 更新订单已付
 
             order.Status = Order.OrderStatus.待确认;
             order.UpdatedAt = DateTime.Now;
@@ -199,6 +231,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
             } catch (Exception e) {
                 _logger.LogError(e, "保存订单信息{OrderId}", order.Id);
+
             }
 
             _logger.LogInformation("用户{UserId}支付订单{OrderId}成功", GetUserIdInt(), orderId);
@@ -206,7 +239,101 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             return StatusCode(200, "支付成功");
         }
 
-        // 检查未支付订单并取消超过10分钟的订单
+        /// <summary>
+        /// 换车请求
+        /// </summary>
+        /// <param name="getReplacementVehicle"></param>
+        /// <returns></returns>
+        [HttpPost("replacement")]
+        public async Task<IActionResult> Replacement(GetReplacementInfo getReplacementVehicle) {
+            // 检查订单状态
+            Order? order = await orderController.GetById(GetUserIdInt(), getReplacementVehicle.OrderId);
+            if (order is null || order.Status != Order.OrderStatus.进行中) {
+                _logger.LogDebug("订单{OrderId}状态非法", getReplacementVehicle.OrderId);
+                return StatusCode(403, "订单不存在或非法");
+            }
+
+            // 检查车辆状态
+            using MyDbContext dbContext = new();
+            Vehicle? vehicle = await dbContext.Vehicle.SingleOrDefaultAsync(v => v.Id == getReplacementVehicle.ReplacementVehicleId);
+            if (vehicle is null || vehicle.State != Vehicle.Estates.空闲)
+                return StatusCode(403, "车辆不存在或状态非法");
+
+            // 锁定车辆
+            vehicle.State = Vehicle.Estates.锁定;
+            try {
+                await dbContext.SaveChangesAsync();
+
+            } catch (Exception e) {
+                _logger.LogError(e, "车辆{ReplacementVehicleId}锁定", getReplacementVehicle.ReplacementVehicleId);
+                return StatusCode(500);
+            }
+
+            // 添加至换车表
+            VehicleReplacementRecord vrr = new() {
+                TheOrder = getReplacementVehicle.OrderId,// 订单Id
+                TheOldVehicles = order.TheVehicle,// 旧车辆
+                TheNewVehicles = getReplacementVehicle.ReplacementVehicleId,// 要更换的车辆
+                State = VehicleReplacementRecord.Estates.侍确认,// 状态
+                CreatedAt = DateTime.Now
+            };
+            try {
+                await dbContext.VehicleReplacementRecord.AddAsync(vrr);
+
+            } catch (Exception e) {
+                _logger.LogError(e, "VehicleReplacementRecord：{vrr}添加至换车表", vrr.ToJson());
+                return StatusCode(500);
+            }
+
+            return StatusCode(200, "请求成功，请向商家确认");
+        }
+
+        /// <summary>
+        /// 检查换车请求，超时取消（暂未使用）
+        /// </summary>
+        /// <returns></returns>
+        public async Task CheckReplacementVehicle() {
+            using MyDbContext _dbContext = new();
+            DateTime now = DateTime.Now;// 获取当前时间
+            DateTime threshold = now.AddMinutes(-60);// 计算60分钟前的时间
+
+            List<VehicleReplacementRecord> vrrToCancel = await _dbContext.VehicleReplacementRecord
+                .Where(vrr => vrr.State == VehicleReplacementRecord.Estates.侍确认 && vrr.CreatedAt < threshold)
+                .ToListAsync();
+
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
+
+            foreach (var v in vrrToCancel) {
+                // 更新订单状态
+                v.State = VehicleReplacementRecord.Estates.已取消;
+                v.UpdatedAt = now;
+
+                // 查询并更新相关联的车辆状态为空闲
+                Vehicle vehicle = await _dbContext.Vehicle
+                    .SingleAsync(vehicle => vehicle.Id == v.TheNewVehicles);
+
+                vehicle.State = Vehicle.Estates.空闲;
+                vehicle.UpdatedAt = now;
+
+                _logger.LogInformation("订单{OrderId}换车取消, 车辆{VehicleId}状态更新为空闲", v.Id, vehicle.Id);
+            }
+
+            try {
+                await _dbContext.SaveChangesAsync();// 保存所有更改
+                await transaction.CommitAsync();// 提交事务
+
+            } catch (Exception e) {
+                _logger.LogCritical(e, "订单或车辆状态事务失败，ordersToCancel：{OrdersToCancel}",
+                    vrrToCancel.Select(o => o.Id).ToArray());
+
+                await transaction.RollbackAsync();// 回滚事务
+            }
+        }
+
+        /// <summary>
+        /// 检查未支付订单并取消超过10分钟的订单
+        /// </summary>
+        /// <returns></returns>
         public async Task CheckOrderPayment() {
             using MyDbContext _dbContext = new();
             DateTime now = DateTime.Now;// 获取当前时间
@@ -217,7 +344,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 .Where(o => o.Status == Order.OrderStatus.待付款 && o.CreatedAt < threshold)
                 .ToListAsync();
 
-            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
 
             foreach (var order in ordersToCancel) {
                 // 更新订单状态
@@ -239,7 +366,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 await transaction.CommitAsync();// 提交事务
 
             } catch (Exception e) {
-                _logger.LogCritical(e, "订单或车辆状态更新失败，ordersToCancel{OrdersToCancel}",
+                _logger.LogCritical(e, "订单或车辆状态事务失败，ordersToCancel：{OrdersToCancel}",
                     ordersToCancel.Select(o => o.Id).ToArray());
 
                 await transaction.RollbackAsync();// 回滚事务
@@ -255,20 +382,9 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         }
     }
 
-
-    // 计算租用费用获取
-    public class GetCalculateRent {
-        /// <summary>
-        /// 租车点（StoreId）
-        /// </summary>
-        public int RentalLocation { get; set; }
-        /// <summary>
-        /// 套餐Id
-        /// </summary>
-        public int MenuId { get; set; }
-    }
-
-    // 获取创建订单信息
+    /// <summary>
+    /// 获取创建订单信息
+    /// </summary>
     public class GetOrder {
         public int StoreMenuId { get; set; }// 套餐Id
         public bool DepositRequired { get; set; }// 需要押金
@@ -278,14 +394,24 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public int Vehicle { get; set; }// 租用车辆
     }
 
-    // 基础返回订单
+    /// <summary>
+    /// 获取换车请求信息
+    /// </summary>
+    public class GetReplacementInfo {
+        public int OrderId { get; set; }
+        public int ReplacementVehicleId { get; set; }// 更改车辆Id
+    }
+
+    /// <summary>
+    /// 基础返回订单
+    /// </summary>
     public struct ReturnOrderBasic {
         public ReturnOrderBasic(Order order) {
             OrderId = order.Id;
+            TheRentalLocation = order.TheRentalLocation;
             TheVehicle = order.TheVehicle;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
-            LongTermLease = order.LongTermLease;
             Deposit = order.Deposit;
             Rent = order.Rent;
             DispatchFee = order.DispatchFee;
@@ -296,10 +422,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             CreatedAt = order.CreatedAt;
         }
         public int OrderId { get; init; }// 订单编号
+        public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public int TheVehicle { get; set; }// 租用车辆
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
-        public bool LongTermLease { get; set; }// 长租
         public decimal Deposit { get; set; }// 押金
         public decimal Rent { get; set; }// 租金
         public decimal DispatchFee { get; set; }// 调度费
@@ -310,7 +436,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public DateTime CreatedAt { get; set; }
     }
 
-    // 详细返回订单格式
+    /// 详细返回订单格式
     public struct ReturnOrder {
         public ReturnOrder(Order order) {
             OrderId = order.Id;
@@ -321,7 +447,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             TheReturnThePoint = order.TheReturnThePoint;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
-            LongTermLease = order.LongTermLease;
             Deposit = order.Deposit;
             Rent = order.Rent;
             DispatchFee = order.DispatchFee;
@@ -340,7 +465,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public int? TheReturnThePoint { get; set; }// 还车点（StoreId）
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
-        public bool LongTermLease { get; set; } = false;// 长租
         public decimal Deposit { get; set; }// 押金
         public decimal Rent { get; set; }// 租金
         public decimal DispatchFee { get; set; }// 调度费

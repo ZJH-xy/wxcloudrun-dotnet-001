@@ -13,12 +13,11 @@
         }
 
         public async Task<Order?> GetById(int userId, int orderid) {
-            return await _context.Order.Where(o => o.TheUser == userId).SingleOrDefaultAsync(o => o.Id == orderid);
+            return await _context.Order.Where(o => o.TheUser == userId).FirstOrDefaultAsync(o => o.Id == orderid);
         }
 
         public async Task<List<Order>> GetOrderByUserId(int userId) {
-            List<Order> oderList = await _context.Order.Where(o => o.TheUser == userId).OrderByDescending(o => o.CreatedAt).Take(10).ToListAsync();// 获取10条
-            return oderList;
+            return await _context.Order.Where(o => o.TheUser == userId).OrderByDescending(o => o.CreatedAt).Take(10).ToListAsync();// 获取10条
         }
 
         public async Task<int> UpdateOrder(Order order) {
