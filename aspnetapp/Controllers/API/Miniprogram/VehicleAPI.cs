@@ -75,11 +75,13 @@
             VehicleId = store.Id;
             Model = store.Model;
             State = store.State;
+            Pictures = store.Pictures;
         }
 
         public int VehicleId { get; init; }// 车辆编号
         public Vehicle.Estates State { get; set; }// 车辆状态
         public Vehicle.Emodel Model { get; set; } = Vehicle.Emodel.未知;// 车辆型号
+        public string? Pictures { get; set; }// 车辆图片
     }
 
     public struct VehiclePro {
@@ -90,6 +92,7 @@
             FrameNumber = store.FrameNumber;
             VehicleIntroduction = store.VehicleIntroduction;
             State = store.State;
+            Pictures = store.Pictures;
         }
 
         public int VehicleId { get; init; }// 车辆编号
@@ -98,5 +101,6 @@
         public string? PlateNumber { get; set; }// 车牌牌号
         public string? FrameNumber { get; set; }// 车架号
         public string? VehicleIntroduction { get; set; }// 车辆介绍
+        public string? Pictures { get; set; }// 车辆图片
     }
 }
