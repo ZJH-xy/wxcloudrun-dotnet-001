@@ -84,6 +84,29 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         }
 
         /// <summary>
+        /// 获取订单状态
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <returns></returns>
+        [HttpGet("status/i/{orderId}")]
+        public async Task<IActionResult> GetOderStatusByUserId(int orderId) {
+            Order.OrderStatus? orderStatus;
+            try {
+                orderStatus = await orderController.GetOrderStatusById(GetUserIdInt(), orderId);
+
+            } catch (Exception e) {
+                _logger.LogError(e, "用户{UserId}查询订单{order}状态", GetUserIdInt(), orderId);
+
+                return StatusCode(500);
+            }
+
+            if (orderStatus == null)
+                return StatusCode(404);
+
+            return StatusCode(200, orderStatus);
+        }
+
+        /// <summary>
         /// 创建订单
         /// </summary>
         /// <param name="data"></param>
@@ -121,7 +144,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
             // 检查门店状态
             Store? store;
-            var storeMenus = await dbcontext.StoreMenus.SingleOrDefaultAsync(sm => sm.Id == data.StoreMenuId && !sm.IsDelete);
+            StoreMenu? storeMenus = await dbcontext.StoreMenus.SingleOrDefaultAsync(sm => sm.Id == data.StoreMenuId && !sm.IsDelete);
             if (storeMenus == null)
                 return StatusCode(403, "请检查套餐信息");
 
@@ -213,27 +236,30 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 return StatusCode(403, "订单不存在或无法支付");
             }
 
+            // 订单付款中
             order.Status = Order.OrderStatus.付款中;
+            order.UpdatedAt = DateTime.Now;
             try {
+                dbContext.Order.Update(order);
                 await dbContext.SaveChangesAsync();
 
             } catch (Exception e) {
                 _logger.LogError(e, "更改订单{OrderId}状态为付款中", order.Id);
-
+                return StatusCode(500);
             }
 
             /* 微信支付流程 */
 
             // 更新订单已付
-
             order.Status = Order.OrderStatus.待确认;
             order.UpdatedAt = DateTime.Now;
             try {
+                dbContext.Order.Update(order);
                 await dbContext.SaveChangesAsync();
 
             } catch (Exception e) {
-                _logger.LogError(e, "保存订单信息{OrderId}", order.Id);
-
+                _logger.LogCritical(e, "保存订单信息{OrderId}", order.Id);
+                return StatusCode(500);
             }
 
             _logger.LogInformation("用户{UserId}支付订单{OrderId}成功", GetUserIdInt(), orderId);
