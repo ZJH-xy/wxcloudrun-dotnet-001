@@ -165,7 +165,9 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
             Order order = new() {
                 TheUser = userId,
+                TheRentalLocation = store.Id,
                 TheVehicle = data.Vehicle,// 车辆
+                TheStoreMenu = data.StoreMenuId,// 套餐Id
                 UserName = data.UserName,// 用户姓名
                 UserPhone = data.UserPhone,// 用户手机号
                 IdentityCard = data.IdentityCard,// 身份证号
