@@ -84,6 +84,47 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         }
 
         /// <summary>
+        /// 获取订单状态
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <returns></returns>
+        [HttpGet("status/i/{orderId}")]
+        public async Task<IActionResult> GetOderStatusByUserId(int orderId) {
+            Order.OrderStatus? orderStatus;
+            try {
+                orderStatus = await orderController.GetOrderStatusById(GetUserIdInt(), orderId);
+
+            } catch (Exception e) {
+                _logger.LogError(e, "用户{UserId}查询订单{order}状态", GetUserIdInt(), orderId);
+                return StatusCode(500);
+            }
+
+            if (orderStatus == null)
+                return StatusCode(404);
+
+            return StatusCode(200, orderStatus);
+        }
+
+        /// <summary>
+        /// 获取订单换车状态
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <returns></returns>
+        [HttpGet("replacement/i/{orderId}")]
+        public async Task<IActionResult> GetOderReplacementByUserId(int orderId) {
+            bool status;
+            try {
+                status = await orderController.GetOderReplacementByUserId(GetUserIdInt(), orderId);
+
+            } catch (Exception e) {
+                _logger.LogError(e, "用户{UserId}查询订单{order}换车状态", GetUserIdInt(), orderId);
+                return StatusCode(500);
+            }
+
+            return StatusCode(200, status);
+        }
+
+        /// <summary>
         /// 创建订单
         /// </summary>
         /// <param name="data"></param>
@@ -121,7 +162,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
             // 检查门店状态
             Store? store;
-            var storeMenus = await dbcontext.StoreMenus.SingleOrDefaultAsync(sm => sm.Id == data.StoreMenuId && !sm.IsDelete);
+            StoreMenu? storeMenus = await dbcontext.StoreMenus.SingleOrDefaultAsync(sm => sm.Id == data.StoreMenuId && !sm.IsDelete);
             if (storeMenus == null)
                 return StatusCode(403, "请检查套餐信息");
 
@@ -213,27 +254,30 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 return StatusCode(403, "订单不存在或无法支付");
             }
 
+            // 订单付款中
             order.Status = Order.OrderStatus.付款中;
+            order.UpdatedAt = DateTime.Now;
             try {
+                dbContext.Order.Update(order);
                 await dbContext.SaveChangesAsync();
 
             } catch (Exception e) {
                 _logger.LogError(e, "更改订单{OrderId}状态为付款中", order.Id);
-
+                return StatusCode(500);
             }
 
             /* 微信支付流程 */
 
             // 更新订单已付
-
             order.Status = Order.OrderStatus.待确认;
             order.UpdatedAt = DateTime.Now;
             try {
+                dbContext.Order.Update(order);
                 await dbContext.SaveChangesAsync();
 
             } catch (Exception e) {
-                _logger.LogError(e, "保存订单信息{OrderId}", order.Id);
-
+                _logger.LogCritical(e, "保存订单信息{OrderId}", order.Id);
+                return StatusCode(500);
             }
 
             _logger.LogInformation("用户{UserId}支付订单{OrderId}成功", GetUserIdInt(), orderId);
@@ -255,21 +299,20 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 return StatusCode(403, "订单不存在或非法");
             }
 
+            // 检查是否存在换车请求
+            if (await orderController.GetOderReplacementByUserId(GetUserIdInt(), getReplacementVehicle.OrderId))
+                return StatusCode(403, "当前有侍确认的换车请求");
+
             // 检查车辆状态
             using MyDbContext dbContext = new();
             Vehicle? vehicle = await dbContext.Vehicle.SingleOrDefaultAsync(v => v.Id == getReplacementVehicle.ReplacementVehicleId);
             if (vehicle is null || vehicle.State != Vehicle.Estates.空闲)
                 return StatusCode(403, "车辆不存在或状态非法");
 
+            using var transaction = await dbContext.Database.BeginTransactionAsync();// 事务开始
+
             // 锁定车辆
             vehicle.State = Vehicle.Estates.锁定;
-            try {
-                await dbContext.SaveChangesAsync();
-
-            } catch (Exception e) {
-                _logger.LogError(e, "车辆{ReplacementVehicleId}锁定", getReplacementVehicle.ReplacementVehicleId);
-                return StatusCode(500);
-            }
 
             // 添加至换车表
             VehicleReplacementRecord vrr = new() {
@@ -281,9 +324,12 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             };
             try {
                 await dbContext.VehicleReplacementRecord.AddAsync(vrr);
+                await dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();// 提交事务
 
             } catch (Exception e) {
-                _logger.LogError(e, "VehicleReplacementRecord：{vrr}添加至换车表", vrr.ToJson());
+                _logger.LogError(e, "VehicleReplacementRecord：{VehicleReplacementRecordId}添加至换车表", vrr.Id);
+                await transaction.RollbackAsync();// 回滚
                 return StatusCode(500);
             }
 

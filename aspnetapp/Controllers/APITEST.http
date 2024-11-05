@@ -1,4 +1,4 @@
-@localhost = https://localhost:63295
+@localhost = https://localhost:60835
 @id = 0
 @phone = 13000000000
 @password = 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
@@ -60,7 +60,7 @@ Authorization: Bearer {{authorization}}
 
 
 ### Id 查询单个订单
-GET {{localhost}}/order/i/1 HTTP/1.1
+GET {{localhost}}/order/i/19 HTTP/1.1
 Authorization: Bearer {{authorization}}
 
 
@@ -80,7 +80,7 @@ content-type: application/json
 
 
 ###
-POST {{localhost}}/order/pay/1 HTTP/1.1
+POST {{localhost}}/order/pay/19 HTTP/1.1
 Authorization: Bearer {{authorization}}
 
 ### ===================== 商家 =========================

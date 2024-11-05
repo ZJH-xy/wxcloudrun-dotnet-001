@@ -9,10 +9,10 @@
         public int Id { get; set; }
 
         /* 逻辑指向门店 */
-        public int TheStoreA { get; set; }
+        public int TheStoreA { get; set; }// 租车点
 
         /* 逻辑指向门店 */
-        public int TheStoreB { get; set; }
+        public int TheStoreB { get; set; }// 还车点
 
         /* 逻辑指向订单 */
         public int TheOrder { get; set; }

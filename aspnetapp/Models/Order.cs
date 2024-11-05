@@ -43,6 +43,9 @@
         public decimal DispatchFee { get; set; } = 0;// 调度费
 
         [Precision(10, 2)]
+        public decimal OvertimeFee { get; set; } = 0;// 超时费
+
+        [Precision(10, 2)]
         public decimal OtherFees { get; set; } = 0;// 其他费用
 
         [Precision(10, 2)]
@@ -67,6 +70,14 @@
             进行中,
             已完成,
             付款中
+        }
+
+        /// <summary>
+        /// 获取订单总金额
+        /// </summary>
+        /// <returns></returns>
+        public decimal GetTotalPrice() {
+            return Deposit + Rent + DispatchFee + OvertimeFee + OtherFees;
         }
     }
 }
