@@ -71,5 +71,13 @@
             已完成,
             付款中
         }
+
+        /// <summary>
+        /// 获取订单总金额
+        /// </summary>
+        /// <returns></returns>
+        public decimal GetTotalPrice() {
+            return Deposit + Rent + DispatchFee + OvertimeFee + OtherFees;
+        }
     }
 }

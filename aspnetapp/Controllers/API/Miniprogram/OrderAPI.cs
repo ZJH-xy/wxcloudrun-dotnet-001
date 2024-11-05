@@ -309,15 +309,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             if (vehicle is null || vehicle.State != Vehicle.Estates.空闲)
                 return StatusCode(403, "车辆不存在或状态非法");
 
+            using var transaction = await dbContext.Database.BeginTransactionAsync();// 事务开始
+
             // 锁定车辆
             vehicle.State = Vehicle.Estates.锁定;
-            try {
-                await dbContext.SaveChangesAsync();
-
-            } catch (Exception e) {
-                _logger.LogError(e, "车辆{ReplacementVehicleId}锁定", getReplacementVehicle.ReplacementVehicleId);
-                return StatusCode(500);
-            }
 
             // 添加至换车表
             VehicleReplacementRecord vrr = new() {
@@ -329,9 +324,12 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             };
             try {
                 await dbContext.VehicleReplacementRecord.AddAsync(vrr);
+                await dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();// 提交事务
 
             } catch (Exception e) {
-                _logger.LogError(e, "VehicleReplacementRecord：{vrr}添加至换车表", vrr.ToJson());
+                _logger.LogError(e, "VehicleReplacementRecord：{VehicleReplacementRecordId}添加至换车表", vrr.Id);
+                await transaction.RollbackAsync();// 回滚
                 return StatusCode(500);
             }
 
