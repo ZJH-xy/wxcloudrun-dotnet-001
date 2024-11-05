@@ -96,7 +96,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}查询订单{order}状态", GetUserIdInt(), orderId);
-
                 return StatusCode(500);
             }
 
@@ -104,6 +103,25 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 return StatusCode(404);
 
             return StatusCode(200, orderStatus);
+        }
+
+        /// <summary>
+        /// 获取订单换车状态
+        /// </summary>
+        /// <param name="orderId"></param>
+        /// <returns></returns>
+        [HttpGet("replacement/i/{orderId}")]
+        public async Task<IActionResult> GetOderReplacementByUserId(int orderId) {
+            bool status;
+            try {
+                status = await orderController.GetOderReplacementByUserId(GetUserIdInt(), orderId);
+
+            } catch (Exception e) {
+                _logger.LogError(e, "用户{UserId}查询订单{order}换车状态", GetUserIdInt(), orderId);
+                return StatusCode(500);
+            }
+
+            return StatusCode(200, status);
         }
 
         /// <summary>
@@ -280,6 +298,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogDebug("订单{OrderId}状态非法", getReplacementVehicle.OrderId);
                 return StatusCode(403, "订单不存在或非法");
             }
+
+            // 检查是否存在换车请求
+            if (await orderController.GetOderReplacementByUserId(GetUserIdInt(), getReplacementVehicle.OrderId))
+                return StatusCode(403, "当前有侍确认的换车请求");
 
             // 检查车辆状态
             using MyDbContext dbContext = new();
