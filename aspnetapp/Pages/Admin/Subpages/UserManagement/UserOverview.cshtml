@@ -17,25 +17,29 @@
     </div>
 
     <table id="userTable">
-        @* <tr>
+        <tr>
             <th>序号</th>
             <th>ID</th>
-            <th>昵称</th>
             <th>姓名</th>
             <th>手机号</th>
             <th>身份证号</th>
+            <th>身份证照片</th>
             <th>创建时间</th>
             <th>操作</th>
 
-        </tr> *@
-        @foreach (var user in Model.List) {
+        </tr>
+
+        @for (int i = 0; i < @Model.List.Count; i++)
+        {
             <tr>
-                <td>@user.Id</td>
-                <td>@user.Phone</td>
-                <td>@user.Name</td>
-                <td>@user.IdentityCard</td>
-                <td>@user.IdentityCardPictures</td>
-                <td>@user.CreatedAt</td>
+                <td>@(i+1)</td>
+                <td>@Model.List[i].Id</td>
+                <td>@Model.List[i].Phone</td>
+                <td>@Model.List[i].Name</td>
+                <td>@Model.List[i].IdentityCard</td>
+                <td>@Model.List[i].IdentityCardPictures</td>
+                <td>@Model.List[i].CreatedAt</td>
+                <td><button class="modalBtn">编辑</button></td>
             </tr>
         }
     </table>
