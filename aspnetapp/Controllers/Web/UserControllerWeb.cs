@@ -1,11 +1,11 @@
 ﻿using aspnetapp.Dao.RepositoryInterface.Web;
 
 namespace aspnetapp.Controllers.Web {
-    public class UserController : IUserRepositoryWeb {
+    public class UserControllerWeb : IUserRepositoryWeb {
 
         private readonly MyDbContext _context;
 
-        public UserController(MyDbContext context) {
+        public UserControllerWeb(MyDbContext context) {
             _context = context;
         }
 

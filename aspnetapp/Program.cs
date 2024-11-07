@@ -1,8 +1,13 @@
 using aspnetapp.Controllers.API.Miniprogram;
 using aspnetapp.Controllers.API.StoreAccount;
 using aspnetapp.Controllers.Miniprogram;
+using aspnetapp.Controllers.Web;
+using aspnetapp.Dao.RepositoryInterface.Web;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Web后台相关
+builder.Services.AddScoped<UserControllerWeb>();
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -15,6 +20,7 @@ builder.Services.AddScoped<IStoreRepository, StoreController>();
 builder.Services.AddScoped<IVehicleRepository, VehicleController>();
 builder.Services.AddScoped<IOrderRepository, OrderController>();
 builder.Services.AddScoped<IStoreAccountRepository, StoreAccountController>();
+
 
 builder.Services.AddScoped<OrderAPI>(); // 注册 OrderAPI，定时取消订单
 builder.Services.AddHostedService<TimedHostedService>();
