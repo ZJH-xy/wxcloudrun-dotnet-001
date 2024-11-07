@@ -1,6 +1,7 @@
-﻿using static aspnetapp.Controllers.UserController;
+﻿using static aspnetapp.Controllers.Miniprogram.UserController;
 
-namespace aspnetapp.Dao.RepositoryInterface.Miniprogram {
+namespace aspnetapp.Dao.RepositoryInterface.Miniprogram
+{
     public interface IUserRepository {
         /// <summary>
         /// 添加用户

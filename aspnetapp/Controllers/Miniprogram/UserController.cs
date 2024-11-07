@@ -1,4 +1,4 @@
-﻿namespace aspnetapp.Controllers {
+﻿namespace aspnetapp.Controllers.Miniprogram {
     public class UserController : IUserRepository {
 
         private readonly MyDbContext _context;

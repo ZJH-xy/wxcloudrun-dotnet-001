@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using aspnetapp.Controllers.Miniprogram;
+using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 
-namespace aspnetapp.Controllers.API.Miniprogram {
+namespace aspnetapp.Controllers.API.Miniprogram
+{
 
     [Route("order")]
     [ApiController]
