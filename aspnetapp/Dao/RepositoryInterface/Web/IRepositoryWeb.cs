@@ -8,14 +8,14 @@
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<Object?> GetById(int id);
+        //Task<Object?> GetById(int id);
         /// <summary>
         /// 分页查询
         /// </summary>
         /// <param name="iimit">一页多少行</param>
         /// <param name="pageIndex">第几页</param>
         /// <returns></returns>
-        Task<List<Object>> GetTablePage(int iimit, int pageIndex);
+        //Task<List<Object>> GetTablePage(int iimit, int pageIndex);
         /// <summary>
         /// 获取表结构
         /// </summary>
