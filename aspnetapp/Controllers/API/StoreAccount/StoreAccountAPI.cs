@@ -240,8 +240,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (newVehicle.TheCurrentStore != storeId)// 车辆当前所在门店
                 return StatusCode(403, "车辆不在当前门店");
 
-            if (newVehicle.State != Vehicle.Estates.空闲)
-                return StatusCode(403, "车辆状态异常");
+            //if (newVehicle.State != Vehicle.Estates.锁定)
+            //    return StatusCode(403, "车辆状态异常");
 
             // 获取用户将要更换的旧车辆
             Vehicle? oldVehicle;
@@ -259,6 +259,9 @@ namespace aspnetapp.Controllers.API.StoreAccount
             /* 更改租用车辆 */
             order.TheVehicle = newVehicle.Id;// 更改订单租用车辆
             order.UpdatedAt = now;
+
+            // 新车辆状态改为已出租
+            newVehicle.State = Vehicle.Estates.已出租;
 
             /* 车辆状态改为侍确认 */
             oldVehicle.State = Vehicle.Estates.侍确认;
