@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
+using aspnetapp.Controllers.Miniprogram;
 
-namespace aspnetapp.Controllers.API.Miniprogram {
+namespace aspnetapp.Controllers.API.Miniprogram
+{
 
     [Route("user")]
     [ApiController]

@@ -1,11 +1,11 @@
 ﻿namespace aspnetapp.Dao.RepositoryInterface.Web {
-    public interface IOrderRepositoryWeb : IOrderRepository {
+    public interface IOrderRepositoryWeb : IRepositoryWeb {
         /// <summary>
         /// 根据OrderId 查询订单
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<Order?> GetOrderById(int id);
+        //Task<Order?> GetOrderById(int id);
         /// <summary>
         /// 更改订单状态
         /// </summary>

@@ -1,4 +1,7 @@
-﻿namespace aspnetapp.Controllers.API.Miniprogram {
+﻿using aspnetapp.Controllers.Miniprogram;
+
+namespace aspnetapp.Controllers.API.Miniprogram
+{
 
     [Route("vehicle")]
     [ApiController]

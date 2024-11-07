@@ -1,5 +1,6 @@
 using aspnetapp.Controllers.API.Miniprogram;
 using aspnetapp.Controllers.API.StoreAccount;
+using aspnetapp.Controllers.Miniprogram;
 
 var builder = WebApplication.CreateBuilder(args);
 

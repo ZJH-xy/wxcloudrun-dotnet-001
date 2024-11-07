@@ -1,4 +1,4 @@
-﻿namespace aspnetapp.Controllers {
+﻿namespace aspnetapp.Controllers.Miniprogram {
     public class VehicleController : IVehicleRepository {
 
         private readonly MyDbContext _context;
@@ -15,8 +15,8 @@
             return await _context.Vehicle.Where(s => s.IsDelete == false && s.TheCurrentStore == storeId).ToListAsync();
         }
 
-        public async Task<Object?> GetVehicleQueryableById(int vehicleId) {
-            return await _context.Vehicle.Where(v => v.Id.Equals(vehicleId) && ! v.IsDelete).Select(v => new { v.Model, v.PlateNumber }).ToArrayAsync();
+        public async Task<object?> GetVehicleQueryableById(int vehicleId) {
+            return await _context.Vehicle.Where(v => v.Id.Equals(vehicleId) && !v.IsDelete).Select(v => new { v.Model, v.PlateNumber }).ToArrayAsync();
         }
     }
 }

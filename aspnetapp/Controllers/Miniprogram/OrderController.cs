@@ -1,4 +1,4 @@
-﻿namespace aspnetapp.Controllers {
+﻿namespace aspnetapp.Controllers.Miniprogram {
     public class OrderController : IOrderRepository {
 
         private readonly MyDbContext _context;
