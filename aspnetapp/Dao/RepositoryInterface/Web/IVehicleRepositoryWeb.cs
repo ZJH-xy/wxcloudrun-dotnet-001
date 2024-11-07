@@ -1,5 +1,5 @@
 ﻿namespace aspnetapp.Dao.RepositoryInterface.Web {
-    public interface IVehicleRepositoryWeb : IVehicleRepository {
+    public interface IVehicleRepositoryWeb : IRepositoryWeb {
         /// <summary>
         /// 添加车辆
         /// </summary>
