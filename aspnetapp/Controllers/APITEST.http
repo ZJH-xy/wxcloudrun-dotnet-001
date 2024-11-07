@@ -1,4 +1,4 @@
-@localhost = https://localhost:60835
+@localhost = https://localhost:63295
 @id = 0
 @phone = 13000000000
 @password = 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
@@ -104,3 +104,11 @@ content-type: application/json
 }
 
 
+### 确认还车
+POST {{localhost}}/storeAccount/confirm/vehicle/return HTTP/1.1
+Authorization: Bearer {{storeAccountauthorization}}
+content-type: application/json
+
+{
+    "OderId": 28
+}

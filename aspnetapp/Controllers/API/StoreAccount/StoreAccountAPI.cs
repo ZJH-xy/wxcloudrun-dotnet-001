@@ -137,8 +137,11 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             using var transaction = await dbcontext.Database.BeginTransactionAsync();// 事务开始
 
+            DateTime now = DateTime.Now;
+
             /* 确认订单 */
             order.Status = Order.OrderStatus.进行中;
+            order.ActualStartingTime = now;
             vehicle.State = Vehicle.Estates.已出租;
             try {
                 await dbcontext.SaveChangesAsync();
@@ -325,7 +328,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             // 获取套餐时间
             StoreMenu? storeMenu;
             try {
-                storeMenu = await dbcontext.StoreMenus.FirstAsync(sm => sm.Id == order.Id);
+                storeMenu = await dbcontext.StoreMenus.FirstAsync(sm => sm.Id == order.TheStoreMenu);
 
             } catch (Exception e) {
                 _logger.LogError(e, "套餐{StoreMenuId}查询", order.TheStoreMenu);
