@@ -6,7 +6,7 @@
     [Index(nameof(TheUser))]
     public class UserFavoritesStore {
         [Key]
-        public int Id { get; set; }
+        public int Id { get; init; }
 
         /* 逻辑指向用户 */
         public int TheUser { get; set; }

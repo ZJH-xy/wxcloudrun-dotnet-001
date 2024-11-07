@@ -1,4 +1,5 @@
 using aspnetapp.Controllers.Web;
+using aspnetapp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -15,11 +16,36 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         [BindProperty(SupportsGet = true)]
         public int PageIndex { get; set; } = 1;
 
+        // 用于绑定更新的用户信息
+        [BindProperty]
+        public User UpdatedUser { get; set; } = new User();
+
         public UserOverviewModel(UserControllerWeb userController) {
             _userController = userController;
         }
 
+        // 获取分页用户列表
         public async Task<IActionResult> OnGetAsync() {
+            List = await _userController.GetTablePage(Limit, PageIndex);
+            return Page();
+        }
+
+        // 更新用户信息
+        public async Task<IActionResult> OnPostUpdateUserAsync() {
+            if (!ModelState.IsValid) {
+                return Page();
+            }
+
+            var result = await _userController.UpdateUser(UpdatedUser.Id, UpdatedUser);
+            if (result is NotFoundResult) {
+                ModelState.AddModelError(string.Empty, "User not found.");
+            } else if (result is StatusCodeResult status && status.StatusCode == 500) {
+                ModelState.AddModelError(string.Empty, "Error updating user.");
+            } else {
+                TempData["Message"] = "User updated successfully.";
+            }
+
+            // 重新加载用户列表以更新页面显示
             List = await _userController.GetTablePage(Limit, PageIndex);
             return Page();
         }

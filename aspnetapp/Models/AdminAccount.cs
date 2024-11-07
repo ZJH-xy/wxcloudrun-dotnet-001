@@ -5,7 +5,7 @@
     [Table("T_AdminAccount")]
     public class AdminAccount {
         [Key]
-        public int Id { get; set; }
+        public int Id { get; init; }
 
         public string Account { get; set; }// 帐号
 

@@ -6,7 +6,7 @@
     [Index(nameof(TheStoreA), nameof(TheStoreB))]
     public class RevenueStatistics {
         [Key]
-        public int Id { get; set; }
+        public int Id { get; init; }
 
         /* 逻辑指向门店 */
         public int TheStoreA { get; set; }// 租车点
