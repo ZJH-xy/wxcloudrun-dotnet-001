@@ -204,7 +204,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             VehicleReplacementRecord? vrr;
             try {
                 // 查询当前订单的换车请求
-                vrr = await dbcontext.VehicleReplacementRecord.FirstAsync(v => v.TheOrder == getData.OderId);
+                vrr = await dbcontext.VehicleReplacementRecord.FirstAsync(v => v.TheOrder == getData.OderId && v.State == VehicleReplacementRecord.Estates.侍确认);
 
             } catch (Exception e) {
                 _logger.LogError(e, "换车记录表OrderId=={OrderId}查询", getData.OderId);
@@ -214,8 +214,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (vrr is null)
                 return StatusCode(403, "换车请求不存在");
 
-            if (vrr.State != VehicleReplacementRecord.Estates.侍确认)
-                return StatusCode(403, "请求状态异常");
+            //if (vrr.State != VehicleReplacementRecord.Estates.侍确认)
+            //    return StatusCode(403, "请求状态异常");
 
             /* 检查车辆状态 */
             Vehicle? newVehicle;
@@ -324,6 +324,10 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             if (order.Status != Order.OrderStatus.进行中)
                 return StatusCode(403, "订单状态异常");
+
+            // 检查是否有未完成的换车请求
+            if (await dbcontext.VehicleReplacementRecord.AnyAsync(vrr => vrr.TheOrder == getData.OderId && vrr.State == VehicleReplacementRecord.Estates.侍确认))
+                return StatusCode(403, "当前有未完成的换车请求");
 
             // 获取套餐时间
             StoreMenu? storeMenu;

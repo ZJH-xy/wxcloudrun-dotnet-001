@@ -66,7 +66,7 @@ var registerService = app.UseSenparcWeixin(app.Environment,
     register => { },
     (register, weixinSetting) => {
         //注册公众号信息（可以执行多次，注册多个小程序）
-        register.RegisterWxOpenAccount(weixinSetting, "【盛派网络小助手】小程序");
+        register.RegisterWxOpenAccount(weixinSetting, "文旅小程序");
     });
 
 
