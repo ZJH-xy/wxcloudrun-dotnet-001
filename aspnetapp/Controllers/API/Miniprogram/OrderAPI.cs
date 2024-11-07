@@ -290,24 +290,24 @@ namespace aspnetapp.Controllers.API.Miniprogram
         /// <summary>
         /// 换车请求
         /// </summary>
-        /// <param name="getReplacementVehicle"></param>
+        /// <param name="getData"></param>
         /// <returns></returns>
         [HttpPost("replacement")]
-        public async Task<IActionResult> Replacement(GetReplacementInfo getReplacementVehicle) {
+        public async Task<IActionResult> Replacement(GetReplacementInfo getData) {
             // 检查订单状态
-            Order? order = await orderController.GetById(GetUserIdInt(), getReplacementVehicle.OrderId);
+            Order? order = await orderController.GetById(GetUserIdInt(), getData.OrderId);
             if (order is null || order.Status != Order.OrderStatus.进行中) {
-                _logger.LogDebug("订单{OrderId}状态非法", getReplacementVehicle.OrderId);
+                _logger.LogDebug("订单{OrderId}状态非法", getData.OrderId);
                 return StatusCode(403, "订单不存在或非法");
             }
 
             // 检查是否存在换车请求
-            if (await orderController.GetOderReplacementByUserId(GetUserIdInt(), getReplacementVehicle.OrderId))
+            if (await orderController.GetOderReplacementByUserId(GetUserIdInt(), getData.OrderId))
                 return StatusCode(403, "当前有侍确认的换车请求");
 
             // 检查车辆状态
             using MyDbContext dbContext = new();
-            Vehicle? vehicle = await dbContext.Vehicle.SingleOrDefaultAsync(v => v.Id == getReplacementVehicle.ReplacementVehicleId);
+            Vehicle? vehicle = await dbContext.Vehicle.SingleOrDefaultAsync(v => v.Id == getData.ReplacementVehicleId);
             if (vehicle is null || vehicle.State != Vehicle.Estates.空闲)
                 return StatusCode(403, "车辆不存在或状态非法");
 
@@ -318,9 +318,9 @@ namespace aspnetapp.Controllers.API.Miniprogram
 
             // 添加至换车表
             VehicleReplacementRecord vrr = new() {
-                TheOrder = getReplacementVehicle.OrderId,// 订单Id
+                TheOrder = getData.OrderId,// 订单Id
                 TheOldVehicles = order.TheVehicle,// 旧车辆
-                TheNewVehicles = getReplacementVehicle.ReplacementVehicleId,// 要更换的车辆
+                TheNewVehicles = getData.ReplacementVehicleId,// 要更换的车辆
                 State = VehicleReplacementRecord.Estates.侍确认,// 状态
                 CreatedAt = DateTime.Now
             };
@@ -336,6 +336,43 @@ namespace aspnetapp.Controllers.API.Miniprogram
             }
 
             return StatusCode(200, "请求成功，请向商家确认");
+        }
+
+        /// <summary>
+        /// 取消换车请求
+        /// </summary>
+        /// <param name="getReplacementVehicle"></param>
+        /// <returns></returns>
+        [HttpPost("replacement/cancel")]
+        public async Task<IActionResult> CancelReplacement(GetCancelReplacementInfo getData) {
+            // 检查订单状态
+            Order? order = await orderController.GetById(GetUserIdInt(), getData.OrderId);
+            if (order is null || order.Status != Order.OrderStatus.进行中) {
+                _logger.LogDebug("订单{OrderId}状态非法", getData.OrderId);
+                return StatusCode(403, "订单不存在或非法");
+            }
+
+            using MyDbContext dbContext = new();
+
+            // 检查是否存在换车请求
+            if (await orderController.GetOderReplacementByUserId(GetUserIdInt(), getData.OrderId))
+                return StatusCode(403, "当前有侍确认的换车请求");
+
+            VehicleReplacementRecord? vrr = await dbContext.VehicleReplacementRecord.FirstOrDefaultAsync(vrr => vrr.TheOrder == getData.OrderId && vrr.State == VehicleReplacementRecord.Estates.侍确认);
+            if (vrr is null)
+                return StatusCode(403, "请求异常");
+
+            vrr.State = VehicleReplacementRecord.Estates.已取消;
+
+            try {
+                await dbContext.SaveChangesAsync();
+
+            } catch (Exception e) {
+                _logger.LogCritical(e, "取消换车请求{VehicleReplacementRecordId}", vrr.Id);
+                return StatusCode(500);
+            }
+
+            return StatusCode(200);
         }
 
         /// <summary>
@@ -450,6 +487,13 @@ namespace aspnetapp.Controllers.API.Miniprogram
     public class GetReplacementInfo {
         public int OrderId { get; set; }
         public int ReplacementVehicleId { get; set; }// 更改车辆Id
+    }
+
+    /// <summary>
+    /// 获取取消换车请求信息
+    /// </summary>
+    public class GetCancelReplacementInfo {
+        public int OrderId { get; set; }
     }
 
     /// <summary>
