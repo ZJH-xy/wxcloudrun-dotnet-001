@@ -137,8 +137,11 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             using var transaction = await dbcontext.Database.BeginTransactionAsync();// 事务开始
 
+            DateTime now = DateTime.Now;
+
             /* 确认订单 */
             order.Status = Order.OrderStatus.进行中;
+            order.ActualStartingTime = now;
             vehicle.State = Vehicle.Estates.已出租;
             try {
                 await dbcontext.SaveChangesAsync();
@@ -240,8 +243,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (newVehicle.TheCurrentStore != storeId)// 车辆当前所在门店
                 return StatusCode(403, "车辆不在当前门店");
 
-            if (newVehicle.State != Vehicle.Estates.空闲)
-                return StatusCode(403, "车辆状态异常");
+            //if (newVehicle.State != Vehicle.Estates.锁定)
+            //    return StatusCode(403, "车辆状态异常");
 
             // 获取用户将要更换的旧车辆
             Vehicle? oldVehicle;
@@ -259,6 +262,9 @@ namespace aspnetapp.Controllers.API.StoreAccount
             /* 更改租用车辆 */
             order.TheVehicle = newVehicle.Id;// 更改订单租用车辆
             order.UpdatedAt = now;
+
+            // 新车辆状态改为已出租
+            newVehicle.State = Vehicle.Estates.已出租;
 
             /* 车辆状态改为侍确认 */
             oldVehicle.State = Vehicle.Estates.侍确认;
@@ -322,7 +328,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             // 获取套餐时间
             StoreMenu? storeMenu;
             try {
-                storeMenu = await dbcontext.StoreMenus.FirstAsync(sm => sm.Id == order.Id);
+                storeMenu = await dbcontext.StoreMenus.FirstAsync(sm => sm.Id == order.TheStoreMenu);
 
             } catch (Exception e) {
                 _logger.LogError(e, "套餐{StoreMenuId}查询", order.TheStoreMenu);
