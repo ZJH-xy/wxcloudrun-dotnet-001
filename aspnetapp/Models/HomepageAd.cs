@@ -14,5 +14,8 @@
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }
+
+        [Timestamp]
+        public byte[] RowVersion { get; set; }// 用于乐观并发控制
     }
 }

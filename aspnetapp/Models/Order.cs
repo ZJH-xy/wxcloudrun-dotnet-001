@@ -62,6 +62,9 @@
 
         public DateTime UpdatedAt { get; set; }
 
+        [Timestamp]
+        public byte[] RowVersion { get; set; }// 用于乐观并发控制
+
         public enum OrderStatus {
             已取消,
             待付款,
