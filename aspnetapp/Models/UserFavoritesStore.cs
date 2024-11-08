@@ -15,5 +15,8 @@
         public int TheStore { get; set; }
 
         public DateTime CreatedAt { get; set; }
+
+        [Timestamp]
+        public byte[] RowVersion { get; set; }// 用于乐观并发控制
     }
 }

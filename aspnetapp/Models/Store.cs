@@ -40,6 +40,9 @@
         
         public bool IsDelete { get; set; } = false;
 
+        [Timestamp]
+        public byte[] RowVersion { get; set; }// 用于乐观并发控制
+
         public bool IsOpen() {
             var now = DateTime.Now.TimeOfDay; // 获取当前时间的时间部分
             return now >= BusinessHoursStart && now <= BusinessHoursEnd; // 判断是否在营业时间内

@@ -290,24 +290,24 @@ namespace aspnetapp.Controllers.API.Miniprogram
         /// <summary>
         /// 换车请求
         /// </summary>
-        /// <param name="getReplacementVehicle"></param>
+        /// <param name="getData"></param>
         /// <returns></returns>
         [HttpPost("replacement")]
-        public async Task<IActionResult> Replacement(GetReplacementInfo getReplacementVehicle) {
+        public async Task<IActionResult> Replacement(GetReplacementInfo getData) {
             // 检查订单状态
-            Order? order = await orderController.GetById(GetUserIdInt(), getReplacementVehicle.OrderId);
+            Order? order = await orderController.GetById(GetUserIdInt(), getData.OrderId);
             if (order is null || order.Status != Order.OrderStatus.进行中) {
-                _logger.LogDebug("订单{OrderId}状态非法", getReplacementVehicle.OrderId);
+                _logger.LogDebug("订单{OrderId}状态非法", getData.OrderId);
                 return StatusCode(403, "订单不存在或非法");
             }
 
             // 检查是否存在换车请求
-            if (await orderController.GetOderReplacementByUserId(GetUserIdInt(), getReplacementVehicle.OrderId))
+            if (await orderController.GetOderReplacementByUserId(GetUserIdInt(), getData.OrderId))
                 return StatusCode(403, "当前有侍确认的换车请求");
 
             // 检查车辆状态
             using MyDbContext dbContext = new();
-            Vehicle? vehicle = await dbContext.Vehicle.SingleOrDefaultAsync(v => v.Id == getReplacementVehicle.ReplacementVehicleId);
+            Vehicle? vehicle = await dbContext.Vehicle.SingleOrDefaultAsync(v => v.Id == getData.ReplacementVehicleId);
             if (vehicle is null || vehicle.State != Vehicle.Estates.空闲)
                 return StatusCode(403, "车辆不存在或状态非法");
 
@@ -318,9 +318,9 @@ namespace aspnetapp.Controllers.API.Miniprogram
 
             // 添加至换车表
             VehicleReplacementRecord vrr = new() {
-                TheOrder = getReplacementVehicle.OrderId,// 订单Id
+                TheOrder = getData.OrderId,// 订单Id
                 TheOldVehicles = order.TheVehicle,// 旧车辆
-                TheNewVehicles = getReplacementVehicle.ReplacementVehicleId,// 要更换的车辆
+                TheNewVehicles = getData.ReplacementVehicleId,// 要更换的车辆
                 State = VehicleReplacementRecord.Estates.侍确认,// 状态
                 CreatedAt = DateTime.Now
             };
@@ -339,13 +339,51 @@ namespace aspnetapp.Controllers.API.Miniprogram
         }
 
         /// <summary>
+        /// 取消换车请求
+        /// </summary>
+        /// <param name="getReplacementVehicle"></param>
+        /// <returns></returns>
+        [HttpPost("replacement/cancel")]
+        public async Task<IActionResult> CancelReplacement(GetCancelReplacementInfo getData) {
+            // 检查订单状态
+            Order? order = await orderController.GetById(GetUserIdInt(), getData.OrderId);
+
+            if (order is null || order.Status != Order.OrderStatus.进行中) {
+                _logger.LogDebug("订单{OrderId}状态非法", getData.OrderId);
+                return StatusCode(403, "订单不存在或非法");
+            }
+
+            using MyDbContext dbContext = new();
+
+            // 检查是否存在换车请求
+            if (await orderController.GetOderReplacementByUserId(GetUserIdInt(), getData.OrderId))
+                return StatusCode(403, "当前有侍确认的换车请求");
+
+            VehicleReplacementRecord? vrr = await dbContext.VehicleReplacementRecord.FirstOrDefaultAsync(vrr => vrr.TheOrder == getData.OrderId && vrr.State == VehicleReplacementRecord.Estates.侍确认);
+            if (vrr is null)
+                return StatusCode(403, "请求异常");
+
+            vrr.State = VehicleReplacementRecord.Estates.已取消;
+
+            try {
+                await dbContext.SaveChangesAsync();
+
+            } catch (Exception e) {
+                _logger.LogCritical(e, "取消换车请求{VehicleReplacementRecordId}", vrr.Id);
+                return StatusCode(500);
+            }
+
+            return StatusCode(200);
+        }
+
+        /// <summary>
         /// 检查换车请求，超时取消（暂未使用）
         /// </summary>
         /// <returns></returns>
         public async Task CheckReplacementVehicle() {
             using MyDbContext _dbContext = new();
             DateTime now = DateTime.Now;// 获取当前时间
-            DateTime threshold = now.AddMinutes(-60);// 计算60分钟前的时间
+            DateTime threshold = now.AddMinutes(-30);// 计算30分钟前的时间
 
             List<VehicleReplacementRecord> vrrToCancel = await _dbContext.VehicleReplacementRecord
                 .Where(vrr => vrr.State == VehicleReplacementRecord.Estates.侍确认 && vrr.CreatedAt < threshold)
@@ -353,31 +391,36 @@ namespace aspnetapp.Controllers.API.Miniprogram
 
             using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
 
-            foreach (var v in vrrToCancel) {
-                // 更新订单状态
-                v.State = VehicleReplacementRecord.Estates.已取消;
-                v.UpdatedAt = now;
+            foreach (VehicleReplacementRecord v in vrrToCancel) {
+                try {
+                    // 更新订单状态
+                    v.State = VehicleReplacementRecord.Estates.已取消;
+                    v.UpdatedAt = now;
 
-                // 查询并更新相关联的车辆状态为空闲
-                Vehicle vehicle = await _dbContext.Vehicle
-                    .SingleAsync(vehicle => vehicle.Id == v.TheNewVehicles);
+                    // 查询并更新与订单关联的车辆状态为空闲
+                    Vehicle vehicle = await _dbContext.Vehicle
+                        .SingleAsync(vehicle => vehicle.Id == v.TheNewVehicles);
 
-                vehicle.State = Vehicle.Estates.空闲;
-                vehicle.UpdatedAt = now;
+                    vehicle.State = Vehicle.Estates.空闲;
+                    vehicle.UpdatedAt = now;
 
-                _logger.LogInformation("订单{OrderId}换车取消, 车辆{VehicleId}状态更新为空闲", v.Id, vehicle.Id);
+                    _logger.LogInformation("订单{OrderId}换车取消, 车辆{VehicleId}状态更新为空闲", v.Id, vehicle.Id);
+
+                    // 尝试保存更改
+                    await _dbContext.SaveChangesAsync();
+                } catch (DbUpdateConcurrencyException ex) {
+                    _logger.LogWarning(ex, "并发冲突，无法更新订单{OrderId}或车辆{VehicleId}状态", v.Id, v.TheNewVehicles);
+
+                    // 可选择：重新查询、通知用户或跳过冲突条目
+                } catch (Exception ex) {
+                    _logger.LogCritical(ex, "更新订单{OrderId}或车辆{VehicleId}状态失败", v.Id, v.TheNewVehicles);
+
+                    await transaction.RollbackAsync();
+                    throw;
+                }
             }
 
-            try {
-                await _dbContext.SaveChangesAsync();// 保存所有更改
-                await transaction.CommitAsync();// 提交事务
-
-            } catch (Exception e) {
-                _logger.LogCritical(e, "订单或车辆状态事务失败，ordersToCancel：{OrdersToCancel}",
-                    vrrToCancel.Select(o => o.Id).ToArray());
-
-                await transaction.RollbackAsync();// 回滚事务
-            }
+            await transaction.CommitAsync();
         }
 
         /// <summary>
@@ -397,31 +440,34 @@ namespace aspnetapp.Controllers.API.Miniprogram
             using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
 
             foreach (var order in ordersToCancel) {
-                // 更新订单状态
-                order.Status = Order.OrderStatus.已取消;
-                order.UpdatedAt = now;
+                try {
+                    order.Status = Order.OrderStatus.已取消;
+                    order.UpdatedAt = now;
 
-                // 查询并更新与订单关联的车辆状态为空闲
-                Vehicle vehicle = await _dbContext.Vehicle
-                    .SingleAsync(v => v.Id == order.TheVehicle);
+                    Vehicle vehicle = await _dbContext.Vehicle
+                        .SingleAsync(v => v.Id == order.TheVehicle);
 
-                vehicle.State = Vehicle.Estates.空闲;
-                vehicle.UpdatedAt = now;
+                    vehicle.State = Vehicle.Estates.空闲;
+                    vehicle.UpdatedAt = now;
 
-                _logger.LogInformation("订单{OrderId}取消, 车辆{VehicleId}状态更新为空闲", order.Id, vehicle.Id);
+                    _logger.LogInformation("订单{OrderId}取消, 车辆{VehicleId}状态更新为空闲", order.Id, vehicle.Id);
+
+                    await _dbContext.SaveChangesAsync();
+                } catch (DbUpdateConcurrencyException ex) {
+                    _logger.LogWarning("并发冲突，订单或车辆记录已被更新：{OrderId}, {Exception}", order.Id, ex);
+
+                } catch (Exception ex) {
+                    _logger.LogCritical(ex, "订单或车辆状态事务失败，ordersToCancel：{OrdersToCancel}",
+                        ordersToCancel.Select(o => o.Id).ToArray());
+
+                    await transaction.RollbackAsync();
+                    throw;
+                }
             }
 
-            try {
-                await _dbContext.SaveChangesAsync();// 保存所有更改
-                await transaction.CommitAsync();// 提交事务
-
-            } catch (Exception e) {
-                _logger.LogCritical(e, "订单或车辆状态事务失败，ordersToCancel：{OrdersToCancel}",
-                    ordersToCancel.Select(o => o.Id).ToArray());
-
-                await transaction.RollbackAsync();// 回滚事务
-            }
+            await transaction.CommitAsync();
         }
+
 
         /// <summary>
         /// JWT 获取用户id
@@ -450,6 +496,13 @@ namespace aspnetapp.Controllers.API.Miniprogram
     public class GetReplacementInfo {
         public int OrderId { get; set; }
         public int ReplacementVehicleId { get; set; }// 更改车辆Id
+    }
+
+    /// <summary>
+    /// 获取取消换车请求信息
+    /// </summary>
+    public class GetCancelReplacementInfo {
+        public int OrderId { get; set; }
     }
 
     /// <summary>
