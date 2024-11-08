@@ -20,11 +20,12 @@ namespace aspnetapp.Controllers.API.Background
         // 定时器具体执行的方法
         private async void DoWork(object state) {
             // 创建服务作用域
-            using (var scope = _serviceProvider.CreateScope()) {
-                var orderService = scope.ServiceProvider.GetRequiredService<OrderAPI>();
-                // 检查订单是否已支付，超过10分钟未支付订单自动关闭
-                await orderService.CheckOrderPayment();
-            }
+            using var scope = _serviceProvider.CreateScope();
+            var orderService = scope.ServiceProvider.GetRequiredService<OrderAPI>();
+            // 检查订单是否已支付，超过10分钟未支付订单自动关闭
+            await orderService.CheckOrderPayment();
+            // 检查换车请求，超时取消
+            await orderService.CheckReplacementVehicle();
         }
 
         // 释放资源
