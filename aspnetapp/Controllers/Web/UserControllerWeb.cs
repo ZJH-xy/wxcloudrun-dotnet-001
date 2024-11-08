@@ -4,9 +4,11 @@ namespace aspnetapp.Controllers.Web {
     public class UserControllerWeb : Controller, IUserRepositoryWeb {
 
         private readonly MyDbContext _context;
+        private readonly ILogger<UserControllerWeb> _logger;
 
-        public UserControllerWeb(MyDbContext context) {
+        public UserControllerWeb(MyDbContext context, ILogger<UserControllerWeb> logger) {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<User?> GetById(int id) {
@@ -33,8 +35,11 @@ namespace aspnetapp.Controllers.Web {
         /// <param name="updatedUser"></param>
         /// <returns></returns>
         public async Task<IActionResult> UpdateUser(User updatedUser) {
+            _logger.LogInformation("Starting update process for user with ID {UserId}", updatedUser.Id);
+
             var user = await _context.User.FindAsync(updatedUser.Id);
             if (user == null) {
+                _logger.LogWarning("User with ID {UserId} not found", updatedUser.Id);
                 return NotFound("User not found.");
             }
 
@@ -45,13 +50,28 @@ namespace aspnetapp.Controllers.Web {
             user.IdentityCard = updatedUser.IdentityCard;
             user.IdentityCardPictures = updatedUser.IdentityCardPictures;
             user.Nickname = updatedUser.Nickname;
-            user.UpdatedAt = DateTime.Now; // 更新修改时间
+            user.UpdatedAt = DateTime.Now;
+
+            // 设置并发标记
+            _context.Entry(user).Property("RowVersion").OriginalValue = updatedUser.RowVersion;
 
             try {
+                _context.User.Update(user);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("User with ID {UserId} updated successfully", updatedUser.Id);
                 return Ok("User updated successfully.");
-            } catch (DbUpdateException) {
+
+            } catch (DbUpdateConcurrencyException) {
+                _logger.LogWarning("使用ID更新用户时发生并发冲突 {UserId}", updatedUser.Id);
+                return Conflict("Update failed due to concurrent changes.");
+
+            } catch (DbUpdateException ex) {
+                _logger.LogError(ex, "Error updating user with ID {UserId}", updatedUser.Id);
                 return StatusCode(500, "Error updating user.");
+
+            } catch (Exception ex) {
+                _logger.LogError(ex, "Unexpected error while updating user with ID {UserId}", updatedUser.Id);
+                return StatusCode(500, "Unexpected error updating user.");
             }
         }
     }

@@ -15,7 +15,6 @@
             <button>搜索</button>
         </div>
     </div>
-
     <table id="userTable">
         <tr>
             <th>序号</th>
@@ -36,6 +35,8 @@
                 @*                 <td><button class="modalBtn">编辑</button></td>
             *@
 
+                <!-- 显示验证总结，用于展示 ModelState 错误信息 -->
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <form method="post" asp-page-handler="UpdateUser">
                 <td>@(i + 1)</td>
                 <td>@Model.List[i].Id</td>
@@ -47,6 +48,7 @@
                 <td><input type="text" asp-for="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="无" />         </td>
                 <td>@Model.List[i].CreatedAt</td>
                 <td><button type="submit">Update</button></td>
+                <input type="hidden" asp-for="UpdatedUser.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
                 </form>
             </tr>
         }
