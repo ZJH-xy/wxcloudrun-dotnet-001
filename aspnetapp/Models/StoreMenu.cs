@@ -20,5 +20,8 @@
         public decimal Deposit { get; set; }// 押金
 
         public bool IsDelete { get; set; } = false;
+
+        [Timestamp]
+        public byte[] RowVersion { get; set; }// 用于乐观并发控制
     }
 }
