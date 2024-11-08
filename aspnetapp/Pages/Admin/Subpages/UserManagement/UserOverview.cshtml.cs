@@ -36,13 +36,13 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                 return Page();
             }
 
-            var result = await _userController.UpdateUser(UpdatedUser.Id, UpdatedUser);
+            var result = await _userController.UpdateUser(UpdatedUser);
             if (result is NotFoundResult) {
-                ModelState.AddModelError(string.Empty, "User not found.");
+                ModelState.AddModelError(string.Empty, "用户不存在");
             } else if (result is StatusCodeResult status && status.StatusCode == 500) {
-                ModelState.AddModelError(string.Empty, "Error updating user.");
+                ModelState.AddModelError(string.Empty, "错误");
             } else {
-                TempData["Message"] = "User updated successfully.";
+                TempData["Message"] = "更新成功";
             }
 
             // 重新加载用户列表以更新页面显示

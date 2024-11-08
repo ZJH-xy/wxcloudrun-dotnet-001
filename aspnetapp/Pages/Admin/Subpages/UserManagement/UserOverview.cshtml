@@ -9,9 +9,9 @@
             <button>刷新</button>
             <button>添加</button>
             <button>导出</button>
-        </div>        
+        </div>
         <div class="header-item">
-            <input placeholder="搜索"/>
+            <input placeholder="搜索" />
             <button>搜索</button>
         </div>
     </div>
@@ -30,28 +30,24 @@
 
         </tr>
 
-        @for (int i = 0; i < @Model.List.Count; i++)
-        {
+        @for (int i = 0; i < @Model.List.Count; i++) {
             <tr>
-                <td>@(i+1)</td>
-                <td>@Model.List[i].Id</td>
-                <td>@Model.List[i].Phone</td>
-                <td>@Model.List[i].Name</td>
-                <td>@Model.List[i].IdentityCard</td>
-                <td>@Model.List[i].IdentityCardPictures</td>
-                <td>@Model.List[i].Nickname</td>
-                <td>@Model.List[i].CreatedAt</td>
-                <td><button class="modalBtn">编辑</button></td>
 
-                <td>
-                    <form method="post" asp-page-handler="UpdateUser">
-                        <input type="hidden" asp-for="UpdatedUser.Id" value="@Model.List[i].Id" />
-                        <input type="text" asp-for="UpdatedUser.Phone" value="@Model.List[i].Phone" placeholder="Update Phone" />
-                        <input type="text" asp-for="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="Update Name" />
-                        <input type="text" asp-for="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="Update Nickname" />
-                        <button type="submit">Update</button>
-                    </form>
-                </td>
+                @*                 <td><button class="modalBtn">编辑</button></td>
+            *@
+
+                <form method="post" asp-page-handler="UpdateUser">
+                <td>@(i + 1)</td>
+                <td>@Model.List[i].Id</td>
+                <input type="hidden" asp-for="UpdatedUser.Id" value="@Model.List[i].Id" />
+                <td><input type="text" asp-for="UpdatedUser.Phone" value="@Model.List[i].Phone" placeholder="无" />                  </td>
+                <td><input type="text" asp-for="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="无" />                     </td>
+                <td><input type="text" asp-for="UpdatedUser.IdentityCard" value="@Model.List[i].IdentityCard" placeholder="无" />     </td>
+                <td>@Model.List[i].IdentityCardPictures</td>
+                <td><input type="text" asp-for="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="无" />         </td>
+                <td>@Model.List[i].CreatedAt</td>
+                <td><button type="submit">Update</button></td>
+                </form>
             </tr>
         }
     </table>

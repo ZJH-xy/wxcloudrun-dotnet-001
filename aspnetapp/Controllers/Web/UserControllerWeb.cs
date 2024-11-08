@@ -30,22 +30,21 @@ namespace aspnetapp.Controllers.Web {
         /// <summary>
         /// 更新用户信息
         /// </summary>
-        /// <param name="id"></param>
         /// <param name="updatedUser"></param>
         /// <returns></returns>
-        public async Task<IActionResult> UpdateUser(int id, User updatedUser) {
-            var user = await _context.User.FindAsync(id);
+        public async Task<IActionResult> UpdateUser(User updatedUser) {
+            var user = await _context.User.FindAsync(updatedUser.Id);
             if (user == null) {
                 return NotFound("User not found.");
             }
 
             // 更新用户属性
-            user.Phone = updatedUser.Phone is null ? user.Phone : updatedUser.Phone;
-            user.Password = updatedUser.Password is null ? user.Password : updatedUser.Password;
-            user.Name = updatedUser.Name is null ? user.Name : updatedUser.Name;
-            user.IdentityCard = updatedUser.IdentityCard is null ? user.IdentityCard : updatedUser.IdentityCard;
-            user.IdentityCardPictures = updatedUser.IdentityCardPictures is null ? user.IdentityCardPictures : updatedUser.IdentityCardPictures;
-            user.Nickname = updatedUser.Nickname is null ? user.Nickname : updatedUser.Nickname;
+            user.Phone = updatedUser.Phone;
+            user.Password = updatedUser.Password;
+            user.Name = updatedUser.Name;
+            user.IdentityCard = updatedUser.IdentityCard;
+            user.IdentityCardPictures = updatedUser.IdentityCardPictures;
+            user.Nickname = updatedUser.Nickname;
             user.UpdatedAt = DateTime.Now; // 更新修改时间
 
             try {
