@@ -40,12 +40,12 @@ namespace aspnetapp.Controllers.Web {
             }
 
             // 更新用户属性
-            user.Phone = updatedUser.Phone;
-            user.Password = updatedUser.Password;
-            user.Name = updatedUser.Name;
-            user.IdentityCard = updatedUser.IdentityCard;
-            user.IdentityCardPictures = updatedUser.IdentityCardPictures;
-            user.Nickname = updatedUser.Nickname;
+            user.Phone = updatedUser.Phone is null ? user.Phone : updatedUser.Phone;
+            user.Password = updatedUser.Password is null ? user.Password : updatedUser.Password;
+            user.Name = updatedUser.Name is null ? user.Name : updatedUser.Name;
+            user.IdentityCard = updatedUser.IdentityCard is null ? user.IdentityCard : updatedUser.IdentityCard;
+            user.IdentityCardPictures = updatedUser.IdentityCardPictures is null ? user.IdentityCardPictures : updatedUser.IdentityCardPictures;
+            user.Nickname = updatedUser.Nickname is null ? user.Nickname : updatedUser.Nickname;
             user.UpdatedAt = DateTime.Now; // 更新修改时间
 
             try {
