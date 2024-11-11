@@ -3,13 +3,13 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using aspnetapp.Controllers.Miniprogram;
 
-namespace aspnetapp.Controllers.API.Miniprogram
-{
+namespace aspnetapp.Controllers.API.Miniprogram {
 
     [Route("user")]
     [ApiController]
     public class UserAPI : ControllerBase {
         private readonly UserController UserController = new(new MyDbContext());
+        private readonly FavoritesStoreController favoritesStoreController = new(new MyDbContext());
         private readonly IOptionsSnapshot<JWTSettings> _JWTSettingsOpt;
         private readonly ILogger<OrderAPI> _logger;
 
@@ -281,28 +281,32 @@ namespace aspnetapp.Controllers.API.Miniprogram
             return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));
         }
 
-        // 根据手机号获取收藏门店
-        /*
-        [HttpGet("f/s/{phone}")]
-        public async Task<IActionResult> GetFavoriteStores(string phone) {            
-            User? user = null;
-            try {
-                UserController.UserBasic? userBasic = await UserController.GetUserByPhone(phone);
-                if (userBasic is null)
-                    return StatusCode(404);
+        /// <summary>
+        /// 获取收藏门店
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("favorites/store")]
+        public async Task<IActionResult> GetFavoriteStores() {
+            return StatusCode(200, await favoritesStoreController.GetByUserId(GetUserIdInt()));
+        }
 
-                user = await UserController.GetUser(userBasic.Value.UserId);
-            } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]Login: {e}");
-#endif
-                return StatusCode(500);
-            }
-            if (user is null)
-                return StatusCode(403, "帐号或密码错误");
+        /// <summary>
+        /// 删除收藏门店DelFavoritesStore
+        /// </summary>
+        /// <param name="favoritesId"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpDelete("favorites/store/{favoritesId}")]
+        public async Task<IActionResult> DelFavoritesStore(int favoritesId) {
+            var uf = await favoritesStoreController.GetById(favoritesId);
 
-            return StatusCode(200, new { favorite_stores = user.FavoriteStores.ToArray() });
-        }*/
+            if (uf is null || uf.TheUser != GetUserIdInt())
+                return StatusCode(401);
+
+            await favoritesStoreController.DelFavoritesStore(favoritesId);
+            return StatusCode(200);
+        }
 
         /// <summary>
         /// JWT 获取用户id
