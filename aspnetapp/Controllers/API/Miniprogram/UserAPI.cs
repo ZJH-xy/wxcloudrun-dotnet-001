@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using aspnetapp.Controllers.Miniprogram;
+using Senparc.CO2NET.Extensions;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
@@ -108,11 +109,11 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             if (user is null)
                 return StatusCode(404);
 
-            if (user.Name is null || user.IdentityCard is null)// 已实名认证
+            if (!(user.Name.IsNullOrEmpty() && user.IdentityCard.IsNullOrEmpty()))// 已实名认证
                 return StatusCode(403, "当前已实名认证");
 
-            if (!Judge.NameFormatDetermination(real.Name))
-                return StatusCode(403, "请检查名字格式");
+            //if (!Judge.NameFormatDetermination(real.Name))
+            //    return StatusCode(403, "请检查名字格式");
 
             if (!Regex.IsMatch(real.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase))
                 return StatusCode(403, "请检查身份证号格式");

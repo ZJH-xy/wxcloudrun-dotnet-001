@@ -24,6 +24,19 @@ GET {{localhost}}/user/all/i HTTP/1.1
 Authorization: Bearer {{authorization}}
 
 
+
+###
+POST {{localhost}}/user/update/RealNameAuthentication HTTP/1.1
+Authorization: Bearer {{authorization}}
+content-type: application/json
+
+{
+    "Name": "ghmch",
+    "IdentityCard": "360000000000000000"
+}
+
+
+
 ### code，如未注册则创建用户，反之则返回用户基础信息
 # POST {{localhost}}/user/ql/1 HTTP/1.1
 
