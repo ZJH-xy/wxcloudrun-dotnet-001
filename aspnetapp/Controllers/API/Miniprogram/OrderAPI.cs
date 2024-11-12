@@ -545,6 +545,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
             OrderId = order.Id;
             ActualStartingTime = order.ActualStartingTime;
             ActualReturnTime = order.ActualReturnTime;
+            TheStoreMenu = order.TheStoreMenu;
             TheVehicle = order.TheVehicle;
             TheRentalLocation = order.TheRentalLocation;
             TheReturnThePoint = order.TheReturnThePoint;
@@ -563,6 +564,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public int OrderId { get; init; }// 订单编号
         public DateTime? ActualStartingTime { get; set; }// 实际起始时间
         public DateTime? ActualReturnTime { get; set; }// 实际归还时间
+        public int TheStoreMenu { get; set; }// 套餐
         public int TheVehicle { get; set; }// 租用车辆
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public int? TheReturnThePoint { get; set; }// 还车点（StoreId）
