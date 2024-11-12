@@ -164,6 +164,19 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             if (updateUser.Nickname.Length < 2 || updateUser.Nickname.Length > 8)
                 return StatusCode(403, "请检查昵称格式");
 
+            int changSum = 0;
+            user.Phone = updateUser.Phone;
+            user.Nickname = updateUser.Nickname;
+            try {
+                changSum = await UserController.UpdateUser(user);
+
+            } catch (Exception e) {
+                _logger.LogError(e, "用户{UserId}修改昵称、手机号", GetUserIdInt());
+
+                return StatusCode(500);
+            }
+            _logger.LogInformation("用户{UserId}修改昵称、手机号成功，已修改行数{ChangSum}", GetUserIdInt(), changSum);
+
             return StatusCode(200);
         }
 
@@ -195,8 +208,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 return StatusCode(403, "密码错误");
 
             int changSum = 0;
+            user.Password = updatePassword.NewPassword;
             try {
-                user.Password = updatePassword.NewPassword;
                 changSum = await UserController.UpdateUser(user);
 
             } catch (Exception e) {
