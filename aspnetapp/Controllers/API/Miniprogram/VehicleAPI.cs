@@ -13,7 +13,11 @@ namespace aspnetapp.Controllers.API.Miniprogram
             _logger = logger;
         }
 
-        // Id获取门店所有车辆
+        /// <summary>
+        /// Id获取门店所有车辆
+        /// </summary>
+        /// <param name="storeId"></param>
+        /// <returns></returns>
         [HttpGet("a/{storeId}")]
         public async Task<IActionResult> Getvehicles(int storeId) {
             List<Vehicle> vehicleList;
@@ -35,7 +39,11 @@ namespace aspnetapp.Controllers.API.Miniprogram
             return StatusCode(200, vehiclesBasicsList);
         }
 
-        // Id获取车辆信息
+        /// <summary>
+        /// Id获取车辆信息
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetVehicleById(int id) {
             Vehicle? vehicle;
@@ -54,7 +62,11 @@ namespace aspnetapp.Controllers.API.Miniprogram
             return StatusCode(200, new VehiclePro(vehicle));
         }
 
-        // 查询车辆model、车牌
+        /// <summary>
+        /// 查询车辆model、车牌
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("model/{id}")]
         public async Task<IActionResult> GetVehicleModelById(int id) {
             object? vehicle;
