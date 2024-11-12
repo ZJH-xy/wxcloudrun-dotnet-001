@@ -1,95 +1,111 @@
-using aspnetapp.Controllers.Web;
+ï»¿using aspnetapp.Controllers.Web;
 using aspnetapp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
 
-namespace aspnetapp.Pages.Admin.Subpages.UserManagement
-{
-    public class UserOverviewModel : PageModel
-    {
+namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
+    public class UserOverviewModel : PageModel {
         private readonly UserControllerWeb _userController;
         private readonly ILogger<UserOverviewModel> _logger;
 
         public List<User> List { get; set; } = new List<User>();
 
-        // ÓÃÓÚÔÚÒ³ÃæÏÔÊ¾´íÎóĞÅÏ¢
+        // ç”¨äºåœ¨é¡µé¢æ˜¾ç¤ºé”™è¯¯ä¿¡æ¯
         public string ErrorMessage { get; set; }
 
-        // ÓÃÓÚÔÚÒ³ÃæÏÔÊ¾³É¹¦ĞÅÏ¢
+        // ç”¨äºåœ¨é¡µé¢æ˜¾ç¤ºæˆåŠŸä¿¡æ¯
         public string SuccessMessage { get; set; }
 
+        // åˆ†é¡µæŸ¥è¯¢
         [BindProperty(SupportsGet = true)]
         public int Limit { get; set; } = 10;
 
         [BindProperty(SupportsGet = true)]
         public int PageIndex { get; set; } = 1;
 
+        // æ›´æ–°
         [BindProperty]
         public User UpdatedUser { get; set; } = new User();
 
-        public UserOverviewModel(UserControllerWeb userController, ILogger<UserOverviewModel> logger)
-        {
+        // æŸ¥è¯¢
+        [BindProperty(SupportsGet = true)]
+        public string? SearchPhone { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? SearchName { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? SearchNickname { get; set; }
+
+        public UserOverviewModel(UserControllerWeb userController, ILogger<UserOverviewModel> logger) {
             _userController = userController;
             _logger = logger;
         }
 
-        public async Task<IActionResult> OnGetAsync()
-        {
-            _logger.LogInformation("Fetching user list for page {PageIndex} with limit {Limit}", PageIndex, Limit);
-            try
-            {
+        /// <summary>
+        /// æŸ¥è¯¢
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> OnGetAsync() {
+            _logger.LogInformation("æ­£åœ¨è·å–é™åˆ¶ä¸º{Limit}çš„é¡µé¢{PageIndex}çš„ç”¨æˆ·åˆ—è¡¨", PageIndex, Limit);
+            try {
                 List = await _userController.GetTablePage(Limit, PageIndex);
-                _logger.LogInformation("Successfully fetched {Count} users", List.Count);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while fetching the user list");
-                ErrorMessage = "¼ÓÔØÓÃ»§ÁĞ±íÊ±·¢Éú´íÎó¡£";
-                ModelState.AddModelError(string.Empty, "¼ÓÔØÓÃ»§ÁĞ±íÊ±·¢Éú´íÎó¡£");
+
+            } catch (Exception ex) {
+                _logger.LogError(ex, "è·å–ç”¨æˆ·åˆ—è¡¨æ—¶å‡ºé”™");
+                ErrorMessage = "åŠ è½½ç”¨æˆ·åˆ—è¡¨æ—¶å‘ç”Ÿé”™è¯¯ã€‚";
+                ModelState.AddModelError(string.Empty, "åŠ è½½ç”¨æˆ·åˆ—è¡¨æ—¶å‘ç”Ÿé”™è¯¯ã€‚");
             }
             return Page();
         }
 
-        public async Task<IActionResult> OnPostUpdateUserAsync()
-        {
-            _logger.LogInformation("ÕıÔÚ³¢ÊÔÊ¹ÓÃID¸üĞÂÓÃ»§{UserId}", UpdatedUser.Id);
+        /// <summary>
+        /// æ›´æ–°
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> OnPostUpdateUserAsync() {
+            _logger.LogInformation("æ­£åœ¨å°è¯•ä½¿ç”¨IDæ›´æ–°ç”¨æˆ·{UserId}", UpdatedUser.Id);
 
-            if (!ModelState.IsValid)
-            {
-                _logger.LogWarning("±íµ¥ÑéÖ¤Ê§°Ü¡£UserId: {UserId}", UpdatedUser.Id);
-                ErrorMessage = "±íµ¥ÑéÖ¤Ê§°Ü£¬Çë¼ì²éÊäÈëÄÚÈİ";
+            if (!ModelState.IsValid) {
+                _logger.LogWarning("è¡¨å•éªŒè¯å¤±è´¥ã€‚UserId: {UserId}", UpdatedUser.Id);
+                ErrorMessage = "è¡¨å•éªŒè¯å¤±è´¥ï¼Œè¯·æ£€æŸ¥è¾“å…¥å†…å®¹";
                 return Page();
             }
 
             var result = await _userController.UpdateUser(UpdatedUser);
-            if (result is NotFoundResult)
-            {
-                _logger.LogWarning("ÕÒ²»µ½ÓÃ»§¡£UserId: {UserId}", UpdatedUser.Id);
-                ErrorMessage = "ÕÒ²»µ½ÓÃ»§";
+            if (result is NotFoundResult) {
+                _logger.LogWarning("æ‰¾ä¸åˆ°ç”¨æˆ·ã€‚UserId: {UserId}", UpdatedUser.Id);
+                ErrorMessage = "æ‰¾ä¸åˆ°ç”¨æˆ·";
             }
             //else if (result is ConflictResult)
             //{
-            //    _logger.LogWarning("Ê¹ÓÃID¸üĞÂÓÃ»§Ê±·¢Éú²¢·¢³åÍ»¡£UserId: {UserId}", UpdatedUser.Id);
-            //    ErrorMessage = "Äú³¢ÊÔ±à¼­µÄ¼ÇÂ¼ÒÑ±»ÆäËûÓÃ»§ĞŞ¸Ä¡£ÇëÖØĞÂ¼ÓÔØÊı¾İ£¬È»ºóÖØÊÔ";
+            //    _logger.LogWarning("ä½¿ç”¨IDæ›´æ–°ç”¨æˆ·æ—¶å‘ç”Ÿå¹¶å‘å†²çªã€‚UserId: {UserId}", UpdatedUser.Id);
+            //    ErrorMessage = "æ‚¨å°è¯•ç¼–è¾‘çš„è®°å½•å·²è¢«å…¶ä»–ç”¨æˆ·ä¿®æ”¹ã€‚è¯·é‡æ–°åŠ è½½æ•°æ®ï¼Œç„¶åé‡è¯•";
 
             //}
-            else if (result is StatusCodeResult status && status.StatusCode == 500)
-            {
-                _logger.LogError("¸üĞÂÓÃ»§Ê±³ö´í¡£UserId: {UserId}", UpdatedUser.Id);
-                ErrorMessage = "¸üĞÂÓÃ»§Ê±³ö´í¡£";
-            }
-            else if (result is ObjectResult objResult && objResult.StatusCode == 409)
-            {
-                _logger.LogWarning("Ê¹ÓÃID¸üĞÂÓÃ»§Ê±·¢Éú²¢·¢³åÍ»¡£UserId: {UserId}", UpdatedUser.Id);
-                ErrorMessage = "Äú³¢ÊÔ±à¼­µÄ¼ÇÂ¼ÒÑ±»ÆäËûÓÃ»§ĞŞ¸Ä¡£ÇëÖØĞÂ¼ÓÔØÊı¾İ£¬È»ºóÖØÊÔ";
-            }
-            else
-            {
-                _logger.LogInformation("User with ID {UserId} updated successfully", UpdatedUser.Id);
-                SuccessMessage = "±£´æ³É¹¦";
+            else if (result is StatusCodeResult status && status.StatusCode == 500) {
+                _logger.LogError("æ›´æ–°ç”¨æˆ·æ—¶å‡ºé”™ã€‚UserId: {UserId}", UpdatedUser.Id);
+                ErrorMessage = "æ›´æ–°ç”¨æˆ·æ—¶å‡ºé”™ã€‚";
+            } else if (result is ObjectResult objResult && objResult.StatusCode == 409) {
+                _logger.LogWarning("ä½¿ç”¨IDæ›´æ–°ç”¨æˆ·æ—¶å‘ç”Ÿå¹¶å‘å†²çªã€‚UserId: {UserId}", UpdatedUser.Id);
+                ErrorMessage = "æ‚¨å°è¯•ç¼–è¾‘çš„è®°å½•å·²è¢«å…¶ä»–ç”¨æˆ·ä¿®æ”¹ã€‚è¯·é‡æ–°åŠ è½½æ•°æ®ï¼Œç„¶åé‡è¯•";
+            } else {
+                _logger.LogInformation("IDä¸º{UserId}çš„ç”¨æˆ·å·²æˆåŠŸæ›´æ–°", UpdatedUser.Id);
+                SuccessMessage = "ä¿å­˜æˆåŠŸ";
             }
 
-            List = await _userController.GetTablePage(Limit, PageIndex); // Ë¢ĞÂÓÃ»§ÁĞ±í
+            List = await _userController.GetTablePage(Limit, PageIndex); // åˆ·æ–°ç”¨æˆ·åˆ—è¡¨
+            return Page();
+        }
+
+        /// <summary>
+        /// æŸ¥è¯¢
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> OnGetSearchAsync() {
+            // è°ƒç”¨ UserControllerWeb ä¸­çš„ SearchUsers æ–¹æ³•
+            List = await _userController.SearchUsers(SearchPhone, SearchName, SearchNickname);
             return Page();
         }
     }

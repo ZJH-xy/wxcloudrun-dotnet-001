@@ -45,7 +45,7 @@ namespace aspnetapp.Controllers.Web {
 
             // 更新用户属性
             user.Phone = updatedUser.Phone;
-            user.Password = updatedUser.Password;
+            //user.Password = updatedUser.Password;
             user.Name = updatedUser.Name;
             user.IdentityCard = updatedUser.IdentityCard;
             user.IdentityCardPictures = updatedUser.IdentityCardPictures;
@@ -73,6 +73,36 @@ namespace aspnetapp.Controllers.Web {
                 _logger.LogError(ex, "Unexpected error while updating user with ID {UserId}", updatedUser.Id);
                 return StatusCode(500, "Unexpected error updating user.");
             }
+        }
+
+        /// <summary>
+        /// 查询用户
+        /// </summary>
+        /// <param name="phone"></param>
+        /// <param name="name"></param>
+        /// <param name="nickname"></param>
+        /// <returns></returns>
+        public async Task<List<User>> SearchUsers(string? phone = null, string? name = null, string? nickname = null) {
+            _logger.LogInformation("Starting search with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}", phone, name, nickname);
+
+            // 构建查询的基础对象
+            var query = _context.User.AsQueryable();
+
+            // 根据传入的参数动态添加条件
+            if (!string.IsNullOrEmpty(phone)) {
+                query = query.Where(u => u.Phone.Contains(phone));
+            }
+            if (!string.IsNullOrEmpty(name)) {
+                query = query.Where(u => u.Name.Contains(name));
+            }
+            if (!string.IsNullOrEmpty(nickname)) {
+                query = query.Where(u => u.Nickname.Contains(nickname));
+            }
+
+            var results = await query.ToListAsync();
+            _logger.LogInformation("Found {Count} users with given filters", results.Count);
+
+            return results;
         }
     }
 }
