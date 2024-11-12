@@ -6,7 +6,7 @@
     [Index(nameof(TheStore), nameof(Account), IsUnique = true)]
     public class StoreAccount {
         [Key]
-        public int Id { get; set; }
+        public int Id { get; init; }
 
         /* 逻辑指向门店 */
         public int TheStore { get; set; }

@@ -4,48 +4,88 @@
 }
 <link rel="stylesheet" href="~/css/table.css" />
 <div>
-    <div class="header">
+    <!-- 显示错误消息 -->
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage)) {
+            <div class="alert alert-danger">
+                <ul>
+                    <li>@Model.ErrorMessage</li>
+                @foreach (var error in ModelState.Values.SelectMany(v => v.Errors)) {
+                            <li>@error.ErrorMessage</li>
+                }
+                </ul>
+            </div>
+    }
+
+    <!-- 显示成功消息 -->
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage)) {
+            <div class="alert alert-success">
+                <p>@Model.SuccessMessage</p>
+            </div>
+    }
+
+
+    <form method="get" class="header">
         <div class="header-item">
-            <button>刷新</button>
+            <button type="submit">刷新</button>
             <button>添加</button>
             <button>导出</button>
-        </div>        
-        <div class="header-item">
-            <input placeholder="搜索"/>
-            <button>搜索</button>
         </div>
+    </form>
+    <div class="header-item">
+        <input asp-for="SearchPhone" placeholder="手机号" />
+        <input asp-for="SearchName" placeholder="姓名" />
+        <input asp-for="SearchNickname" placeholder="昵称" />
+        <select asp-for="SortField">
+            <option value="Id">ID</option>
+            <option value="Phone">手机号</option>
+            <option value="Name">姓名</option>
+            <option value="CreatedAt">创建时间</option>
+        </select>
+        <select asp-for="SortOrder">
+            <option value="asc">升序</option>
+            <option value="desc">降序</option>
+        </select>
+        <button type="submit" formaction="?handler=Search">搜索</button>
     </div>
-
     <table id="userTable">
         <tr>
             <th>序号</th>
             <th>ID</th>
-            <th>姓名</th>
             <th>手机号</th>
+            <th>姓名</th>
             <th>身份证号</th>
             <th>身份证照片</th>
+            <th>昵称</th>
             <th>创建时间</th>
             <th>操作</th>
 
         </tr>
+    @for (int i = 0; i < Model.List.Count; i++) {
+                <tr>
+                    <form method="post" asp-page-handler="UpdateUser">
+                    <td>@(i + 1)</td>
+                    <td>@Model.List[i].Id</td>
+                    <input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" />
+                    <td><input type="text" name="UpdatedUser.Phone" value="@Model.List[i].Phone" placeholder="无" /></td>
+                    <td><input type="text" name="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="无" /></td>
+                    <td><input type="text" name="UpdatedUser.IdentityCard" value="@Model.List[i].IdentityCard" placeholder="无" /></td>
+                    <td>@Model.List[i].IdentityCardPictures</td>
+                    <td><input type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="无" /></td>
+                    <td>@Model.List[i].CreatedAt</td>
+                    <td><button type="submit">保存</button></td>
+                    <input type="hidden" name="UpdatedUser.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+                    </form>
+                </tr>
+    }
 
-        @for (int i = 0; i < @Model.List.Count; i++)
-        {
-            <tr>
-                <td>@(i+1)</td>
-                <td>@Model.List[i].Id</td>
-                <td>@Model.List[i].Phone</td>
-                <td>@Model.List[i].Name</td>
-                <td>@Model.List[i].IdentityCard</td>
-                <td>@Model.List[i].IdentityCardPictures</td>
-                <td>@Model.List[i].CreatedAt</td>
-                <td><button class="modalBtn">编辑</button></td>
-            </tr>
-        }
     </table>
     <div class="bottom">
         <div class="bottom-item">
-            <text>显示第 1 到第 10 条记录，总共 100 条记录</text>
+        @{
+            int beginIndex = (@Model.PageIndex - 1) * @Model.Limit;
+            int endIndex = beginIndex + @Model.List.Count;
+        }
+            <text>第 @(beginIndex + 1) 到第 @endIndex 条记录，共 * 条记录</text>
         </div>
         <div class="bottom-item">
             <input placeholder="请输入页数" />

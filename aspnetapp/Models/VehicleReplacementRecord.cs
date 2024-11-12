@@ -6,7 +6,7 @@
     [Index(nameof(TheOrder))]
     public class VehicleReplacementRecord {
         [Key]
-        public int Id { get; set; }
+        public int Id { get; init; }
 
         /* 逻辑指向订单 */
         public int TheOrder { get; set; }
