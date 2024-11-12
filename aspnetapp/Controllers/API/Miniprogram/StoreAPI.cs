@@ -1,19 +1,24 @@
 ﻿using aspnetapp.Controllers.Miniprogram;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
-namespace aspnetapp.Controllers.API.Miniprogram
-{
+namespace aspnetapp.Controllers.API.Miniprogram {
 
     [Route("store")]
     [ApiController]
     public class StoreAPI : ControllerBase {
         private readonly StoreController storeController = new(new MyDbContext());
+        private readonly FavoritesStoreController favoritesStoreController = new(new MyDbContext());
         private readonly ILogger<OrderAPI> _logger;
 
         public StoreAPI(ILogger<OrderAPI> logger) {
             _logger = logger;
         }
 
-        // 获取所有门店
+        /// <summary>
+        /// 获取所有门店
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("a")]
         public async Task<IActionResult> GetStores() {
             List<Store> storeList;
@@ -35,12 +40,35 @@ namespace aspnetapp.Controllers.API.Miniprogram
             return StatusCode(200, storeBasicList);
         }
 
-        // 获取门店套餐
+        /// <summary>
+        /// 获取门店套餐
+        /// </summary>
+        /// <param name="storeId"></param>
+        /// <returns></returns>
         [HttpGet("storeMenus/{storeId}")]
         public async Task<IActionResult> CalculateRent(int storeId) {
             using MyDbContext dbcontext = new();
 
             return StatusCode(200, await dbcontext.StoreMenus.Where(sm => sm.TheStore == storeId && !sm.IsDelete).ToListAsync());
+        }
+
+        /// <summary>
+        /// 收藏门店
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("favorites/{storeId}")]
+        public async Task<IActionResult> AddFavoritesStore(int storeId) {
+            await favoritesStoreController.AddFavoritesStore(GetUserIdInt(), storeId);
+            return StatusCode(200);
+        }
+
+        /// <summary>
+        /// JWT 获取用户id
+        /// </summary>
+        /// <returns></returns>
+        public int GetUserIdInt() {
+            return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
     }
 

@@ -3,13 +3,13 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using aspnetapp.Controllers.Miniprogram;
 
-namespace aspnetapp.Controllers.API.Miniprogram
-{
+namespace aspnetapp.Controllers.API.Miniprogram {
 
     [Route("user")]
     [ApiController]
     public class UserAPI : ControllerBase {
         private readonly UserController UserController = new(new MyDbContext());
+        private readonly FavoritesStoreController favoritesStoreController = new(new MyDbContext());
         private readonly IOptionsSnapshot<JWTSettings> _JWTSettingsOpt;
         private readonly ILogger<OrderAPI> _logger;
 
@@ -18,7 +18,11 @@ namespace aspnetapp.Controllers.API.Miniprogram
             _logger = logger;
         }
 
-        // Id获取用户基础信息
+        /// <summary>
+        /// Id获取用户基础信息
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("id/{id}")]
         public async Task<IActionResult> GetUserById(int id) {
             User? user;
@@ -37,7 +41,11 @@ namespace aspnetapp.Controllers.API.Miniprogram
             return StatusCode(200, new UserBasic(user));
         }
 
-        // 手机号获取用户基础信息
+        /// <summary>
+        /// 手机号获取用户基础信息
+        /// </summary>
+        /// <param name="phone"></param>
+        /// <returns></returns>
         [HttpGet("phone/{phone}")]
         public async Task<IActionResult> GetUserByPhone(string phone) {
             User? user;
@@ -56,7 +64,10 @@ namespace aspnetapp.Controllers.API.Miniprogram
             return StatusCode(200, new UserBasic(user));
         }
 
-        // 获取用户所有信息
+        /// <summary>
+        /// 获取用户所有信息
+        /// </summary>
+        /// <returns></returns>
         [Authorize]// 方法受到限制
         [HttpGet("all/i")]
         public async Task<IActionResult> GetUserPro() {
@@ -76,7 +87,11 @@ namespace aspnetapp.Controllers.API.Miniprogram
             return StatusCode(200, new UserPro(user));
         }
 
-        // 实名认证
+        /// <summary>
+        /// 实名认证
+        /// </summary>
+        /// <param name="real"></param>
+        /// <returns></returns>
         [Authorize]// 方法受到限制
         [HttpPost("update/RealNameAuthentication")]
         public async Task<IActionResult> RealNameAuthentication(RealNameAuthentication real) {
@@ -122,7 +137,11 @@ namespace aspnetapp.Controllers.API.Miniprogram
             return StatusCode(200);
         }
 
-        // 更新（昵称、手机号）
+        /// <summary>
+        /// 更新（昵称、手机号）
+        /// </summary>
+        /// <param name="updateUser"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpPost("update/i")]
         public async Task<IActionResult> UpdateUser(UpdateUser updateUser) {
@@ -145,17 +164,33 @@ namespace aspnetapp.Controllers.API.Miniprogram
             if (updateUser.Nickname.Length < 2 || updateUser.Nickname.Length > 8)
                 return StatusCode(403, "请检查昵称格式");
 
+            int changSum = 0;
+            user.Phone = updateUser.Phone;
+            user.Nickname = updateUser.Nickname;
+            try {
+                changSum = await UserController.UpdateUser(user);
+
+            } catch (Exception e) {
+                _logger.LogError(e, "用户{UserId}修改昵称、手机号", GetUserIdInt());
+
+                return StatusCode(500);
+            }
+            _logger.LogInformation("用户{UserId}修改昵称、手机号成功，已修改行数{ChangSum}", GetUserIdInt(), changSum);
+
             return StatusCode(200);
         }
 
-        // 更改密码
+        /// <summary>
+        /// 更改密码
+        /// </summary>
+        /// <param name="updatePassword"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpPost("update/password")]
         public async Task<IActionResult> UpdatePassword(UpdatePassword updatePassword) {
             User? user;
-            string id = User.FindFirstValue(ClaimTypes.NameIdentifier);// 获取用户id
             try {
-                user = await UserController.GetUserById(int.Parse(id));
+                user = await UserController.GetUserById(GetUserIdInt());
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取用户{UserId}", GetUserIdInt());
@@ -173,8 +208,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 return StatusCode(403, "密码错误");
 
             int changSum = 0;
+            user.Password = updatePassword.NewPassword;
             try {
-                user.Password = updatePassword.NewPassword;
                 changSum = await UserController.UpdateUser(user);
 
             } catch (Exception e) {
@@ -187,7 +222,12 @@ namespace aspnetapp.Controllers.API.Miniprogram
             return StatusCode(200);
         }
 
-        // 登录
+        /// <summary>
+        /// 登录
+        /// </summary>
+        /// <param name="phone"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
         [HttpGet("login/phone/{phone}/{password}")]
         public async Task<IActionResult> GetUserproByPhone(string phone, string password) {
             if (password is null)
@@ -218,7 +258,11 @@ namespace aspnetapp.Controllers.API.Miniprogram
             return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));
         }
 
-        // 快速登录
+        /// <summary>
+        /// 快速登录
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
         [HttpPost("ql/{code}")]
         public async Task<IActionResult> QuickLogin(string code) {
             var result = await BusinessApi.GetUserPhoneNumberAsync(BaseContainer<AccessTokenBag>.GetFirstOrDefaultAppId(PlatformType.WxOpen), code);
@@ -281,28 +325,32 @@ namespace aspnetapp.Controllers.API.Miniprogram
             return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));
         }
 
-        // 根据手机号获取收藏门店
-        /*
-        [HttpGet("f/s/{phone}")]
-        public async Task<IActionResult> GetFavoriteStores(string phone) {            
-            User? user = null;
-            try {
-                UserController.UserBasic? userBasic = await UserController.GetUserByPhone(phone);
-                if (userBasic is null)
-                    return StatusCode(404);
+        /// <summary>
+        /// 获取收藏门店
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("favorites/store")]
+        public async Task<IActionResult> GetFavoriteStores() {
+            return StatusCode(200, await favoritesStoreController.GetByUserId(GetUserIdInt()));
+        }
 
-                user = await UserController.GetUser(userBasic.Value.UserId);
-            } catch (Exception e) {
-#if DEBUG
-                Console.WriteLine($"[错误]Login: {e}");
-#endif
-                return StatusCode(500);
-            }
-            if (user is null)
-                return StatusCode(403, "帐号或密码错误");
+        /// <summary>
+        /// 删除收藏门店DelFavoritesStore
+        /// </summary>
+        /// <param name="favoritesId"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpDelete("favorites/store/{favoritesId}")]
+        public async Task<IActionResult> DelFavoritesStore(int favoritesId) {
+            var uf = await favoritesStoreController.GetById(favoritesId);
 
-            return StatusCode(200, new { favorite_stores = user.FavoriteStores.ToArray() });
-        }*/
+            if (uf is null || uf.TheUser != GetUserIdInt())
+                return StatusCode(401);
+
+            await favoritesStoreController.DelFavoritesStore(favoritesId);
+            return StatusCode(200);
+        }
 
         /// <summary>
         /// JWT 获取用户id

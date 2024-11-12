@@ -20,6 +20,7 @@ builder.Services.AddScoped<IStoreRepository, StoreController>();
 builder.Services.AddScoped<IVehicleRepository, VehicleController>();
 builder.Services.AddScoped<IOrderRepository, OrderController>();
 builder.Services.AddScoped<IStoreAccountRepository, StoreAccountController>();
+builder.Services.AddScoped<IFavoritesStoreRepository, FavoritesStoreController>();
 
 
 builder.Services.AddScoped<OrderAPI>(); // 注册 OrderAPI，定时取消订单
@@ -29,17 +30,17 @@ builder.Services.AddHostedService<TimedHostedService>();
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
     opt => {
-    var jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>();
-    byte[] keyBytes = Encoding.UTF8.GetBytes(jwtSettings.SecKey);
-    var secKey = new SymmetricSecurityKey(keyBytes);
+        var jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>();
+        byte[] keyBytes = Encoding.UTF8.GetBytes(jwtSettings.SecKey);
+        var secKey = new SymmetricSecurityKey(keyBytes);
         opt.TokenValidationParameters = new() {
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = secKey
-    };
-});
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = secKey
+        };
+    });
 
 
 // 用于完成 Senparc.Weixin 的注册。
