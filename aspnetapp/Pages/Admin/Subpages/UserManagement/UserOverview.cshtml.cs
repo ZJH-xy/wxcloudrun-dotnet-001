@@ -38,6 +38,14 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         [BindProperty(SupportsGet = true)]
         public string? SearchNickname { get; set; }
 
+        // 排序
+        [BindProperty(SupportsGet = true)]
+        public string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
+
+        [BindProperty(SupportsGet = true)]
+        public string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
+
+
         public UserOverviewModel(UserControllerWeb userController, ILogger<UserOverviewModel> logger) {
             _userController = userController;
             _logger = logger;
@@ -104,8 +112,8 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnGetSearchAsync() {
-            // 调用 UserControllerWeb 中的 SearchUsers 方法
-            List = await _userController.SearchUsers(SearchPhone, SearchName, SearchNickname);
+            // 调用 UserControllerWeb 中的 SearchUsers 方法，包含排序字段和顺序
+            List = await _userController.SearchUsers(SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
             return Page();
         }
     }

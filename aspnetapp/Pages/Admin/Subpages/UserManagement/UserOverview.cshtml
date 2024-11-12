@@ -5,25 +5,22 @@
 <link rel="stylesheet" href="~/css/table.css" />
 <div>
     <!-- 显示错误消息 -->
-    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
-    {
-        <div class="alert alert-danger">
-            <ul>
-                <li>@Model.ErrorMessage</li>
-                @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    <li>@error.ErrorMessage</li>
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage)) {
+            <div class="alert alert-danger">
+                <ul>
+                    <li>@Model.ErrorMessage</li>
+                @foreach (var error in ModelState.Values.SelectMany(v => v.Errors)) {
+                            <li>@error.ErrorMessage</li>
                 }
-            </ul>
-        </div>
+                </ul>
+            </div>
     }
 
     <!-- 显示成功消息 -->
-    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
-    {
-        <div class="alert alert-success">
-            <p>@Model.SuccessMessage</p>
-        </div>
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage)) {
+            <div class="alert alert-success">
+                <p>@Model.SuccessMessage</p>
+            </div>
     }
 
 
@@ -33,13 +30,23 @@
             <button>添加</button>
             <button>导出</button>
         </div>
-        <div class="header-item">
+    </form>
+    <div class="header-item">
         <input asp-for="SearchPhone" placeholder="手机号" />
         <input asp-for="SearchName" placeholder="姓名" />
         <input asp-for="SearchNickname" placeholder="昵称" />
+        <select asp-for="SortField">
+            <option value="Id">ID</option>
+            <option value="Phone">手机号</option>
+            <option value="Name">姓名</option>
+            <option value="CreatedAt">创建时间</option>
+        </select>
+        <select asp-for="SortOrder">
+            <option value="asc">升序</option>
+            <option value="desc">降序</option>
+        </select>
         <button type="submit" formaction="?handler=Search">搜索</button>
-        </div>
-    </form>
+    </div>
     <table id="userTable">
         <tr>
             <th>序号</th>
@@ -53,32 +60,31 @@
             <th>操作</th>
 
         </tr>
-        @for (int i = 0; i < Model.List.Count; i++)
-        {
-            <tr>
-                <form method="post" asp-page-handler="UpdateUser">
-                <td>@(i + 1)</td>
-                <td>@Model.List[i].Id</td>
-                <input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" />
-                <td><input type="text" name="UpdatedUser.Phone" value="@Model.List[i].Phone" placeholder="无" /></td>
-                <td><input type="text" name="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="无" /></td>
-                <td><input type="text" name="UpdatedUser.IdentityCard" value="@Model.List[i].IdentityCard" placeholder="无" /></td>
-                <td>@Model.List[i].IdentityCardPictures</td>
-                <td><input type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="无" /></td>
-                <td>@Model.List[i].CreatedAt</td>
-                <td><button type="submit">保存</button></td>
-                <input type="hidden" name="UpdatedUser.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
-                </form>
-            </tr>
-        }
+    @for (int i = 0; i < Model.List.Count; i++) {
+                <tr>
+                    <form method="post" asp-page-handler="UpdateUser">
+                    <td>@(i + 1)</td>
+                    <td>@Model.List[i].Id</td>
+                    <input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" />
+                    <td><input type="text" name="UpdatedUser.Phone" value="@Model.List[i].Phone" placeholder="无" /></td>
+                    <td><input type="text" name="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="无" /></td>
+                    <td><input type="text" name="UpdatedUser.IdentityCard" value="@Model.List[i].IdentityCard" placeholder="无" /></td>
+                    <td>@Model.List[i].IdentityCardPictures</td>
+                    <td><input type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="无" /></td>
+                    <td>@Model.List[i].CreatedAt</td>
+                    <td><button type="submit">保存</button></td>
+                    <input type="hidden" name="UpdatedUser.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+                    </form>
+                </tr>
+    }
 
     </table>
     <div class="bottom">
         <div class="bottom-item">
-            @{
-                int beginIndex = (@Model.PageIndex - 1) * @Model.Limit;
-                int endIndex = beginIndex + @Model.List.Count;
-            }
+        @{
+            int beginIndex = (@Model.PageIndex - 1) * @Model.Limit;
+            int endIndex = beginIndex + @Model.List.Count;
+        }
             <text>第 @(beginIndex + 1) 到第 @endIndex 条记录，共 * 条记录</text>
         </div>
         <div class="bottom-item">

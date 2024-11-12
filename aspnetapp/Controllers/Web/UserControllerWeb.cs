@@ -104,5 +104,37 @@ namespace aspnetapp.Controllers.Web {
 
             return results;
         }
+
+        public async Task<List<User>> SearchUsers(string? phone = null, string? name = null, string? nickname = null, string sortField = "Id", string sortOrder = "asc") {
+            _logger.LogInformation("Starting search with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
+                                   phone, name, nickname, sortField, sortOrder);
+
+            var query = _context.User.AsQueryable();
+
+            // 过滤条件
+            if (!string.IsNullOrEmpty(phone)) {
+                query = query.Where(u => u.Phone.Contains(phone));
+            }
+            if (!string.IsNullOrEmpty(name)) {
+                query = query.Where(u => u.Name.Contains(name));
+            }
+            if (!string.IsNullOrEmpty(nickname)) {
+                query = query.Where(u => u.Nickname.Contains(nickname));
+            }
+
+            // 排序逻辑
+            query = sortField.ToLower() switch {
+                "phone" => sortOrder == "asc" ? query.OrderBy(u => u.Phone) : query.OrderByDescending(u => u.Phone),
+                "name" => sortOrder == "asc" ? query.OrderBy(u => u.Name) : query.OrderByDescending(u => u.Name),
+                "createdat" => sortOrder == "asc" ? query.OrderBy(u => u.CreatedAt) : query.OrderByDescending(u => u.CreatedAt),
+                _ => sortOrder == "asc" ? query.OrderBy(u => u.Id) : query.OrderByDescending(u => u.Id),
+            };
+
+            var results = await query.ToListAsync();
+            _logger.LogInformation("Found {Count} users with given filters and sorting", results.Count);
+
+            return results;
+        }
+
     }
 }
