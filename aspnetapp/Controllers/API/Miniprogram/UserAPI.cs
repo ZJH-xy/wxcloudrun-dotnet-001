@@ -2,20 +2,25 @@
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using aspnetapp.Controllers.Miniprogram;
+using Senparc.CO2NET.Extensions;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
     [Route("user")]
     [ApiController]
     public class UserAPI : ControllerBase {
-        private readonly UserController UserController = new(new MyDbContext());
-        private readonly FavoritesStoreController favoritesStoreController = new(new MyDbContext());
+        private readonly MyDbContext _dbContext;
         private readonly IOptionsSnapshot<JWTSettings> _JWTSettingsOpt;
         private readonly ILogger<OrderAPI> _logger;
+        private readonly Controllers.Miniprogram.UserController _userController;
+        private readonly FavoritesStoreController _favoritesStoreController;
 
-        public UserAPI(IOptionsSnapshot<JWTSettings> jWTSettingsOpt, ILogger<OrderAPI> logger) {
+        public UserAPI(MyDbContext dbContext, IOptionsSnapshot<JWTSettings> jWTSettingsOpt, ILogger<OrderAPI> logger) {
+            _dbContext = dbContext;
             _JWTSettingsOpt = jWTSettingsOpt;
             _logger = logger;
+            _userController = new(_dbContext);
+            _favoritesStoreController = new(_dbContext);
         }
 
         /// <summary>
@@ -27,7 +32,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public async Task<IActionResult> GetUserById(int id) {
             User? user;
             try {
-                user = await UserController.GetUserById(id);
+                user = await _userController.GetUserById(id);
 
             } catch (Exception e) {
                 _logger.LogError(e, "Id获取用户{UserId}基础信息", id);
@@ -50,7 +55,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public async Task<IActionResult> GetUserByPhone(string phone) {
             User? user;
             try {
-                user = await UserController.GetUserByPhone(phone);
+                user = await _userController.GetUserByPhone(phone);
 
             } catch (Exception e) {
                 _logger.LogError(e, "手机号获取用户{Phone}基础信息", phone);
@@ -73,7 +78,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public async Task<IActionResult> GetUserPro() {
             User? user;
             try {
-                user = await UserController.GetUser(GetUserIdInt());
+                user = await _userController.GetUser(GetUserIdInt());
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取用户{UserId}所有信息", GetUserIdInt());
@@ -97,7 +102,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public async Task<IActionResult> RealNameAuthentication(RealNameAuthentication real) {
             User? user;
             try {
-                user = await UserController.GetUserById(GetUserIdInt());
+                user = await _userController.GetUserById(GetUserIdInt());
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取用户{UserId}", GetUserIdInt());
@@ -108,11 +113,11 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             if (user is null)
                 return StatusCode(404);
 
-            if (user.Name is null || user.IdentityCard is null)// 已实名认证
+            if (!(user.Name.IsNullOrEmpty() && user.IdentityCard.IsNullOrEmpty()))// 已实名认证
                 return StatusCode(403, "当前已实名认证");
 
-            if (!Judge.NameFormatDetermination(real.Name))
-                return StatusCode(403, "请检查名字格式");
+            //if (!Judge.NameFormatDetermination(real.Name))
+            //    return StatusCode(403, "请检查名字格式");
 
             if (!Regex.IsMatch(real.IdentityCard, @"^(^\d{15}$|^\d{18}$|^\d{17}(\d|X|x))$", RegexOptions.IgnoreCase))
                 return StatusCode(403, "请检查身份证号格式");
@@ -125,7 +130,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             user.Name = real.Name;
             user.IdentityCard = real.IdentityCard;
             try {
-                changSum = await UserController.UpdateUser(user);
+                changSum = await _userController.UpdateUser(user);
 
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}实名认证，更新数据", GetUserIdInt());
@@ -147,7 +152,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public async Task<IActionResult> UpdateUser(UpdateUser updateUser) {
             User? user;
             try {
-                user = await UserController.GetUserById(GetUserIdInt());
+                user = await _userController.GetUserById(GetUserIdInt());
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取用户{UserId}", GetUserIdInt());
@@ -168,7 +173,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             user.Phone = updateUser.Phone;
             user.Nickname = updateUser.Nickname;
             try {
-                changSum = await UserController.UpdateUser(user);
+                changSum = await _userController.UpdateUser(user);
 
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}修改昵称、手机号", GetUserIdInt());
@@ -190,7 +195,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public async Task<IActionResult> UpdatePassword(UpdatePassword updatePassword) {
             User? user;
             try {
-                user = await UserController.GetUserById(GetUserIdInt());
+                user = await _userController.GetUserById(GetUserIdInt());
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取用户{UserId}", GetUserIdInt());
@@ -210,7 +215,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             int changSum = 0;
             user.Password = updatePassword.NewPassword;
             try {
-                changSum = await UserController.UpdateUser(user);
+                changSum = await _userController.UpdateUser(user);
 
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}修改密码", GetUserIdInt());
@@ -238,7 +243,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
             User? user;
             try {
-                user = await UserController.GetUserByPhone(phone);
+                user = await _userController.GetUserByPhone(phone);
 
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}登录", GetUserIdInt());
@@ -290,7 +295,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
             User? user;
             try {
-                user = await UserController.GetUserByPhone(result.phone_info.purePhoneNumber);
+                user = await _userController.GetUserByPhone(result.phone_info.purePhoneNumber);
 
             } catch (Exception e) {
                 _logger.LogError(e, "手机号获取用户{Phone}", result.phone_info.purePhoneNumber);
@@ -308,7 +313,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                     UpdatedAt = DateTime.Now
                 };
                 try {
-                    changeSum = await UserController.AddUser(user);
+                    changeSum = await _userController.AddUser(user);
                     if (0 == changeSum)
                         throw new Exception("新增行数为0");
 
@@ -332,7 +337,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         [Authorize]
         [HttpGet("favorites/store")]
         public async Task<IActionResult> GetFavoriteStores() {
-            return StatusCode(200, await favoritesStoreController.GetByUserId(GetUserIdInt()));
+            return StatusCode(200, await _favoritesStoreController.GetByUserId(GetUserIdInt()));
         }
 
         /// <summary>
@@ -343,12 +348,12 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         [Authorize]
         [HttpDelete("favorites/store/{favoritesId}")]
         public async Task<IActionResult> DelFavoritesStore(int favoritesId) {
-            var uf = await favoritesStoreController.GetById(favoritesId);
+            var uf = await _favoritesStoreController.GetById(favoritesId);
 
             if (uf is null || uf.TheUser != GetUserIdInt())
                 return StatusCode(401);
 
-            await favoritesStoreController.DelFavoritesStore(favoritesId);
+            await _favoritesStoreController.DelFavoritesStore(favoritesId);
             return StatusCode(200);
         }
 

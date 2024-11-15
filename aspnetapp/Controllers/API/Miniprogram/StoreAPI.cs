@@ -7,12 +7,16 @@ namespace aspnetapp.Controllers.API.Miniprogram {
     [Route("store")]
     [ApiController]
     public class StoreAPI : ControllerBase {
-        private readonly StoreController storeController = new(new MyDbContext());
-        private readonly FavoritesStoreController favoritesStoreController = new(new MyDbContext());
+        private readonly MyDbContext _dbContext;
         private readonly ILogger<OrderAPI> _logger;
+        private readonly StoreController _storeController;
+        private readonly FavoritesStoreController _favoritesStoreController;
 
-        public StoreAPI(ILogger<OrderAPI> logger) {
+        public StoreAPI(MyDbContext dbContext, ILogger<OrderAPI> logger) {
+            _dbContext = dbContext;
             _logger = logger;
+            _storeController = new(_dbContext);
+            _favoritesStoreController = new(_dbContext);
         }
 
         /// <summary>
@@ -23,7 +27,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public async Task<IActionResult> GetStores() {
             List<Store> storeList;
             try {
-                storeList = await storeController.GetAllStore();
+                storeList = await _storeController.GetAllStore();
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取所有门店");
@@ -47,9 +51,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         /// <returns></returns>
         [HttpGet("storeMenus/{storeId}")]
         public async Task<IActionResult> CalculateRent(int storeId) {
-            using MyDbContext dbcontext = new();
 
-            return StatusCode(200, await dbcontext.StoreMenus.Where(sm => sm.TheStore == storeId && !sm.IsDelete).ToListAsync());
+            return StatusCode(200, await _dbContext.StoreMenus.Where(sm => sm.TheStore == storeId && !sm.IsDelete).ToListAsync());
         }
 
         /// <summary>
@@ -59,7 +62,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         [Authorize]
         [HttpPost("favorites/{storeId}")]
         public async Task<IActionResult> AddFavoritesStore(int storeId) {
-            await favoritesStoreController.AddFavoritesStore(GetUserIdInt(), storeId);
+            await _favoritesStoreController.AddFavoritesStore(GetUserIdInt(), storeId);
             return StatusCode(200);
         }
 

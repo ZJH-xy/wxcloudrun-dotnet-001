@@ -6,11 +6,22 @@ using aspnetapp.Dao.RepositoryInterface.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Web后台相关
-builder.Services.AddScoped<UserControllerWeb>();
+// 注入 DatabaseConfig 实例
+builder.Services.AddSingleton(new DatabaseConfig(builder.Configuration));
+
+// 使用 AddDbContext 注册 MyDbContext
+builder.Services.AddDbContext<MyDbContext>((serviceProvider, options) => {
+    // 获取 DatabaseConfig 实例
+    var databaseConfig = serviceProvider.GetRequiredService<DatabaseConfig>();
+    // 配置 MySQL 数据库
+    databaseConfig.ConfigureMySql(options);
+});
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+
+// Web后台相关
+builder.Services.AddScoped<UserControllerWeb>();
 
 // 激活本地缓存
 builder.Services.AddMemoryCache();

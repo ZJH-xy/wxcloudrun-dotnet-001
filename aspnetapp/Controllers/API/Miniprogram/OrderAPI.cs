@@ -9,11 +9,14 @@ namespace aspnetapp.Controllers.API.Miniprogram
     [ApiController]
     [Authorize]// 方法受到限制
     public class OrderAPI : ControllerBase {
-        private readonly OrderController orderController = new(new MyDbContext());
+        private readonly MyDbContext _dbContext;
         private readonly ILogger<OrderAPI> _logger;
+        private readonly OrderController _orderController;
 
-        public OrderAPI(ILogger<OrderAPI> logger) {
+        public OrderAPI(MyDbContext dbContext, ILogger<OrderAPI> logger) {
+            _dbContext = dbContext;
             _logger = logger;
+            _orderController = new(_dbContext);
         }
 
         /// <summary>
@@ -25,13 +28,11 @@ namespace aspnetapp.Controllers.API.Miniprogram
         [AllowAnonymous]// 允许匿名访问
         [HttpGet("calculate/{rentalLocation}/{menuId}")]
         public async Task<IActionResult> CalculateRent(int rentalLocation, int menuId) {
-            using MyDbContext dbcontext = new();
-
-            Store? store = await dbcontext.Store.SingleOrDefaultAsync(s => s.Id == rentalLocation && !s.IsDelete);
+            Store? store = await _dbContext.Store.SingleOrDefaultAsync(s => s.Id == rentalLocation && !s.IsDelete);
             if (store is null)
                 return StatusCode(404);
 
-            StoreMenu? storeMenus = await dbcontext.StoreMenus.SingleOrDefaultAsync(sm => sm.Id == menuId && sm.TheStore == store.Id && !sm.IsDelete);
+            StoreMenu? storeMenus = await _dbContext.StoreMenus.SingleOrDefaultAsync(sm => sm.Id == menuId && sm.TheStore == store.Id && !sm.IsDelete);
             if (storeMenus is null)
                 return StatusCode(404);
 
@@ -47,7 +48,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public async Task<IActionResult> GetOderById(int orderId) {
             Order? order;
             try {
-                order = await orderController.GetById(GetUserIdInt(), orderId);
+                order = await _orderController.GetById(GetUserIdInt(), orderId);
 
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}查询订单{order}信息", GetUserIdInt(), orderId);
@@ -69,7 +70,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public async Task<IActionResult> GetOderByUserId() {
             List<Order> orderList = new();
             try {
-                orderList = await orderController.GetOrderByUserId(GetUserIdInt());
+                orderList = await _orderController.GetOrderByUserId(GetUserIdInt());
 
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}查询订单信息", GetUserIdInt());
@@ -94,7 +95,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public async Task<IActionResult> GetOderStatusByUserId(int orderId) {
             Order.OrderStatus? orderStatus;
             try {
-                orderStatus = await orderController.GetOrderStatusById(GetUserIdInt(), orderId);
+                orderStatus = await _orderController.GetOrderStatusById(GetUserIdInt(), orderId);
 
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}查询订单{order}状态", GetUserIdInt(), orderId);
@@ -116,7 +117,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public async Task<IActionResult> GetOderReplacementByUserId(int orderId) {
             bool status;
             try {
-                status = await orderController.GetOderReplacementByUserId(GetUserIdInt(), orderId);
+                status = await _orderController.GetOderReplacementByUserId(GetUserIdInt(), orderId);
 
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}查询订单{order}换车状态", GetUserIdInt(), orderId);
@@ -133,11 +134,10 @@ namespace aspnetapp.Controllers.API.Miniprogram
         /// <returns></returns>
         [HttpPost("add")]
         public async Task<IActionResult> AddOrder(GetOrder data) {
-            using MyDbContext dbcontext = new();
             int userId = GetUserIdInt();
             // 订单信息合法性验证
 
-            if (await dbcontext.User.SingleOrDefaultAsync(u => u.Id == userId) is null)
+            if (await _dbContext.User.SingleOrDefaultAsync(u => u.Id == userId) is null)
                 return StatusCode(403, "用户不存在");
 
             // 需要押金为假，检查身份证格式
@@ -152,7 +152,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
 
             // 检查用户订单状态
             try {
-                if (await dbcontext.Order.Where(o => o.TheUser == userId).
+                if (await _dbContext.Order.Where(o => o.TheUser == userId).
                     AnyAsync(o => o.Status == Order.OrderStatus.待付款)) {
                     return StatusCode(403, "当前有待付款的订单");
                 }
@@ -164,11 +164,11 @@ namespace aspnetapp.Controllers.API.Miniprogram
 
             // 检查门店状态
             Store? store;
-            StoreMenu? storeMenus = await dbcontext.StoreMenus.SingleOrDefaultAsync(sm => sm.Id == data.StoreMenuId && !sm.IsDelete);
+            StoreMenu? storeMenus = await _dbContext.StoreMenus.SingleOrDefaultAsync(sm => sm.Id == data.StoreMenuId && !sm.IsDelete);
             if (storeMenus == null)
                 return StatusCode(403, "请检查套餐信息");
 
-            store = await dbcontext.Store.SingleOrDefaultAsync(s => s.IsDelete == false && s.Id == storeMenus.TheStore);
+            store = await _dbContext.Store.SingleOrDefaultAsync(s => s.IsDelete == false && s.Id == storeMenus.TheStore);
 
             if (store == null)
                 return StatusCode(404);
@@ -179,7 +179,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
             // 检查车辆状态
             Vehicle? vehicle;
             try {
-                vehicle = await dbcontext.Vehicle.SingleOrDefaultAsync(v => v.IsDelete == false && v.Id == data.Vehicle);
+                vehicle = await _dbContext.Vehicle.SingleOrDefaultAsync(v => v.IsDelete == false && v.Id == data.Vehicle);
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取车辆{VehicleId}信息", data.Vehicle);
@@ -198,7 +198,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
             vehicle.UpdatedAt = DateTime.Now;
 
             try {
-                await dbcontext.SaveChangesAsync();// 保存车辆状态
+                await _dbContext.SaveChangesAsync();// 保存车辆状态
 
             } catch (Exception e) {
                 _logger.LogError(e, "车辆{Vehicle}锁定，操作用户{UserId}", vehicle.Id, userId);
@@ -224,7 +224,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
             _logger.LogDebug("订单创建信息{Order}", order.ToJson());
 
             try {
-                int changes = await orderController.AddOrder(order);
+                int changes = await _orderController.AddOrder(order);
                 if (0 == changes) {
                     throw new Exception("新增行数为0");
                 }
@@ -248,9 +248,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
         /// <returns></returns>
         [HttpPost("pay/{orderId}")]
         public async Task<IActionResult> PayOrder(int orderId) {
-            using MyDbContext dbContext = new();
-            //Order? order = await dbContext.Order.SingleOrDefaultAsync(o => o.Id == orderId);
-            Order? order = await orderController.GetById(GetUserIdInt(), orderId);
+            //Order? order = await _dbContext.Order.SingleOrDefaultAsync(o => o.Id == orderId);
+            Order? order = await _orderController.GetById(GetUserIdInt(), orderId);
 
             if (order is null || order.Status != Order.OrderStatus.待付款) {
                 return StatusCode(403, "订单不存在或无法支付");
@@ -260,8 +259,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
             order.Status = Order.OrderStatus.付款中;
             order.UpdatedAt = DateTime.Now;
             try {
-                dbContext.Order.Update(order);
-                await dbContext.SaveChangesAsync();
+                _dbContext.Order.Update(order);
+                await _dbContext.SaveChangesAsync();
 
             } catch (Exception e) {
                 _logger.LogError(e, "更改订单{OrderId}状态为付款中", order.Id);
@@ -274,8 +273,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
             order.Status = Order.OrderStatus.待确认;
             order.UpdatedAt = DateTime.Now;
             try {
-                dbContext.Order.Update(order);
-                await dbContext.SaveChangesAsync();
+                _dbContext.Order.Update(order);
+                await _dbContext.SaveChangesAsync();
 
             } catch (Exception e) {
                 _logger.LogCritical(e, "保存订单信息{OrderId}", order.Id);
@@ -295,23 +294,22 @@ namespace aspnetapp.Controllers.API.Miniprogram
         [HttpPost("replacement")]
         public async Task<IActionResult> Replacement(GetReplacementInfo getData) {
             // 检查订单状态
-            Order? order = await orderController.GetById(GetUserIdInt(), getData.OrderId);
+            Order? order = await _orderController.GetById(GetUserIdInt(), getData.OrderId);
             if (order is null || order.Status != Order.OrderStatus.进行中) {
                 _logger.LogDebug("订单{OrderId}状态非法", getData.OrderId);
                 return StatusCode(403, "订单不存在或非法");
             }
 
             // 检查是否存在换车请求
-            if (await orderController.GetOderReplacementByUserId(GetUserIdInt(), getData.OrderId))
+            if (await _orderController.GetOderReplacementByUserId(GetUserIdInt(), getData.OrderId))
                 return StatusCode(403, "当前有侍确认的换车请求");
 
             // 检查车辆状态
-            using MyDbContext dbContext = new();
-            Vehicle? vehicle = await dbContext.Vehicle.SingleOrDefaultAsync(v => v.Id == getData.ReplacementVehicleId);
+            Vehicle? vehicle = await _dbContext.Vehicle.SingleOrDefaultAsync(v => v.Id == getData.ReplacementVehicleId);
             if (vehicle is null || vehicle.State != Vehicle.Estates.空闲)
                 return StatusCode(403, "车辆不存在或状态非法");
 
-            using var transaction = await dbContext.Database.BeginTransactionAsync();// 事务开始
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
 
             // 锁定车辆
             vehicle.State = Vehicle.Estates.锁定;
@@ -325,8 +323,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 CreatedAt = DateTime.Now
             };
             try {
-                await dbContext.VehicleReplacementRecord.AddAsync(vrr);
-                await dbContext.SaveChangesAsync();
+                await _dbContext.VehicleReplacementRecord.AddAsync(vrr);
+                await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();// 提交事务
 
             } catch (Exception e) {
@@ -346,27 +344,25 @@ namespace aspnetapp.Controllers.API.Miniprogram
         [HttpPost("replacement/cancel")]
         public async Task<IActionResult> CancelReplacement(GetCancelReplacementInfo getData) {
             // 检查订单状态
-            Order? order = await orderController.GetById(GetUserIdInt(), getData.OrderId);
+            Order? order = await _orderController.GetById(GetUserIdInt(), getData.OrderId);
 
             if (order is null || order.Status != Order.OrderStatus.进行中) {
                 _logger.LogDebug("订单{OrderId}状态非法", getData.OrderId);
                 return StatusCode(403, "订单不存在或非法");
             }
 
-            using MyDbContext dbContext = new();
-
             // 检查是否存在换车请求
-            if (await orderController.GetOderReplacementByUserId(GetUserIdInt(), getData.OrderId))
+            if (await _orderController.GetOderReplacementByUserId(GetUserIdInt(), getData.OrderId))
                 return StatusCode(403, "当前有侍确认的换车请求");
 
-            VehicleReplacementRecord? vrr = await dbContext.VehicleReplacementRecord.FirstOrDefaultAsync(vrr => vrr.TheOrder == getData.OrderId && vrr.State == VehicleReplacementRecord.Estates.侍确认);
+            VehicleReplacementRecord? vrr = await _dbContext.VehicleReplacementRecord.FirstOrDefaultAsync(vrr => vrr.TheOrder == getData.OrderId && vrr.State == VehicleReplacementRecord.Estates.侍确认);
             if (vrr is null)
                 return StatusCode(403, "请求异常");
 
             vrr.State = VehicleReplacementRecord.Estates.已取消;
 
             try {
-                await dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
 
             } catch (Exception e) {
                 _logger.LogCritical(e, "取消换车请求{VehicleReplacementRecordId}", vrr.Id);
@@ -381,7 +377,6 @@ namespace aspnetapp.Controllers.API.Miniprogram
         /// </summary>
         /// <returns></returns>
         public async Task CheckReplacementVehicle() {
-            using MyDbContext _dbContext = new();
             DateTime now = DateTime.Now;// 获取当前时间
             DateTime threshold = now.AddMinutes(-30);// 计算30分钟前的时间
 
@@ -428,7 +423,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         /// </summary>
         /// <returns></returns>
         public async Task CheckOrderPayment() {
-            using MyDbContext _dbContext = new();
+            //using MyDbContext _dbContext = new();
             DateTime now = DateTime.Now;// 获取当前时间
             DateTime threshold = now.AddMinutes(-10);// 计算10分钟前的时间
 

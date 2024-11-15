@@ -4,25 +4,21 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using aspnetapp.Dao;
 
 #nullable disable
 
 namespace aspnetapp.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20241101070148_V0.1.3_商家添加索引")]
-    partial class V013_商家添加索引
+    [Migration("20241115071925_V0.2.0_更换数据库")]
+    partial class V020_更换数据库
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .UseCollation("utf8_general_ci")
                 .HasAnnotation("ProductVersion", "6.0.35")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
-
-            MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8");
 
             modelBuilder.Entity("aspnetapp.Models.AdminAccount", b =>
                 {
@@ -37,6 +33,11 @@ namespace aspnetapp.Migrations
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp(6)");
 
                     b.HasKey("Id");
 
@@ -57,6 +58,11 @@ namespace aspnetapp.Migrations
 
                     b.Property<string>("PictureLink")
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp(6)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -96,13 +102,14 @@ namespace aspnetapp.Migrations
                     b.Property<string>("IdentityCard")
                         .HasColumnType("longtext");
 
-                    b.Property<bool>("LongTermLease")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<string>("Notes")
                         .HasColumnType("longtext");
 
                     b.Property<decimal>("OtherFees")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("OvertimeFee")
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
@@ -113,6 +120,11 @@ namespace aspnetapp.Migrations
                     b.Property<decimal>("Rent")
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp(6)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -166,6 +178,11 @@ namespace aspnetapp.Migrations
                     b.Property<decimal?>("MoneyStoreB")
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp(6)");
 
                     b.Property<int>("TheOrder")
                         .HasColumnType("int");
@@ -226,6 +243,11 @@ namespace aspnetapp.Migrations
                     b.Property<string>("Pictures")
                         .HasColumnType("longtext");
 
+                    b.Property<DateTime>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp(6)");
+
                     b.Property<string>("Telephone")
                         .HasColumnType("longtext");
 
@@ -253,6 +275,11 @@ namespace aspnetapp.Migrations
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp(6)");
 
                     b.Property<int>("TheStore")
                         .HasColumnType("int");
@@ -284,6 +311,11 @@ namespace aspnetapp.Migrations
                     b.Property<decimal>("Rent")
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp(6)");
 
                     b.Property<int>("TheStore")
                         .HasColumnType("int");
@@ -323,6 +355,11 @@ namespace aspnetapp.Migrations
                         .IsRequired()
                         .HasColumnType("varchar(255)");
 
+                    b.Property<DateTime>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp(6)");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -343,8 +380,10 @@ namespace aspnetapp.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<bool>("IsDelete")
-                        .HasColumnType("tinyint(1)");
+                    b.Property<DateTime>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp(6)");
 
                     b.Property<int>("TheStore")
                         .HasColumnType("int");
@@ -401,6 +440,11 @@ namespace aspnetapp.Migrations
                     b.Property<DateTime?>("PurchaseRegistrationTime")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTime>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp(6)");
+
                     b.Property<int>("State")
                         .HasColumnType("int");
 
@@ -435,6 +479,14 @@ namespace aspnetapp.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTime>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("timestamp(6)");
+
+                    b.Property<int>("State")
+                        .HasColumnType("int");
+
                     b.Property<int>("TheNewVehicles")
                         .HasColumnType("int");
 
@@ -443,6 +495,9 @@ namespace aspnetapp.Migrations
 
                     b.Property<int>("TheOrder")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 

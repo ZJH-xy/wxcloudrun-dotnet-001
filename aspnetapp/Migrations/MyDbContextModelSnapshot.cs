@@ -3,7 +3,6 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using aspnetapp.Dao;
 
 #nullable disable
 
@@ -16,11 +15,8 @@ namespace aspnetapp.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .UseCollation("utf8_general_ci")
                 .HasAnnotation("ProductVersion", "6.0.35")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
-
-            MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8");
 
             modelBuilder.Entity("aspnetapp.Models.AdminAccount", b =>
                 {
