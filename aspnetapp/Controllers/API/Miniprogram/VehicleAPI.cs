@@ -6,11 +6,14 @@ namespace aspnetapp.Controllers.API.Miniprogram
     [Route("vehicle")]
     [ApiController]
     public class VehicleAPI : ControllerBase {
-        private readonly VehicleController vehicleController = new(new MyDbContext());
+        private readonly MyDbContext _dbContext;
         private readonly ILogger<OrderAPI> _logger;
+        private readonly VehicleController _vehicleController;
 
-        public VehicleAPI(ILogger<OrderAPI> logger) {
+        public VehicleAPI(MyDbContext dbContext, ILogger<OrderAPI> logger) {
+            _dbContext = dbContext;
             _logger = logger;
+            _vehicleController = new(_dbContext);
         }
 
         /// <summary>
@@ -22,7 +25,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public async Task<IActionResult> Getvehicles(int storeId) {
             List<Vehicle> vehicleList;
             try {
-                vehicleList = await vehicleController.GetVehicleByStoreId(storeId);
+                vehicleList = await _vehicleController.GetVehicleByStoreId(storeId);
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取门店{StoreId}所有车辆", storeId);
@@ -48,7 +51,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public async Task<IActionResult> GetVehicleById(int id) {
             Vehicle? vehicle;
             try {
-                vehicle = await vehicleController.GetVehicleById(id);
+                vehicle = await _vehicleController.GetVehicleById(id);
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取车辆{VehicleId}信息", id);
@@ -71,7 +74,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public async Task<IActionResult> GetVehicleModelById(int id) {
             object? vehicle;
             try {
-                vehicle = await vehicleController.GetVehicleQueryableById(id);
+                vehicle = await _vehicleController.GetVehicleQueryableById(id);
 
             } catch (Exception e) {
                 _logger.LogError(e, "查询车辆{VehicleId}", id);
