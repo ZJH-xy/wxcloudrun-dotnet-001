@@ -1,4 +1,6 @@
-﻿namespace aspnetapp {
+﻿using Senparc.CO2NET.Extensions;
+
+namespace aspnetapp {
     // 数据库基本连接
     public class DatabaseConfig {
 
@@ -13,21 +15,33 @@
         /// </summary>
         /// <returns>数据库连接字符串</returns>
         public string GetConnectionString() {
-            // 优先从 appsettings.json 中读取数据库配置，如果没有则从环境变量获取
-            var username = _configuration["DatabaseConfig:Username"] ?? Environment.GetEnvironmentVariable("DB_USERNAME") ?? "root";
-            var password = _configuration["DatabaseConfig:Password"] ?? Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "Abc*123*";
-            var host = _configuration["DatabaseConfig:Host"] ?? Environment.GetEnvironmentVariable("DB_HOST") ?? "sh-cynosdbmysql-grp-o9fuosqg.sql.tencentcdb.com";
-            var port = _configuration["DatabaseConfig:Port"] ?? Environment.GetEnvironmentVariable("DB_PORT") ?? "21713";
-            var database = _configuration["DatabaseConfig:Database"] ?? Environment.GetEnvironmentVariable("DB_DATABASE") ?? "wxcloudrun-dotnet";
+            // 获取当前环境
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
-            // 获取环境变量中的数据库配置
-            //var username = Environment.GetEnvironmentVariable("DB_USERNAME") ?? "root";
-            //var password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "Abc*123*";
-            //var host = Environment.GetEnvironmentVariable("Host") ?? "";
-            //var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "";
-            //var database = Environment.GetEnvironmentVariable("DB_DATABASE") ?? "wxcloudrun-dotnet";
+            // 根据环境选择不同的配置
+            string username, password, host, port, database;
 
-            // 输出一些调试信息
+            if (environment == "Development") {
+                // 开发环境使用 appsettings.json 中的配置或默认值
+                username = _configuration["DatabaseConfig:Username"] ?? "root";
+                password = _configuration["DatabaseConfig:Password"] ?? "Abc*123*";
+                host = "sh-cynosdbmysql-grp-o9fuosqg.sql.tencentcdb.com";
+                port = "21713";
+                database = _configuration["DatabaseConfig:Database"] ?? "wxcloudrun-dotnet";
+            } else {
+                // 生产环境或其他环境使用环境变量
+                username = Environment.GetEnvironmentVariable("DB_USERNAME") ?? "root";
+                password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "Abc*123*";
+                host = Environment.GetEnvironmentVariable("DB_HOST") ?? "";
+                port = Environment.GetEnvironmentVariable("DB_PORT") ?? "";
+                database = Environment.GetEnvironmentVariable("DB_DATABASE") ?? "wxcloudrun-dotnet";
+            }
+
+            if (host.IsNullOrEmpty() || port.IsNullOrEmpty())
+                throw new Exception("未配置数据库连接");
+
+            // 输出调试信息
+            Console.WriteLine($"Environment: {environment}");
             Console.WriteLine($"host: {host}, port: {port}, username: {username}");
 
             // 返回连接字符串
