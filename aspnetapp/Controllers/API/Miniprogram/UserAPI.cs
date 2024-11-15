@@ -11,11 +11,11 @@ namespace aspnetapp.Controllers.API.Miniprogram {
     public class UserAPI : ControllerBase {
         private readonly MyDbContext _dbContext;
         private readonly IOptionsSnapshot<JWTSettings> _JWTSettingsOpt;
-        private readonly ILogger<OrderAPI> _logger;
+        private readonly ILogger<UserAPI> _logger;
         private readonly Controllers.Miniprogram.UserController _userController;
         private readonly FavoritesStoreController _favoritesStoreController;
 
-        public UserAPI(MyDbContext dbContext, IOptionsSnapshot<JWTSettings> jWTSettingsOpt, ILogger<OrderAPI> logger) {
+        public UserAPI(MyDbContext dbContext, IOptionsSnapshot<JWTSettings> jWTSettingsOpt, ILogger<UserAPI> logger) {
             _dbContext = dbContext;
             _JWTSettingsOpt = jWTSettingsOpt;
             _logger = logger;
@@ -351,7 +351,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             var uf = await _favoritesStoreController.GetById(favoritesId);
 
             if (uf is null || uf.TheUser != GetUserIdInt())
-                return StatusCode(401);
+                return StatusCode(401, "无权限");
 
             await _favoritesStoreController.DelFavoritesStore(favoritesId);
             return StatusCode(200);
