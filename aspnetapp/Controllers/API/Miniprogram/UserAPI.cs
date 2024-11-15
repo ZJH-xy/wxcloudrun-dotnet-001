@@ -143,7 +143,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         }
 
         /// <summary>
-        /// 更新（昵称、手机号）
+        /// 更新昵称
         /// </summary>
         /// <param name="updateUser"></param>
         /// <returns></returns>
@@ -163,14 +163,14 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             if (user is null)
                 return StatusCode(404);
 
-            if (!Judge.PhoneFormatDetermination(updateUser.Phone))
-                return StatusCode(403, "请检查手机号码格式");
+            //if (!Judge.PhoneFormatDetermination(updateUser.Phone))
+            //    return StatusCode(403, "请检查手机号码格式");
 
             if (updateUser.Nickname.Length < 2 || updateUser.Nickname.Length > 8)
                 return StatusCode(403, "请检查昵称格式");
 
             int changSum = 0;
-            user.Phone = updateUser.Phone;
+            //user.Phone = updateUser.Phone;
             user.Nickname = updateUser.Nickname;
             try {
                 changSum = await _userController.UpdateUser(user);
@@ -266,11 +266,11 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         /// <summary>
         /// 快速登录
         /// </summary>
-        /// <param name="code"></param>
+        /// <param name="data"></param>
         /// <returns></returns>
-        [HttpPost("ql/{code}")]
-        public async Task<IActionResult> QuickLogin(string code) {
-            var result = await BusinessApi.GetUserPhoneNumberAsync(BaseContainer<AccessTokenBag>.GetFirstOrDefaultAppId(PlatformType.WxOpen), code);
+        [HttpPost("ql")]
+        public async Task<IActionResult> QuickLogin(GetQl data) {
+            var result = await BusinessApi.GetUserPhoneNumberAsync(BaseContainer<AccessTokenBag>.GetFirstOrDefaultAppId(PlatformType.WxOpen), data.Code);
 
             switch (result.errcode) {
                 case ReturnCode.请求成功:
@@ -448,13 +448,17 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         }
     }
 
+    public class GetQl {
+        public string Code { get; set; }// 姓名
+    }
+
     public class RealNameAuthentication {
         public string Name { get; set; }// 姓名
         public string IdentityCard { get; set; }// 身份证号
     }
 
     public class UpdateUser {
-        public string Phone { get; set; }// 手机号码
+        //public string Phone { get; set; }// 手机号码
         public string Nickname { get; set; }// 昵称
     }
 
