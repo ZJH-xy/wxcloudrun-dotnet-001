@@ -9,11 +9,15 @@ namespace aspnetapp.Controllers.API.Miniprogram
     [ApiController]
     [Authorize]// 方法受到限制
     public class OrderAPI : ControllerBase {
-        private readonly OrderController orderController = new(new MyDbContext());
-        private readonly ILogger<OrderAPI> _logger;
 
-        public OrderAPI(ILogger<OrderAPI> logger) {
+        private readonly MyDbContext _dbContext;
+        private readonly ILogger<OrderAPI> _logger;
+        private readonly OrderController orderController = new(new MyDbContext());
+
+        public OrderAPI(MyDbContext dbContext, ILogger<OrderAPI> logger) {
+            _dbContext = dbContext;
             _logger = logger;
+            orderController = new(dbContext);
         }
 
         /// <summary>
@@ -428,7 +432,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         /// </summary>
         /// <returns></returns>
         public async Task CheckOrderPayment() {
-            using MyDbContext _dbContext = new();
+            //using MyDbContext _dbContext = new();
             DateTime now = DateTime.Now;// 获取当前时间
             DateTime threshold = now.AddMinutes(-10);// 计算10分钟前的时间
 

@@ -1,34 +1,31 @@
-﻿namespace aspnetapp.Dao {
-    public partial class MyDbContext : DbContext {
-        public MyDbContext() { }
+﻿public partial class MyDbContext : DbContext {
+    private readonly DatabaseConfig _databaseConfig;
 
-        public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
+    // 无参数构造函数（一般用于工具，如迁移）
+    public MyDbContext() { }
 
-        public DbSet<User> User { get; set; } = null!;
-        public DbSet<Store> Store { get; set; } = null!;
-        public DbSet<Vehicle> Vehicle { get; set; } = null!;
-        public DbSet<Order> Order { get; set; } = null!;
-        public DbSet<HomepageAd> HomepageAd { get; set; } = null!;
-        public DbSet<StoreMenu> StoreMenus { get; set; } = null!;
-        public DbSet<VehicleReplacementRecord> VehicleReplacementRecord { get; set; } = null!;
-        public DbSet<UserFavoritesStore> UserFavoritesStore { get; set; } = null!;
-        public DbSet<StoreAccount> StoreAccount { get; set; } = null!;
-        public DbSet<RevenueStatistics> RevenueStatistic { get; set; } = null!;
-        public DbSet<AdminAccount> AdminAccount { get; set; } = null!;
+    // 接收 DbContextOptions 和 DatabaseConfig 的构造函数
+    public MyDbContext(DbContextOptions<MyDbContext> options, DatabaseConfig databaseConfig) : base(options) {
+        _databaseConfig = databaseConfig;
+    }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-            // 配置数据库连接
-            DatabaseConfig.ConfigureMySql(optionsBuilder);
+    // 数据库表集合
+    public DbSet<User> User { get; set; } = null!;
+    public DbSet<Store> Store { get; set; } = null!;
+    public DbSet<Vehicle> Vehicle { get; set; } = null!;
+    public DbSet<Order> Order { get; set; } = null!;
+    public DbSet<HomepageAd> HomepageAd { get; set; } = null!;
+    public DbSet<StoreMenu> StoreMenus { get; set; } = null!;
+    public DbSet<VehicleReplacementRecord> VehicleReplacementRecord { get; set; } = null!;
+    public DbSet<UserFavoritesStore> UserFavoritesStore { get; set; } = null!;
+    public DbSet<StoreAccount> StoreAccount { get; set; } = null!;
+    public DbSet<RevenueStatistics> RevenueStatistic { get; set; } = null!;
+    public DbSet<AdminAccount> AdminAccount { get; set; } = null!;
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
+        // 如果未配置，则使用 _databaseConfig 配置
+        if (!optionsBuilder.IsConfigured && _databaseConfig != null) {
+            _databaseConfig.ConfigureMySql(optionsBuilder);
         }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder) {
-            // 设置默认字符集和排序规则
-            modelBuilder.UseCollation("utf8_general_ci").HasCharSet("utf8");
-
-            // 额外的模型配置
-            OnModelCreatingPartial(modelBuilder);
-        }
-
-        partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
     }
 }

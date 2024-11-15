@@ -4,6 +4,18 @@ using aspnetapp.Controllers.Miniprogram;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 注入 DatabaseConfig 实例
+builder.Services.AddSingleton(new DatabaseConfig(builder.Configuration));
+
+// 使用 AddDbContext 注册 MyDbContext
+builder.Services.AddDbContext<MyDbContext>((serviceProvider, options) => {
+    // 获取 DatabaseConfig 实例
+    var databaseConfig = serviceProvider.GetRequiredService<DatabaseConfig>();
+    // 配置 MySQL 数据库
+    databaseConfig.ConfigureMySql(options);
+});
+
+
 // Add services to the container.
 builder.Services.AddRazorPages();
 
