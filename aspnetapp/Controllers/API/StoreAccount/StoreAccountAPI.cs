@@ -507,6 +507,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
         public ReturnOrder(Order order) {
             Id = order.Id;
             TheVehicle = order.TheVehicle;
+            TheStoreMenu = order.TheStoreMenu;
             TheRentalLocation = order.TheRentalLocation;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
@@ -519,6 +520,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
         }
         public int Id { get; init; }// 订单编号
         public int TheVehicle { get; set; }// 租用车辆
+        public int TheStoreMenu { get; set; }// 套餐
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
