@@ -30,11 +30,11 @@ namespace aspnetapp {
                 database = _configuration["DatabaseConfig:Database"] ?? "wxcloudrun-dotnet";
             } else {
                 // 生产环境或其他环境使用环境变量
-                username = Environment.GetEnvironmentVariable("DB_USERNAME") ?? "root";
-                password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "Abc*123*";
-                host = Environment.GetEnvironmentVariable("DB_HOST") ?? "";
-                port = Environment.GetEnvironmentVariable("DB_PORT") ?? "";
-                database = Environment.GetEnvironmentVariable("DB_DATABASE") ?? "wxcloudrun-dotnet";
+                username = _configuration["DatabaseConfig:Username"] ?? "root";
+                password = _configuration["DatabaseConfig:Password"] ?? "Abc*123*";
+                host = _configuration["DatabaseConfig:Host"] ?? "";
+                port = _configuration["DatabaseConfig:Port"] ?? "";
+                database = _configuration["DatabaseConfig:Database"] ?? "wxcloudrun-dotnet";
             }
 
             if (host.IsNullOrEmpty() || port.IsNullOrEmpty())
