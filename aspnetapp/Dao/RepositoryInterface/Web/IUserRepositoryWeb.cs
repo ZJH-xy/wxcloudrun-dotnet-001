@@ -18,7 +18,7 @@
         /// </summary>
         /// <param name="updatedUser"></param>
         /// <returns></returns>
-        IActionResult UpdateUser(User updatedUser);
+        Task<IActionResult> UpdateUser(User updatedUser);
         /// <summary>
         /// 根据ID 查询用户
         /// </summary>

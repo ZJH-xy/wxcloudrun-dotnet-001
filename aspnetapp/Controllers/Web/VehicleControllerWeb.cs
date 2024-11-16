@@ -48,8 +48,16 @@ namespace aspnetapp.Controllers.Web {
         /// <summary>
         /// 更新车辆状态
         /// </summary>
-        public async Task<int> ChangeVehicleStatus(Vehicle vehicle) {
+        public async Task<int> ChangeVehicleStatus(int vehicleId, Vehicle.Estates status) {
+            var vehicle = await _context.Vehicle.FindAsync(vehicleId);
+            if (vehicle == null) {
+                _logger.LogWarning("Vehicle with ID {VehicleId} not found", vehicleId);
+                return 0;
+            }
 
+            vehicle.State = status;
+            _context.Vehicle.Update(vehicle);
+            return await _context.SaveChangesAsync();
         }
 
         /// <summary>
@@ -62,10 +70,19 @@ namespace aspnetapp.Controllers.Web {
                 return 0;
             }
 
-            existingVehicle.Name = vehicle.Name;
-            existingVehicle.Model = vehicle.Model;
-            existingVehicle.RegistrationNumber = vehicle.RegistrationNumber;
-            existingVehicle.Status = vehicle.Status;
+            existingVehicle.TheOriginalStore = vehicle.TheOriginalStore;
+            existingVehicle.TheCurrentStore = vehicle.TheCurrentStore;
+            existingVehicle.PlateNumber = vehicle.PlateNumber;
+            existingVehicle.FrameNumber = vehicle.FrameNumber;
+            existingVehicle.Certificate = vehicle.Certificate;
+            existingVehicle.Invoice = vehicle.Invoice;
+            existingVehicle.Drivinglicense = vehicle.Drivinglicense;
+            existingVehicle.PurchaseRegistrationTime = vehicle.PurchaseRegistrationTime;
+            existingVehicle.Owner = vehicle.Owner;
+            existingVehicle.VehicleIntroduction = vehicle.VehicleIntroduction;
+            existingVehicle.Pictures = vehicle.Pictures;
+            existingVehicle.State = vehicle.State;
+            existingVehicle.IsCase = vehicle.IsCase;
             existingVehicle.UpdatedAt = DateTime.Now;
 
             _context.Entry(existingVehicle).Property("RowVersion").OriginalValue = vehicle.RowVersion;
@@ -95,37 +112,8 @@ namespace aspnetapp.Controllers.Web {
         /// <summary>
         /// 搜索车辆
         /// </summary>
-        public async Task<List<Vehicle>> SearchVehicles(string? name = null, string? model = null, string? registrationNumber = null, string sortField = "Id", string sortOrder = "asc") {
-            _logger.LogInformation("Starting vehicle search with filters - Name: {Name}, Model: {Model}, RegistrationNumber: {RegistrationNumber}, SortField: {SortField}, SortOrder: {SortOrder}",
-                                   name, model, registrationNumber, sortField, sortOrder);
-
-            var query = _context.Vehicle.AsQueryable();
-
-            if (!string.IsNullOrEmpty(name)) {
-                query = query.Where(v => v.Name.Contains(name));
-            }
-            if (!string.IsNullOrEmpty(model)) {
-                query = query.Where(v => v.Model.Contains(model));
-            }
-            if (!string.IsNullOrEmpty(registrationNumber)) {
-                query = query.Where(v => v.RegistrationNumber.Contains(registrationNumber));
-            }
-
-            query = sortField.ToLower() switch {
-                "name" => sortOrder == "asc" ? query.OrderBy(v => v.Name) : query.OrderByDescending(v => v.Name),
-                "model" => sortOrder == "asc" ? query.OrderBy(v => v.Model) : query.OrderByDescending(v => v.Model),
-                "registrationnumber" => sortOrder == "asc" ? query.OrderBy(v => v.RegistrationNumber) : query.OrderByDescending(v => v.RegistrationNumber),
-                _ => sortOrder == "asc" ? query.OrderBy(v => v.Id) : query.OrderByDescending(v => v.Id),
-            };
-
-            var results = await query.ToListAsync();
-            _logger.LogInformation("Found {Count} vehicles with given filters and sorting", results.Count);
-
-            return results;
-        }
-
-        public Task<int> ChangeVehicleStatus(int vehicleId, Vehicle.Emodel status) {
-            throw new NotImplementedException();
+        public async Task<List<Vehicle>> SearchVehicles() {
+            return new List<Vehicle>();
         }
     }
 }

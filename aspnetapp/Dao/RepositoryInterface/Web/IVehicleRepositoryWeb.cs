@@ -12,7 +12,7 @@
         /// <param name="vehicleId"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        Task<int> ChangeVehicleStatus(int vehicleId, Vehicle.Emodel status);
+        Task<int> ChangeVehicleStatus(int vehicleId, Vehicle.Estates status);
         /// <summary>
         /// 更新车辆
         /// </summary>

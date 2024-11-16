@@ -30,55 +30,48 @@ namespace aspnetapp.Controllers.Web {
         }
 
         /// <summary>
-        /// 更新车辆状态
+        /// 更新用户信息
         /// </summary>
-        /// <param name="vehicle">包含车辆 ID 和状态的车辆对象</param>
-        /// <returns>更新操作结果</returns>
-        public async Task<IActionResult> ChangeVehicleStatus(Vehicle vehicle) {
-            _logger.LogInformation("Starting status update process for vehicle with ID {VehicleId}", vehicle.Id);
+        /// <param name="updatedUser"></param>
+        /// <returns></returns>
+        public async Task<IActionResult> UpdateUser(User updatedUser) {
+            _logger.LogInformation("Starting update process for user with ID {UserId}", updatedUser.Id);
 
-            // 查找车辆
-            var existingVehicle = await _context.Vehicle.FindAsync(vehicle.Id);
-            if (existingVehicle == null) {
-                _logger.LogWarning("Vehicle with ID {VehicleId} not found", vehicle.Id);
-                return NotFound("Vehicle not found.");
+            var user = await _context.User.FindAsync(updatedUser.Id);
+            if (user == null) {
+                _logger.LogWarning("User with ID {UserId} not found", updatedUser.Id);
+                return NotFound("User not found.");
             }
 
-            // 更新车辆状态
-            existingVehicle.State = vehicle.State;
-
-            existingVehicle.TheOriginalStore = vehicle.TheOriginalStore;
-            existingVehicle.TheCurrentStore = vehicle.TheCurrentStore;
-            existingVehicle.PlateNumber = vehicle.PlateNumber;
-            existingVehicle.FrameNumber = vehicle.FrameNumber;
-            existingVehicle.Certificate = vehicle.Certificate;
-            existingVehicle.Invoice = vehicle.Invoice;
-            existingVehicle.Drivinglicense = vehicle.Drivinglicense;
-            existingVehicle.PurchaseRegistrationTime = vehicle.PurchaseRegistrationTime;
-            existingVehicle.Owner = vehicle.Owner;
-            existingVehicle.VehicleIntroduction = vehicle.VehicleIntroduction;
-            existingVehicle.Pictures = vehicle.Pictures;
-            existingVehicle.State = vehicle.State;
-            existingVehicle.IsCase = vehicle.IsCase;
-            existingVehicle.UpdatedAt = DateTime.Now;
+            // 更新用户属性
+            user.Phone = updatedUser.Phone;
+            //user.Password = updatedUser.Password;
+            user.Name = updatedUser.Name;
+            user.IdentityCard = updatedUser.IdentityCard;
+            user.IdentityCardPictures = updatedUser.IdentityCardPictures;
+            user.Nickname = updatedUser.Nickname;
+            user.UpdatedAt = DateTime.Now;
 
             // 设置并发标记
-            _context.Entry(existingVehicle).Property("RowVersion").OriginalValue = vehicle.RowVersion;
+            _context.Entry(user).Property("RowVersion").OriginalValue = updatedUser.RowVersion;
 
             try {
-                _context.Vehicle.Update(existingVehicle);
+                _context.User.Update(user);
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("ID为{VehicleId}的车辆已成功更新", vehicle.Id);
-                return Ok("车辆状态更新成功。");
+                _logger.LogInformation("User with ID {UserId} updated successfully", updatedUser.Id);
+                return Ok("User updated successfully.");
+
             } catch (DbUpdateConcurrencyException) {
-                _logger.LogWarning("更新ID{VehicleId}的车辆状态时发生并发冲突", vehicle.Id);
-                return Conflict("由于并发更改，更新失败。");
+                _logger.LogWarning("使用ID更新用户时发生并发冲突 {UserId}", updatedUser.Id);
+                return Conflict("Update failed due to concurrent changes.");
+
             } catch (DbUpdateException ex) {
-                _logger.LogError(ex, "更新ID{VehicleId}的车辆状态时出错", vehicle.Id);
-                return StatusCode(500, "更新车辆状态时出错。");
+                _logger.LogError(ex, "Error updating user with ID {UserId}", updatedUser.Id);
+                return StatusCode(500, "Error updating user.");
+
             } catch (Exception ex) {
-                _logger.LogError(ex, "更新ID{VehicleId}的车辆状态时发生意外错误", vehicle.Id);
-                return StatusCode(500, "更新车辆状态时发生意外错误。");
+                _logger.LogError(ex, "Unexpected error while updating user with ID {UserId}", updatedUser.Id);
+                return StatusCode(500, "Unexpected error updating user.");
             }
         }
 
@@ -142,5 +135,6 @@ namespace aspnetapp.Controllers.Web {
 
             return results;
         }
+
     }
 }
