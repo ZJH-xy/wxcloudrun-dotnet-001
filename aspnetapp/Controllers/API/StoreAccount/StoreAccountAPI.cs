@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
-using aspnetapp.Models;
 using static aspnetapp.Models.Order;
 using Microsoft.CodeAnalysis;
-using Microsoft.EntityFrameworkCore;
 using aspnetapp.Controllers.Miniprogram;
+using aspnetapp.Controllers.API.Miniprogram;
+using aspnetapp.Models;
 
 namespace aspnetapp.Controllers.API.StoreAccount
 {
@@ -14,14 +14,16 @@ namespace aspnetapp.Controllers.API.StoreAccount
     [ApiController]
     [Authorize(Roles = "store")]// 只有商家能访问
     public class StoreAccountAPI : ControllerBase {
-        private readonly StoreAccountController storeAccountController = new(new MyDbContext());
-        //private readonly MyDbContext _dbcontext = new();
+        private readonly MyDbContext _dbContext;
         private readonly IOptionsSnapshot<JWTSettings> _JWTSettingsOpt;
         private readonly ILogger<StoreAccountAPI> _logger;
+        private readonly StoreAccountController storeAccountController;
 
-        public StoreAccountAPI(IOptionsSnapshot<JWTSettings> jWTSettingsOpt, ILogger<StoreAccountAPI> logger) {
+        public StoreAccountAPI(MyDbContext dbContext, IOptionsSnapshot<JWTSettings> jWTSettingsOpt, ILogger<StoreAccountAPI> logger) {
+            _dbContext = dbContext;
             _JWTSettingsOpt = jWTSettingsOpt;
             _logger = logger;
+            storeAccountController = new(_dbContext);
         }
 
         /// <summary>
@@ -33,14 +35,13 @@ namespace aspnetapp.Controllers.API.StoreAccount
         [AllowAnonymous]// 允许匿名访问
         [HttpGet("login/{account}/{password}")]
         public async Task<IActionResult> Login(string account, string password) {
-            using MyDbContext dbcontext = new();
             if (password is null)
                 return StatusCode(403, "密码为空");
 
             /* 商家帐号判断 */
             Models.StoreAccount? storeAccount;
             try {
-                storeAccount = await dbcontext.StoreAccount.SingleOrDefaultAsync(sa => sa.Account == account && sa.Password == password);
+                storeAccount = await _dbContext.StoreAccount.SingleOrDefaultAsync(sa => sa.Account == account && sa.Password == password);
 
             } catch (Exception e) {
                 _logger.LogError(e, "查询商家帐号");
@@ -51,7 +52,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 return StatusCode(403, "帐号或密码错误");
 
             /* 门店判断 */
-            if (await dbcontext.Store.AnyAsync(s => s.Id == storeAccount.Id && s.IsDelete))// 门店是否删除
+            if (await _dbContext.Store.AnyAsync(s => s.Id == storeAccount.Id && s.IsDelete))// 门店是否删除
                 return StatusCode(403, "门店不存在");
 
             return StatusCode(200, GetJwtToken(CreateClaim(storeAccount.Id.ToString(), "store")));
@@ -79,7 +80,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (order.Status != Order.OrderStatus.待确认)
                 return StatusCode(403, "订单状态异常");
 
-            return StatusCode(200, new ReturnOrder(order));
+            return StatusCode(200, new ReturnConfirmOrder(order));
         }
 
         /// <summary>
@@ -89,12 +90,10 @@ namespace aspnetapp.Controllers.API.StoreAccount
         /// <returns></returns>
         [HttpPost("confirm/order")]
         public async Task<IActionResult> ConfirmAnOrder(GetConfirmOrder getData) {
-            using MyDbContext dbcontext = new();
-
             /* 检查订单状态 */
             Order? order;
             try {
-                order = await dbcontext.Order.FindAsync(getData.OderId);
+                order = await _dbContext.Order.FindAsync(getData.OderId);
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取订单{OderId}", getData.OderId);
@@ -110,7 +109,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             /* 检查车辆状态 */
             Vehicle? vehicle;
             try {
-                vehicle = await dbcontext.Vehicle.FindAsync(getData.TheVehicle);
+                vehicle = await _dbContext.Vehicle.FindAsync(getData.TheVehicle);
 
             } catch (Exception e) {
                 _logger.LogError(e, "查询车辆{VehicleId}", getData.TheVehicle);
@@ -123,7 +122,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             // 检查车辆是否属于当前商家
             int storeId;
             try {
-                storeId = await dbcontext.StoreAccount.Where(sa => sa.Id == GetUserIdInt()).Select(sa => sa.TheStore).FirstAsync();
+                storeId = await _dbContext.StoreAccount.Where(sa => sa.Id == GetUserIdInt()).Select(sa => sa.TheStore).FirstAsync();
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取商家{VehicleId}的门店Id", GetUserIdInt());
@@ -135,7 +134,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (vehicle.State != Vehicle.Estates.锁定)
                 return StatusCode(403, "车辆状态异常");
 
-            using var transaction = await dbcontext.Database.BeginTransactionAsync();// 事务开始
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
 
             DateTime now = DateTime.Now;
 
@@ -144,7 +143,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             order.ActualStartingTime = now;
             vehicle.State = Vehicle.Estates.已出租;
             try {
-                await dbcontext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();// 提交事务
 
             } catch (Exception e) {
@@ -163,17 +162,40 @@ namespace aspnetapp.Controllers.API.StoreAccount
         /// <returns></returns>
         [HttpGet("confirm/vehicle/replacement/{orderId}")]
         public async Task<IActionResult> GetConfirmVehicleReplacement(int orderId) {
-            using MyDbContext dbcontext = new();
             VehicleReplacementRecord? vrr;
+
             try {
-                vrr = await dbcontext.VehicleReplacementRecord.FirstOrDefaultAsync(v => v.TheOrder == orderId);
+                vrr = await _dbContext.VehicleReplacementRecord.FirstOrDefaultAsync(v => v.TheOrder == orderId);// 获取换车信息
 
             } catch (Exception e) {
                 _logger.LogError(e, "查询换车请求{OrderId}", orderId);
                 return StatusCode(500);
             }
 
-            return StatusCode(200, vrr);
+            if (vrr is null)
+                return StatusCode(403, "请求不存在");
+
+            // 获取订单状态
+            Order order;
+            try {
+                order = await _dbContext.Order.FirstAsync(o => o.Id == orderId);
+
+            } catch (Exception e) {
+                _logger.LogError(e, "获取订单{OrderId}", orderId);
+                return StatusCode(500);
+            }
+
+            // 获取套餐
+            StoreMenu storeMenu;
+            try {
+                storeMenu = await _dbContext.StoreMenus.FirstAsync(sm => sm.Id == order.TheStoreMenu);
+
+            } catch (Exception e) {
+                _logger.LogError(e, "获取套餐{StoreMenuId}", order.TheStoreMenu);
+                return StatusCode(500);
+            }
+
+            return StatusCode(200, new Returnreplacement(vrr, order, storeMenu));
         }
 
         /// <summary>
@@ -182,8 +204,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
         /// <returns></returns>
         [HttpPost("confirm/vehicle/replacement")]
         public async Task<IActionResult> ConfirmVehicleReplacement(GetConfirmReplacement getData) {
-            using MyDbContext dbcontext = new();
-
             /* 检查订单状态 */
             Order? order;
             try {
@@ -204,7 +224,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             VehicleReplacementRecord? vrr;
             try {
                 // 查询当前订单的换车请求
-                vrr = await dbcontext.VehicleReplacementRecord.FirstAsync(v => v.TheOrder == getData.OderId && v.State == VehicleReplacementRecord.Estates.侍确认);
+                vrr = await _dbContext.VehicleReplacementRecord.FirstAsync(v => v.TheOrder == getData.OderId && v.State == VehicleReplacementRecord.Estates.侍确认);
 
             } catch (Exception e) {
                 _logger.LogError(e, "换车记录表OrderId=={OrderId}查询", getData.OderId);
@@ -221,7 +241,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             Vehicle? newVehicle;
             try {
                 // 查询将要更换的车辆
-                newVehicle = await dbcontext.Vehicle.FindAsync(getData.TheVehicle);
+                newVehicle = await _dbContext.Vehicle.FindAsync(getData.TheVehicle);
 
             } catch (Exception e) {
                 _logger.LogError(e, "查询车辆{VehicleId}", getData.TheVehicle);
@@ -234,7 +254,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             // 检查车辆是否属于当前商家
             int storeId;
             try {
-                storeId = await dbcontext.StoreAccount.Where(sa => sa.Id == GetUserIdInt()).Select(sa => sa.TheStore).FirstAsync();
+                storeId = await _dbContext.StoreAccount.Where(sa => sa.Id == GetUserIdInt()).Select(sa => sa.TheStore).FirstAsync();
 
             } catch (Exception e) {
                 _logger.LogError(e, "根据商家帐号Id{VehicleReplacementRecordId}获取门店", GetUserIdInt());
@@ -249,14 +269,14 @@ namespace aspnetapp.Controllers.API.StoreAccount
             // 获取用户将要更换的旧车辆
             Vehicle? oldVehicle;
             try {
-                oldVehicle = await dbcontext.Vehicle.FirstAsync(v => v.Id == order.TheVehicle);
+                oldVehicle = await _dbContext.Vehicle.FirstAsync(v => v.Id == order.TheVehicle);
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取车辆{VehicleId}", GetUserIdInt());
                 return StatusCode(500);
             }
 
-            using var transaction = await dbcontext.Database.BeginTransactionAsync();// 事务开始
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
 
             DateTime now = DateTime.Now;
             /* 更改租用车辆 */
@@ -275,7 +295,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             vrr.UpdatedAt = now;
 
             try {
-                await dbcontext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();// 提交事务
 
             } catch (Exception e) {
@@ -294,8 +314,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
         /// <returns></returns>
         [HttpGet("confirm/vehicle/return/{orderId}")]
         public async Task<IActionResult> GetConfirmVehicleReturn(int orderId) {
-            using MyDbContext dbcontext = new();
-
 
 
             return StatusCode(200);
@@ -307,8 +325,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
         /// <returns></returns>
         [HttpPost("confirm/vehicle/return")]
         public async Task<IActionResult> ConfirmVehicleReturn(GetConfirmReturn getData) {
-            using MyDbContext dbcontext = new();
-
             /* 检查订单状态 */
             Order? order;
             try {
@@ -326,20 +342,20 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 return StatusCode(403, "订单状态异常");
 
             // 检查是否有未完成的换车请求
-            if (await dbcontext.VehicleReplacementRecord.AnyAsync(vrr => vrr.TheOrder == getData.OderId && vrr.State == VehicleReplacementRecord.Estates.侍确认))
+            if (await _dbContext.VehicleReplacementRecord.AnyAsync(vrr => vrr.TheOrder == getData.OderId && vrr.State == VehicleReplacementRecord.Estates.侍确认))
                 return StatusCode(403, "当前有未完成的换车请求");
 
             // 获取套餐时间
             StoreMenu? storeMenu;
             try {
-                storeMenu = await dbcontext.StoreMenus.FirstAsync(sm => sm.Id == order.TheStoreMenu);
+                storeMenu = await _dbContext.StoreMenus.FirstAsync(sm => sm.Id == order.TheStoreMenu);
 
             } catch (Exception e) {
                 _logger.LogError(e, "套餐{StoreMenuId}查询", order.TheStoreMenu);
                 return StatusCode(500);
             }
 
-            using var transaction = await dbcontext.Database.BeginTransactionAsync();/* 事务开始 */
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();/* 事务开始 */
 
             /* 判断超时 */
             DateTime now = DateTime.Now;
@@ -357,7 +373,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             /* 判断调度费 */
             int storeId;// 当前商家Id
             try {
-                storeId = await dbcontext.StoreAccount.Where(sa => sa.Id == GetUserIdInt()).Select(sa => sa.TheStore).FirstAsync();
+                storeId = await _dbContext.StoreAccount.Where(sa => sa.Id == GetUserIdInt()).Select(sa => sa.TheStore).FirstAsync();
 
             } catch (Exception e) {
                 _logger.LogError(e, "根据商家帐号Id{VehicleReplacementRecordId}获取storeId", GetUserIdInt());
@@ -389,7 +405,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             /* 车辆状态改为侍确认 */
             Vehicle vehicle;
             try {
-                vehicle = await dbcontext.Vehicle.SingleAsync(o => o.Id == order.TheVehicle);
+                vehicle = await _dbContext.Vehicle.SingleAsync(o => o.Id == order.TheVehicle);
 
             } catch (Exception e) {
                 _logger.LogError(e, "订单结束，获取车辆{VehicleId}", order.TheVehicle);
@@ -414,10 +430,10 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             // 保存修改
             try {
-                dbcontext.Vehicle.Update(vehicle);
-                dbcontext.Order.Update(order);
-                await dbcontext.RevenueStatistic.AddAsync(revenueStatistics);
-                await dbcontext.SaveChangesAsync();
+                _dbContext.Vehicle.Update(vehicle);
+                _dbContext.Order.Update(order);
+                await _dbContext.RevenueStatistic.AddAsync(revenueStatistics);
+                await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();// 提交事务
 
             } catch (Exception e) {
@@ -501,10 +517,10 @@ namespace aspnetapp.Controllers.API.StoreAccount
     }
 
     /// <summary>
-    /// 商家确认订单返回格式
+    /// 商家获取确认订单返回格式
     /// </summary>
-    public struct ReturnOrder {
-        public ReturnOrder(Order order) {
+    public struct ReturnConfirmOrder {
+        public ReturnConfirmOrder(Order order) {
             Id = order.Id;
             TheVehicle = order.TheVehicle;
             TheStoreMenu = order.TheStoreMenu;
@@ -532,5 +548,33 @@ namespace aspnetapp.Controllers.API.StoreAccount
         public string? Notes { get; set; }// 备注
         //public DateTime UpdatedAt { get; set; }
         //public string? IdentityCard { get; set; }// 身份证号
+    }
+
+    /// <summary>
+    /// 商家获取确认换车返回格式
+    /// </summary>
+    public struct Returnreplacement {
+        public Returnreplacement(VehicleReplacementRecord vrr, Order order, StoreMenu storeMenu) {
+            TheOldVehicles = vrr.TheOldVehicles;
+            TheNewVehicles = vrr.TheNewVehicles;
+            CreatedAt = vrr.CreatedAt;
+            TheRentalLocation = order.TheRentalLocation;
+            UserName = order.UserName;
+            UserPhone = order.UserPhone;
+            IdentityCard = order.IdentityCard;
+            Notes = order.Notes;
+            Duration = storeMenu.Duration;
+        }
+        public int TheOldVehicles { get; set; }// 旧车辆
+        public int TheNewVehicles { get; set; }// 新车辆
+        public DateTime CreatedAt { get; set; }
+        // 订单相关
+        public int TheRentalLocation { get; set; }// 租车点（StoreId）
+        public string UserName { get; set; }// 用户姓名
+        public string UserPhone { get; set; }// 用户手机号
+        public string? IdentityCard { get; set; }// 身份证号
+        public string? Notes { get; set; }// 备注
+        // 套餐相关
+        public int Duration { get; set; }// 小时时长
     }
 }
