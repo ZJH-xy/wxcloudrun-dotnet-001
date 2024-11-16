@@ -22,6 +22,7 @@ builder.Services.AddRazorPages();
 
 // Web后台相关
 builder.Services.AddScoped<UserControllerWeb>();
+builder.Services.AddScoped<VehicleControllerWeb>();
 
 // 激活本地缓存
 builder.Services.AddMemoryCache();

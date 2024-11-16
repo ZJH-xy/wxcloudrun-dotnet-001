@@ -10,6 +10,15 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         private readonly ILogger<UserOverviewModel> _logger;
 
         public List<User> List { get; set; } = new List<User>();
+        public class NewUser
+        {
+            public string Nickname { get; set; }
+            public string Name { get; set; }
+            public string Phone { get; set; }
+            public string IdentityCard { get; set; }
+            public IFormFile Image { get; set; } // 用于接收文件
+        }
+
 
         // 用于在页面显示错误信息
         public string ErrorMessage { get; set; }
@@ -86,21 +95,17 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                 _logger.LogWarning("找不到用户。UserId: {UserId}", UpdatedUser.Id);
                 ErrorMessage = "找不到用户";
             }
-            //else if (result is ConflictResult)
-            //{
-            //    _logger.LogWarning("使用ID更新用户时发生并发冲突。UserId: {UserId}", UpdatedUser.Id);
-            //    ErrorMessage = "您尝试编辑的记录已被其他用户修改。请重新加载数据，然后重试";
-
-            //}
             else if (result is StatusCodeResult status && status.StatusCode == 500) {
                 _logger.LogError("更新用户时出错。UserId: {UserId}", UpdatedUser.Id);
                 ErrorMessage = "更新用户时出错。";
             } else if (result is ObjectResult objResult && objResult.StatusCode == 409) {
                 _logger.LogWarning("使用ID更新用户时发生并发冲突。UserId: {UserId}", UpdatedUser.Id);
-                ErrorMessage = "您尝试编辑的记录已被其他用户修改。请重新加载数据，然后重试";
+                ErrorMessage = $"您尝试编辑的记录已被其他用户修改。请重新加载数据后重试，ID：{UpdatedUser.Id}";
             } else {
                 _logger.LogInformation("ID为{UserId}的用户已成功更新", UpdatedUser.Id);
-                SuccessMessage = "保存成功";
+                // 计算行号
+                var rowIndex = List.FindIndex(user => user.Id == UpdatedUser.Id) + 1; // 行号从1开始
+                SuccessMessage = $"保存成功，已更新 ID：{UpdatedUser.Id}";
             }
 
             List = await _userController.GetTablePage(Limit, PageIndex); // 刷新用户列表
@@ -111,9 +116,17 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         /// 查询
         /// </summary>
         /// <returns></returns>
-        public async Task<IActionResult> OnGetSearchAsync() {
+        public async Task<IActionResult> OnPostSearchAsync() {
+            _logger.LogDebug("Executing OnGetSearchAsync with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
+                           SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
             // 调用 UserControllerWeb 中的 SearchUsers 方法，包含排序字段和顺序
             List = await _userController.SearchUsers(SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
+            return Page();
+        }
+
+
+        public IActionResult OnGetSearchAsync(string SearchPhone) {
+            Console.WriteLine("=========================");
             return Page();
         }
     }
