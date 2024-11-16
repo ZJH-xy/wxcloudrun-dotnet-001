@@ -37,6 +37,34 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
             }
             return Page();
         }
+        public async Task<IActionResult> OnPostAddVehicleAsync([FromForm] Models.Vehicle newVehicle)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    ErrorMessage = "输入数据无效，请检查。";
+                    return Page();
+                }
+
+                // 调用控制器添加数据
+                await _vehicleController.AddVehicle(newVehicle);
+
+                // 添加成功后记录日志并显示成功消息
+                _logger.LogInformation("新增车辆成功：{Vehicle}", newVehicle);
+                SuccessMessage = "车辆添加成功。";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "新增车辆时发生错误");
+                ErrorMessage = "添加车辆时发生错误，请稍后重试。";
+                ModelState.AddModelError(string.Empty, "添加车辆时发生错误。");
+            }
+
+            // 刷新页面以显示新增数据
+            return RedirectToPage(new { PageIndex, Limit });
+        }
+
 
         public VehicleOverviewModel(VehicleControllerWeb vehicleController, ILogger<UserOverviewModel> logger) {
             _vehicleController = vehicleController;

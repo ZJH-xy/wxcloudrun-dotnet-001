@@ -5,13 +5,14 @@
 
 /* 表格整体样式 */
 table {
+    margin:20px 0;
     width: 100%; /* 表格宽度占满父容器 */
     border-collapse: collapse; /* 合并边框 */
 }
 
 /* 表头样式 */
 th {
-    background-color: #fff; /* 背景颜色 */
+    background-color: #f2f2f2; /* 背景颜色 */
     color: black; /* 字体颜色 */
     padding: 10px; /* 内边距 */
     text-align: left; /* 左对齐 */
@@ -26,12 +27,12 @@ td {
 
 /* 奇数行背景色 */
 tr:nth-child(odd) {
-    background-color: #f2f2f2; /* 奇数行背景颜色 */
+    background-color: #ffffff; /* 奇数行背景颜色 */
 }
 
 /* 鼠标悬停效果 */
 tr:hover {
-    background-color: #ddd; /* 鼠标悬停时的背景颜色 */
+    background-color: #f2f2f2; /* 鼠标悬停时的背景颜色 */
 }
 
 /* 表格字体样式 */
@@ -44,7 +45,7 @@ td, th {
 
 }
 button {
-    background-color: #4CAF50; /* 按钮背景颜色 */
+    background-color: #07C160; /* 按钮背景颜色 */
     color: rgb(255, 255, 255); /* 按钮文字颜色 */
     padding: 0 20px; /* 内边距 */
     text-align: center; /* 文本居中 */
@@ -57,11 +58,12 @@ button {
     border-radius: 5px; /* 圆角 */
     transition: background-color 0.3s; /* 过渡效果 */
     height: 30px;
+    white-space: nowrap;
 }
 
 /* 悬停效果 */
 button:hover {
-    background-color: #45a049; /* 悬停时的背景颜色 */
+    background-color: #009107; /* 悬停时的背景颜色 */
 }
 /* 点击效果 */
 button:active {
@@ -79,44 +81,56 @@ input{
     height: 30px;
 }
 
-.bottom,.header{
+.bottom {
     gap: 20px;
     display: flex;
-    justify-content: space-between; 
-    align-items: center; 
+    justify-content: space-between;
+    align-items: center;
     text-align: center; /* 文本居中 */
 }
-
+.header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center; /* 文本居中 */
+}
 /* 背景遮罩样式 */
 .modal {
     display: none; /* 初始隐藏 */
     position: fixed; /* 固定定位 */
     z-index: 1; /* 层级 */
+    position: fixed;
     left: 0;
     top: 0;
-    width: 100%; /* 全宽 */
-    height: 100%; /* 全高 */
-    background-color: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex; /* Flexbox 布局 */
+    justify-content: center;
+    align-items: center;
 }
 
-/* 模态窗口样式 */
+/* 模态窗口中的图片 */
 .modal-content {
-    background-color: #fff; /* 白色背景 */
-    margin: 15% auto; /* 上下居中 */
-    padding: 20px; /* 内边距 */
-    border: 1px solid #888; /* 边框 */
-    width: 300px; /* 固定宽度 */
-    border-radius: 5px; /* 圆角 */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 阴影效果 */
+    display: block;
+    margin: auto;
+    max-width: 80%; /* 限制图片宽度 */
+    max-height: 80%; /* 限制图片高度 */
+    border-radius: 8px;
+    display: flex; /* Flexbox 布局 */
+    justify-content: center;
+    align-items: center;
 }
 
-/* 关闭按钮样式 */
+/* 关闭按钮 */
 .close {
-    color: #aaa; /* 关闭按钮颜色 */
-    float: right; /* 右对齐 */
-    font-size: 28px; /* 字体大小 */
-    font-weight: bold; /* 加粗 */
-    align-self: flex-end;
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
 }
 
 .close:hover,
@@ -124,4 +138,75 @@ input{
     color: black; /* 悬停时颜色 */
     text-decoration: none; /* 去掉下划线 */
     cursor: pointer; /* 鼠标样式 */
+}
+
+/* 默认状态：禁用输入框样式 */
+input[disabled] {
+    border: none; /* 无边框 */
+    background-color: transparent; /* 背景透明 */
+    color: inherit; /* 保持文字颜色一致 */
+}
+
+/* 编辑状态：显示边框或其他视觉效果 */
+input.editing {
+    border: none; /* 移除边框 */
+    background-color: transparent; /* 背景透明 */
+    outline: none; /* 移除聚焦时的轮廓 */
+}
+.saveBtn {
+    display: none; /* 默认隐藏保存按钮 */
+}
+.editBtn {
+    color: #07C160;
+    background-color:#f2f2f2;
+}
+/* 悬停效果 */
+.editBtn:hover {
+    background-color: #cfcfcf; /* 悬停时的背景颜色 */
+}
+
+select {
+    width: 100px;
+    height: auto;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f2f2f2;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+select:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
+}
+
+
+
+#fileName {
+    margin-left: 10px;
+    font-size: 14px;
+    color: #555;
+}
+#imagePreview {
+    display: block;
+    margin-top: 5px;
+    max-width: 100px;
+    max-height: 100px;
+    object-fit: cover;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+.unstyled-button {
+    all: unset; /* 重置所有样式 */
+    cursor: pointer; /* 添加点击手型鼠标指针 */
+
+    width: 20px;
+}
+/* 悬停效果 */
+.unstyled-button:hover {
+    background-color: #cfcfcf; /* 悬停时的背景颜色 */
 }
