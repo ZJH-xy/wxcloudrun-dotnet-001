@@ -1,33 +1,39 @@
+using aspnetapp.Controllers.Web;
+using aspnetapp.Pages.Admin.Subpages.UserManagement;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement
-{
-    public class VehicleOverviewModel : PageModel
-    {
-        public struct User
-        {
-            public int UserId;
-            public string Nickname;
-            public string UserName;
-            public string IdentityCard;
-            public string Phone;
+namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
+    public class VehicleOverviewModel : PageModel {
+        private readonly UserControllerWeb _userController;
+        private readonly ILogger<UserOverviewModel> _logger;
+
+        public List<Vehicle> List { get; set; } = new List<Vehicle>();
+
+        // 用于在页面显示信息
+        public string ErrorMessage { get; set; }
+
+        public string SuccessMessage { get; set; }
+
+        // 分页查询
+        [BindProperty(SupportsGet = true)]
+        public int Limit { get; set; } = 10;
+
+        [BindProperty(SupportsGet = true)]
+
+        public int PageIndex { get; set; } = 1;
+        public struct Vehicle {
 
         }
-        public List<User> List { get; set; } = new List<User>();
-        public IActionResult OnGet()
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                List.Add(new User
-                {
-                    UserId = i,
-                    Nickname = "a",
-                    UserName = "b",
-                    IdentityCard = "450000000000000123",
-                    Phone = "13000000000"
-                });
-            }
+
+        public VehicleOverviewModel(UserControllerWeb userController, ILogger<UserOverviewModel> logger) {
+            _userController = userController;
+            _logger = logger;
+        }
+
+
+        public IActionResult OnGet() {
+
 
             return Page();
         }

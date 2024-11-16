@@ -111,9 +111,16 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         /// 查询
         /// </summary>
         /// <returns></returns>
-        public async Task<IActionResult> OnGetSearchAsync() {
+        public async Task<IActionResult> OnPostSearchAsync() {
+            _logger.LogDebug("Executing OnGetSearchAsync with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
+                           SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
             // 调用 UserControllerWeb 中的 SearchUsers 方法，包含排序字段和顺序
             List = await _userController.SearchUsers(SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
+            return Page();
+        }
+
+        public IActionResult OnGetSearchAsync(string SearchPhone) {
+            Console.WriteLine("=========================");
             return Page();
         }
     }

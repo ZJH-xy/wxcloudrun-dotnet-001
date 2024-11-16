@@ -14,6 +14,12 @@
         /// <returns></returns>
         Task<List<User>> GetTablePage(int iimit, int pageIndex);
         /// <summary>
+        /// 更新用户信息
+        /// </summary>
+        /// <param name="updatedUser"></param>
+        /// <returns></returns>
+        IActionResult UpdateUser(User updatedUser);
+        /// <summary>
         /// 根据ID 查询用户
         /// </summary>
         /// <param name="id"></param>
