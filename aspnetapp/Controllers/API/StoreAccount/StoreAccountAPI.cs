@@ -558,6 +558,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             TheOldVehicles = vrr.TheOldVehicles;
             TheNewVehicles = vrr.TheNewVehicles;
             CreatedAt = vrr.CreatedAt;
+            TheOrder = order.Id;
             TheRentalLocation = order.TheRentalLocation;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
@@ -569,6 +570,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
         public int TheNewVehicles { get; set; }// 新车辆
         public DateTime CreatedAt { get; set; }
         // 订单相关
+        public int TheOrder { get; set; }// 租车点（StoreId）
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
