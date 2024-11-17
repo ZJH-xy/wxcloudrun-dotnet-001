@@ -23,4 +23,8 @@
     <PackageReference Include="Senparc.Weixin.WxOpen" Version="3.20.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\uploads\" />
+  </ItemGroup>
+
 </Project>

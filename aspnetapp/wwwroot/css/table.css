@@ -210,3 +210,13 @@ select:focus {
 .unstyled-button:hover {
     background-color: #cfcfcf; /* 悬停时的背景颜色 */
 }
+
+.thumbnail {
+    display: block; /* 默认显示图片 */
+}
+
+.fileUpload {
+    display: none; /* 默认隐藏上传控件 */
+    width: 100px;
+    cursor: pointer;
+}
