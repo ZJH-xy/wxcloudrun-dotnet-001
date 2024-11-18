@@ -3,6 +3,7 @@ using aspnetapp.Controllers.API.StoreAccount;
 using aspnetapp.Controllers.Miniprogram;
 using aspnetapp.Controllers.Web;
 using aspnetapp.Dao.RepositoryInterface.Web;
+using Senparc.Weixin.AspNet;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +54,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
             IssuerSigningKey = secKey
         };
     });
+
+
+builder.Services.Configure<WeixinSetting>(builder.Configuration.GetSection("SenparcWeixinSetting"));// 配置WeixinSetting
 
 
 // 用于完成 Senparc.Weixin 的注册。
