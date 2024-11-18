@@ -1,8 +1,10 @@
-﻿using aspnetapp.Controllers.Web;
+﻿using aspnetapp.Controllers.API.Miniprogram;
+using aspnetapp.Controllers.Web;
 using aspnetapp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using System.IO;
 
 namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
     public class UserOverviewModel : PageModel {
@@ -10,13 +12,14 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         private readonly ILogger<UserOverviewModel> _logger;
 
         public List<User> List { get; set; } = new List<User>();
-        public class NewUser
-        {
+        public class NewUser {
             public string Nickname { get; set; }
             public string Name { get; set; }
             public string Phone { get; set; }
             public string IdentityCard { get; set; }
             public IFormFile Image { get; set; } // 用于接收文件
+
+            byte[] Data { get; set; }
         }
 
 
@@ -94,8 +97,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             if (result is NotFoundResult) {
                 _logger.LogWarning("找不到用户。UserId: {UserId}", UpdatedUser.Id);
                 ErrorMessage = "找不到用户";
-            }
-            else if (result is StatusCodeResult status && status.StatusCode == 500) {
+            } else if (result is StatusCodeResult status && status.StatusCode == 500) {
                 _logger.LogError("更新用户时出错。UserId: {UserId}", UpdatedUser.Id);
                 ErrorMessage = "更新用户时出错。";
             } else if (result is ObjectResult objResult && objResult.StatusCode == 409) {
@@ -107,6 +109,51 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                 var rowIndex = List.FindIndex(user => user.Id == UpdatedUser.Id) + 1; // 行号从1开始
                 SuccessMessage = $"保存成功，已更新 ID：{UpdatedUser.Id}";
             }
+
+            if (Request.Form.Files.Count > 0) {
+                var file = Request.Form.Files["UpdatedUser.IdentityCardPicture"];
+                if (file != null && file.Length > 0) {
+                    Console.WriteLine($"接收到的文件名: {file.FileName}");
+
+                    // 指定保存文件的路径
+                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                    if (!Directory.Exists(uploadsFolder)) {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    // 确保文件名唯一，避免冲突
+                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    // 保存文件到服务器
+                    using (var fileStream = new FileStream(filePath, FileMode.Create)) {
+                        await file.CopyToAsync(fileStream);
+                    }
+
+                    Console.WriteLine($"文件已保存到服务器路径: {filePath}");
+
+                    // 如果需要操作文件
+                    byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+                    Console.WriteLine($"文件大小（字节）: {fileBytes.Length}");
+
+                    // 在这里处理文件逻辑
+                    // 示例：模拟处理文件操作完成
+                    Console.WriteLine("处理文件完成，准备删除文件。");
+
+                    // 删除文件
+                    if (System.IO.File.Exists(filePath)) {
+                        System.IO.File.Delete(filePath);
+                        Console.WriteLine($"文件已成功删除: {filePath}");
+                    } else {
+                        Console.WriteLine("找不到文件，无法删除。");
+                    }
+                } else {
+                    Console.WriteLine("未收到文件。");
+                }
+            } else {
+                Console.WriteLine("没有文件上传。");
+            }
+
 
             List = await _userController.GetTablePage(Limit, PageIndex); // 刷新用户列表
             return Page();
@@ -129,5 +176,8 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             Console.WriteLine("=========================");
             return Page();
         }
+
+
+
     }
 }
