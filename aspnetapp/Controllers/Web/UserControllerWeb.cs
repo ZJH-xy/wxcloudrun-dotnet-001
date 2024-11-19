@@ -1,5 +1,11 @@
 ﻿using aspnetapp.Dao.RepositoryInterface.Web;
+using Microsoft.DotNet.Scaffolding.Shared.CodeModifier.CodeChange;
+using Microsoft.IdentityModel.Tokens;
+using Senparc.CO2NET.HttpUtility;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
+using Senparc.Weixin.WxOpen.Entities;
+using System.Net.Http.Headers;
+using System.Security.Policy;
 
 namespace aspnetapp.Controllers.Web {
     public class UserControllerWeb : Controller, IUserRepositoryWeb {
@@ -108,6 +114,15 @@ namespace aspnetapp.Controllers.Web {
             return results;
         }
 
+        /// <summary>
+        /// 查询
+        /// </summary>
+        /// <param name="phone"></param>
+        /// <param name="name"></param>
+        /// <param name="nickname"></param>
+        /// <param name="sortField"></param>
+        /// <param name="sortOrder"></param>
+        /// <returns></returns>
         public async Task<List<User>> SearchUsers(string? phone = null, string? name = null, string? nickname = null, string sortField = "Id", string sortOrder = "asc") {
             _logger.LogInformation("Starting search with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
                                    phone, name, nickname, sortField, sortOrder);
@@ -139,74 +154,48 @@ namespace aspnetapp.Controllers.Web {
             return results;
         }
 
-        // 上传身份证图片
-        public async Task<IActionResult> UploadImage(string flieName) {
+        /// <summary>
+        /// 获取文件上传所需信息
+        /// </summary>
+        /// <param name="flieName"></param>
+        /// <returns></returns>
+        public async Task<IActionResult> GetUploadPath(string flieName) {
+            if (string.IsNullOrEmpty(flieName))
+                return StatusCode(403, "文件名错误");
 
             // 设置微信小程序的AppId和AppSecret
             var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
             var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+            var envId = _wxSetting.Value.Env;
 
-
-            var envId = _wxSetting.Value.Env; // 用实际的环境ID替换这里的字符串
-
-            string filePath = @"/admin/user/identityCardPictures" + flieName; // 用户身份证文件路径
-
-            //var result = TcbApi.DatabaseCollectionGet(appId, envId);
             WxUploadFileJsonResult result;
-
             try {
-                // 调用UploadFileAsync方法上传文件
-                result = await TcbApi.UploadFileAsync(appId, envId, filePath);
+                // 获取上传文件路径
+                result = await TcbApi.UploadFileAsync(appId, envId, flieName);
 
+                if (result.ErrorCodeValue != 0) {
+                    Console.WriteLine($"错误{result.ToJson()}");
+                    return StatusCode(500);
+                }
                 // 输出上传结果
                 Console.WriteLine("File uploaded successfully!");
                 Console.WriteLine("File ID: " + result.file_id);
+
             } catch (Exception ex) {
                 // 输出错误信息
-                Console.WriteLine("Error uploading file: " + ex.Message);
-                return StatusCode(200);
+                Console.WriteLine("获取上传文件路径：" + ex.Message);
+                return StatusCode(500);
             }
 
+            string filePath = @"7072-prod-3g2khb36f729f21f-1331625129/admin/user/identityCardPictures/" + flieName;// 用户身份证文件路径
 
-
-            string url = result.url;
-            string key = filePath;
-            string signature = result.authorization;// 签名
-            string securityToken = result.token;
-            string cosMetaFileId = result.cos_file_id;
-            
-            try {
-                using (var client = new HttpClient())
-                using (var formData = new MultipartFormDataContent()) {
-                    // 添加 key 字段
-                    formData.Add(new StringContent(key), "key");
-
-                    // 添加 Signature 字段
-                    formData.Add(new StringContent(signature), "Signature");
-
-                    // 添加 x-cos-security-token 字段
-                    formData.Add(new StringContent(securityToken), "x-cos-security-token");
-
-                    // 添加 x-cos-meta-fileid 字段
-                    formData.Add(new StringContent(cosMetaFileId), "x-cos-meta-fileid");
-
-                    // 添加文件内容
-                    //var fileContent = new ByteArrayContent(File.ReadAllBytes(filePath));
-                    //fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
-                    byte[] fileData = { };
-                    //formData.Add(fileContent, "file", Path.GetFileName(filePath));
-                    formData.Add(new ByteArrayContent(fileData), "file");
-
-                    // 发送 POST 请求
-                    var response = await client.PostAsync(url, formData);
-
-                    Console.WriteLine("上传成功！");
-                }
-            } catch (Exception ex) {
-                Console.WriteLine($"发生错误: {ex.Message}");
-            }
-
-            return StatusCode(200);
+            return StatusCode(200, new {
+                result.url,
+                filePath,
+                result.authorization,// 签名
+                result.token,
+                result.cos_file_id
+            });
         }
     }
 }

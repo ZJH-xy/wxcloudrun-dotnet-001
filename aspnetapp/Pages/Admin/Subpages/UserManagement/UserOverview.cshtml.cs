@@ -4,12 +4,21 @@ using aspnetapp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
+using Senparc.Weixin.WxOpen.Entities;
 using System.IO;
 
 namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
     public class UserOverviewModel : PageModel {
         private readonly UserControllerWeb _userController;
         private readonly ILogger<UserOverviewModel> _logger;
+        private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;
+
+        public UserOverviewModel(UserControllerWeb userController, ILogger<UserOverviewModel> logger, IOptionsSnapshot<WeixinSetting> wxSetting) {
+            _userController = userController;
+            _logger = logger;
+            _wxSetting = wxSetting;
+        }
 
         public List<User> List { get; set; } = new List<User>();
         public class NewUser {
@@ -17,11 +26,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             public string Name { get; set; }
             public string Phone { get; set; }
             public string IdentityCard { get; set; }
-            public IFormFile Image { get; set; } // 用于接收文件
-
-            byte[] Data { get; set; }
         }
-
 
         // 用于在页面显示错误信息
         public string ErrorMessage { get; set; }
@@ -57,11 +62,15 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         [BindProperty(SupportsGet = true)]
         public string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
 
+        // 图片上传
+        public string ImageName { get; set; }// 图片文件名
+        // 所需信息
+        public string ImageUrl { get; set; }
+        public string FilePath { get; set; }
+        public string Authorization { get; set; }
+        public string Token { get; set; }
+        public string Cos_file_id { get; set; }
 
-        public UserOverviewModel(UserControllerWeb userController, ILogger<UserOverviewModel> logger) {
-            _userController = userController;
-            _logger = logger;
-        }
 
         /// <summary>
         /// 查询
@@ -110,53 +119,64 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                 SuccessMessage = $"保存成功，已更新 ID：{UpdatedUser.Id}";
             }
 
-            if (Request.Form.Files.Count > 0) {
-                var file = Request.Form.Files["UpdatedUser.IdentityCardPicture"];
-                if (file != null && file.Length > 0) {
-                    Console.WriteLine($"接收到的文件名: {file.FileName}");
-
-                    // 指定保存文件的路径
-                    string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-                    if (!Directory.Exists(uploadsFolder)) {
-                        Directory.CreateDirectory(uploadsFolder);
-                    }
-
-                    // 确保文件名唯一，避免冲突
-                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
-                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    // 保存文件到服务器
-                    using (var fileStream = new FileStream(filePath, FileMode.Create)) {
-                        await file.CopyToAsync(fileStream);
-                    }
-
-                    Console.WriteLine($"文件已保存到服务器路径: {filePath}");
-
-                    // 如果需要操作文件
-                    byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-                    Console.WriteLine($"文件大小（字节）: {fileBytes.Length}");
-
-                    // 在这里处理文件逻辑
-                    // 示例：模拟处理文件操作完成
-                    Console.WriteLine("处理文件完成，准备删除文件。");
-
-                    // 删除文件
-                    if (System.IO.File.Exists(filePath)) {
-                        System.IO.File.Delete(filePath);
-                        Console.WriteLine($"文件已成功删除: {filePath}");
-                    } else {
-                        Console.WriteLine("找不到文件，无法删除。");
-                    }
-                } else {
-                    Console.WriteLine("未收到文件。");
-                }
-            } else {
-                Console.WriteLine("没有文件上传。");
-            }
-
-
             List = await _userController.GetTablePage(Limit, PageIndex); // 刷新用户列表
             return Page();
+        }
+
+        /// <summary>
+        /// 获取文件上传所需信息
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> OnPostUpdateUserImageAsync() {
+            //设置微信小程序的AppId和AppSecret
+            //var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+            //var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+            //var envId = "prod-3g2khb36f729f21f";
+
+            //WxUploadFileJsonResult result = await TcbApi.UploadFileAsync(appId, envId, "1.txt");
+
+            //return StatusCode(200);
+            
+            if (string.IsNullOrEmpty(ImageName))
+                return StatusCode(403, "文件名错误");
+
+            // 设置微信小程序的AppId和AppSecret
+            var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+            var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+            var envId = _wxSetting.Value.Env;
+
+            ImageName = Guid.NewGuid().ToString() + "_" + ImageName;
+
+            WxUploadFileJsonResult result;
+            try {
+                // 获取上传文件路径
+                result = await TcbApi.UploadFileAsync(appId, envId, ImageName);
+
+                if (result.ErrorCodeValue != 0) {
+                    Console.WriteLine($"错误{result.ToJson()}");
+                    return StatusCode(500);
+                }
+                // 输出上传结果
+                Console.WriteLine("File uploaded successfully!");
+                Console.WriteLine("File ID: " + result.file_id);
+
+            } catch (Exception ex) {
+                // 输出错误信息
+                Console.WriteLine("获取上传文件路径：" + ex.Message);
+                return StatusCode(500);
+            }
+
+            string filePath = @"7072-prod-3g2khb36f729f21f-1331625129/admin/user/identityCardPictures/" + ImageName;// 用户身份证文件路径
+
+            ImageUrl = result.url;
+            FilePath = filePath;
+            Authorization = result.authorization;// 签名
+            Token = result.token;
+            Cos_file_id = result.cos_file_id;
+
+            return StatusCode(200);
+            
+            //return await _userController.GetUploadPath(ImageName);
         }
 
         /// <summary>
@@ -170,14 +190,5 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             List = await _userController.SearchUsers(SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
             return Page();
         }
-
-
-        public IActionResult OnGetSearchAsync(string SearchPhone) {
-            Console.WriteLine("=========================");
-            return Page();
-        }
-
-
-
     }
 }
