@@ -7,10 +7,10 @@ namespace aspnetapp.Controllers.API.Miniprogram
     [ApiController]
     public class VehicleAPI : ControllerBase {
         private readonly MyDbContext _dbContext;
-        private readonly ILogger<OrderAPI> _logger;
+        private readonly ILogger<VehicleAPI> _logger;
         private readonly VehicleController _vehicleController;
 
-        public VehicleAPI(MyDbContext dbContext, ILogger<OrderAPI> logger) {
+        public VehicleAPI(MyDbContext dbContext, ILogger<VehicleAPI> logger) {
             _dbContext = dbContext;
             _logger = logger;
             _vehicleController = new(_dbContext);

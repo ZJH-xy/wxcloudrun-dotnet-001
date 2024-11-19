@@ -1,5 +1,6 @@
 ﻿using aspnetapp.Controllers.Miniprogram;
 using Microsoft.AspNetCore.Authorization;
+using MySqlConnector;
 using System.Security.Claims;
 
 namespace aspnetapp.Controllers.API.Miniprogram
@@ -428,9 +429,21 @@ namespace aspnetapp.Controllers.API.Miniprogram
             DateTime threshold = now.AddMinutes(-10);// 计算10分钟前的时间
 
             // 查询所有超过10分钟未支付的待付款订单
-            List<Order> ordersToCancel = await _dbContext.Order
-                .Where(o => o.Status == Order.OrderStatus.待付款 && o.CreatedAt < threshold)
-                .ToListAsync();
+            List<Order> ordersToCancel = new();
+            try {
+                ordersToCancel = await _dbContext.Order
+                    .Where(o => o.Status == Order.OrderStatus.待付款 && o.CreatedAt < threshold)
+                    .ToListAsync();
+
+            } catch (MySqlException e) {
+                if (e.ErrorCode.Equals(9449)) {
+                    _logger.LogWarning("MySqlConnector.MySqlException:“CynosDB serverless instance is resuming, please try connecting again”");
+                    return;
+                } else {
+                    _logger.LogCritical(e, "获取待付款订单{ordersToCancel}", ordersToCancel.ToArray());
+                    throw;
+                }
+            }
 
             using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
 
@@ -461,8 +474,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
             }
 
             await transaction.CommitAsync();
+            return;
         }
-
 
         /// <summary>
         /// JWT 获取用户id

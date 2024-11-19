@@ -8,15 +8,37 @@ namespace aspnetapp.Controllers.API.Miniprogram {
     [ApiController]
     public class StoreAPI : ControllerBase {
         private readonly MyDbContext _dbContext;
-        private readonly ILogger<OrderAPI> _logger;
+        private readonly ILogger<StoreAPI> _logger;
         private readonly StoreController _storeController;
         private readonly FavoritesStoreController _favoritesStoreController;
 
-        public StoreAPI(MyDbContext dbContext, ILogger<OrderAPI> logger) {
+        public StoreAPI(MyDbContext dbContext, ILogger<StoreAPI> logger) {
             _dbContext = dbContext;
             _logger = logger;
             _storeController = new(_dbContext);
             _favoritesStoreController = new(_dbContext);
+        }
+
+        /// <summary>
+        /// 获取门店名称
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("name/{id}")]
+        public async Task<IActionResult> GetStoreName(int id) {
+            Store? store;
+            try {
+                store = await _dbContext.Store.FirstOrDefaultAsync(s => s.Id == id);
+
+            } catch (Exception e) {
+                _logger.LogError(e, "获取门店{StoreId}名称", id);
+                return StatusCode(500);
+            }
+
+            if (store is null)
+                return StatusCode(404);
+
+            return StatusCode(200, store.Name);
         }
 
         /// <summary>
@@ -62,6 +84,17 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         [Authorize]
         [HttpPost("favorites/{storeId}")]
         public async Task<IActionResult> AddFavoritesStore(int storeId) {
+            List<UserFavoritesStore> list = await _favoritesStoreController.GetByUserId(GetUserIdInt());
+
+            /*foreach (UserFavoritesStore store in list) {
+                if (store.Id == storeId) {
+                    return StatusCode(403, "不可重复收藏");
+                }
+            }*/
+
+            if (list.Any(s => s.Id == storeId))
+                return StatusCode(403, "不可重复收藏");
+
             await _favoritesStoreController.AddFavoritesStore(GetUserIdInt(), storeId);
             return StatusCode(200);
         }
