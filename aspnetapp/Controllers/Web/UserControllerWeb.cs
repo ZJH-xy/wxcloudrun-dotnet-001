@@ -157,10 +157,10 @@ namespace aspnetapp.Controllers.Web {
         /// <summary>
         /// 获取文件上传所需信息
         /// </summary>
-        /// <param name="flieName"></param>
+        /// <param name="fileName"></param>
         /// <returns></returns>
-        public async Task<IActionResult> GetUploadPath(string flieName) {
-            if (string.IsNullOrEmpty(flieName))
+        public async Task<IActionResult> GetUploadPath(string fileName) {
+            if (string.IsNullOrEmpty(fileName))
                 return StatusCode(403, "文件名错误");
 
             // 设置微信小程序的AppId和AppSecret
@@ -171,7 +171,7 @@ namespace aspnetapp.Controllers.Web {
             WxUploadFileJsonResult result;
             try {
                 // 获取上传文件路径
-                result = await TcbApi.UploadFileAsync(appId, envId, flieName);
+                result = await TcbApi.UploadFileAsync(appId, envId, fileName);
 
                 if (result.ErrorCodeValue != 0) {
                     Console.WriteLine($"错误{result.ToJson()}");
@@ -187,7 +187,7 @@ namespace aspnetapp.Controllers.Web {
                 return StatusCode(500);
             }
 
-            string filePath = @"7072-prod-3g2khb36f729f21f-1331625129/admin/user/identityCardPictures/" + flieName;// 用户身份证文件路径
+            string filePath = @"7072-prod-3g2khb36f729f21f-1331625129/admin/user/identityCardPictures/" + fileName;// 用户身份证文件路径
 
             return StatusCode(200, new {
                 result.url,
@@ -196,6 +196,28 @@ namespace aspnetapp.Controllers.Web {
                 result.token,
                 result.cos_file_id
             });
+        }
+
+        /// <summary>
+        /// 更新用户图片信息
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="fileName"></param>
+        /// <returns>返回更改行数，负数错误</returns>
+        public async Task<int> PutImagePath(int id, string fileName) {
+            User? user = await _context.User.FindAsync(id);
+            if (user == null)
+                return -1;
+
+            user.IdentityCardPictures = fileName;
+
+            try {
+                return await _context.SaveChangesAsync();
+
+            } catch (Exception e) {
+                _logger.LogError("保存用户{UserId}身份证图片路径", id);
+                return -2;
+            }
         }
     }
 }

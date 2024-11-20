@@ -179,6 +179,19 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         }
 
         /// <summary>
+        /// 更新数据库文件路径
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> OnPostPutImagePathAsync() {
+            int reslut = await _userController.PutImagePath(UpdatedUser.Id, ImageName);
+            if (reslut <= 0)
+                return StatusCode(500);
+
+            return StatusCode(200);
+        }
+        
+
+        /// <summary>
         /// 查询
         /// </summary>
         /// <returns></returns>
