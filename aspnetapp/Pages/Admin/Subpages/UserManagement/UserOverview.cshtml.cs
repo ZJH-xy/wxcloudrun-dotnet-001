@@ -68,43 +68,43 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 
 		// 用于提供给前端的 API 方法
 		[HttpPost]
-		[IgnoreAntiforgeryToken] // 如果需要跳过 CSRF 检查
+		[IgnoreAntiforgeryToken]
 		public async Task<JsonResult> OnPostSayHelloAsync() {
-			// 设置微信小程序的AppId和AppSecret
-			var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
-			var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
-			var envId = _wxSetting.Value.Env;
-
-			ImageName = Guid.NewGuid().ToString() + "_" + ImageName;
-
-			WxUploadFileJsonResult result;
+			Console.WriteLine("接口已触发");
+			string message = "未定义错误"; // 默认错误信息
 			try {
-				// 获取上传文件路径
-				result = await TcbApi.UploadFileAsync(appId, envId, ImageName);
+				var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+				var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+				var envId = _wxSetting.Value.Env;
+
+				// 模拟业务逻辑
+				ImageName = Guid.NewGuid().ToString() + "_test.jpg";
+				WxUploadFileJsonResult result = await TcbApi.UploadFileAsync(appId, envId, ImageName);
 
 				if (result.ErrorCodeValue != 0) {
-					Console.WriteLine($"错误{result.ToJson()}");
-					return new JsonResult(new { });
+					message = "上传失败，错误码：" + result.ErrorCodeValue;
+					Console.WriteLine(message);
+					return new JsonResult(new { success = false, message });
 				}
-				// 输出上传结果
-				Console.WriteLine("File uploaded successfully!");
-				Console.WriteLine("File ID: " + result.file_id);
 
+				string filePath = @$"7072-prod-3g2khb36f729f21f-1331625129/admin/user/identityCardPictures/{ImageName}";
+				Console.WriteLine("文件上传成功！");
+
+				return new JsonResult(new {
+					success = true,
+					ImageUrl = result.url,
+					FilePath = filePath,
+					Authorization = result.authorization,
+					Token = result.token,
+					Cos_file_id = result.cos_file_id
+				});
 			} catch (Exception ex) {
-				// 输出错误信息
-				Console.WriteLine("获取上传文件路径：" + ex.Message);
-				return new JsonResult(new { });
+				message = "发生异常：" + ex.Message;
+				Console.WriteLine(message);
+				return new JsonResult(new { success = false, message });
 			}
-
-			string filePath = @"7072-prod-3g2khb36f729f21f-1331625129/admin/user/identityCardPictures/" + ImageName;// 用户身份证文件路径
-
-			ImageUrl = result.url;
-			FilePath = filePath;
-			Authorization = result.authorization;// 签名
-			Token = result.token;
-			Cos_file_id = result.cos_file_id;
-			return new JsonResult(new { ImageUrl, FilePath, Authorization, Token, Cos_file_id });
 		}
+
 
 		/// <summary>
 		/// 查询
