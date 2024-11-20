@@ -1,213 +1,367 @@
 ﻿@page
 @model aspnetapp.Pages.Admin.Subpages.UserManagement.UserOverviewModel
 @{
+    ViewBag.Title = "用户总览";
+
 }
-<link rel="stylesheet" href="~/css/table.css" />
+
+<head>
+    <meta charset="utf-8" />
+    <title>用户总览</title>
+    <!-- 引用外部 jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="~/css/table.css" />
+    <script src="~/js/pageutils.js"></script>
+
+</head>
 <body>
-	<h4>用户总览</h4>
-	<!-- 显示错误消息 -->
-	@if (!string.IsNullOrEmpty(Model.ErrorMessage)) {
-		<div class="alert alert-danger">
-			<ul>
-				<text>@Model.ErrorMessage</text>
-				@foreach (var error in ModelState.Values.SelectMany(v => v.Errors)) {
-					<li>@error.ErrorMessage</li>
-				}
-			</ul>
-		</div>
-	}
+    <h4>用户总览</h4>
+    <!-- 显示错误消息 -->
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            <ul>
+                <text>@Model.ErrorMessage</text>
+                @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
 
-	<!-- 显示成功消息 -->
-	@if (!string.IsNullOrEmpty(Model.SuccessMessage)) {
-		<div class="alert alert-success">
-			<text>@Model.SuccessMessage</text>
-		</div>
-	}
+    <!-- 显示成功消息 -->
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert alert-success">
+            <text>@Model.SuccessMessage</text>
+            <text id="response"></text>
 
-	<div class="header">
-		<div class="header">
-			<form method="get">
-				<button type="submit">刷新</button>
-			</form>
-			<button>导出</button>
-			<button id="addRowBtn">添加</button>
-		</div>
-		<form method="post" asp-page-handler="Search">
-			<input asp-for="SearchPhone" placeholder="手机号" />
-			<input asp-for="SearchName" placeholder="姓名" />
-			<input asp-for="SearchNickname" placeholder="昵称" />
-			<select asp-for="SortField">
-				<option value="Id">ID</option>
-				<option value="Phone">手机号</option>
-				<option value="Name">姓名</option>
-				<option value="CreatedAt">创建时间</option>
-			</select>
-			<select asp-for="SortOrder">
-				<option value="asc">升序</option>
-				<option value="desc">降序</option>
-			</select>
-			<button type="submit">搜索</button>
-		</form>
+        </div>
+    }
 
-	</div>
+    <div class="header">
+        <div class="header">
+            <form method="get">
+                <button type="submit">刷新</button>
+            </form>
+            <button>导出</button>
+            <button id="addRowBtn">添加</button>
+        </div>
+        <form method="post" asp-page-handler="Search">
+            <input asp-for="SearchPhone" placeholder="手机号" />
+            <input asp-for="SearchName" placeholder="姓名" />
+            <input asp-for="SearchNickname" placeholder="昵称" />
+            <select asp-for="SortField">
+                <option value="Id">ID</option>
+                <option value="Phone">手机号</option>
+                <option value="Name">姓名</option>
+                <option value="CreatedAt">创建时间</option>
+            </select>
+            <select asp-for="SortOrder">
+                <option value="asc">升序</option>
+                <option value="desc">降序</option>
+            </select>
+            <button type="submit">搜索</button>
+        </form>
 
-	<table id="userTable">
-		<tr>
-			<th>序号</th>
-			<th>ID</th>
-			<th>昵称</th>
-			<th>姓名</th>
-			<th>手机号</th>
-			<th>身份证号</th>
-			<th>身份证照片</th>
-			<th>创建时间</th>
-			<th>操作</th>
-		</tr>
-		<!-- 新增数据行 -->
-		<tr id="newRow" style="display: none;">
-			<form method="post" asp-page-handler="AddVehicle">
-			<td>新增</td>
-			<td>自动生成</td>
-			<td><input type="text" name="NewUser.Nickname" placeholder="请输入昵称" /></td>
-			<td><input type="text" name="NewUser.Name" placeholder="请输入姓名" /></td>
-			<td><input type="text" name="NewUser.Phone" placeholder="请输入手机号" /></td>
-			<td><input type="text" name="NewUser.IdentityCard" placeholder="请输入身份证号" /></td>
-			<td>
-				<!-- 隐藏文件输入框 -->
-				<input type="file" id="fileInput" name="NewVehicle.Image" accept="image/*" style="display: none;" />
+    </div>
 
-				<!-- 自定义按钮 -->
-				<button type="button" id="customButton">上传图片</button>
+    <table id="userTable">
+        <tr>
+            <th>序号</th>
+            <th>ID</th>
+            <th>昵称</th>
+            <th>姓名</th>
+            <th>手机号</th>
+            <th>身份证号</th>
+            <th>身份证照片</th>
+            <th>创建时间</th>
+            <th>操作</th>
+        </tr>
+        <!-- 新增数据行 -->
+        <tr id="newRow" style="display: none;">
+            <form method="post" asp-page-handler="AddVehicle">
+            <td>新增</td>
+            <td>自动生成</td>
+            <td><input type="text" name="NewUser.Nickname" placeholder="请输入昵称" /></td>
+            <td><input type="text" name="NewUser.Name" placeholder="请输入姓名" /></td>
+            <td><input type="text" name="NewUser.Phone" placeholder="请输入手机号" /></td>
+            <td><input type="text" name="NewUser.IdentityCard" placeholder="请输入身份证号" /></td>
+            <td>
+                <!-- 隐藏文件输入框 -->
+                <input type="file" id="fileInputAdd" name="NewVehicle.Image" accept="image/*" style="display: none;" />
 
-				<!-- 图片预览 -->
-				<div id="previewContainer" style="margin-top: 10px;align-items: center; display:flex;flex-direction: column;">
-					<img id="imagePreview" src="" style="display:none;width:100%;height:auto;" />
-					<span id="fileName" style="display: block; color: #555; font-size: 14px;">未选择文件</span>
-				</div>
-			</td>
+                <!-- 自定义按钮 -->
+                <button type="button" id="customButton">上传图片</button>
+
+                <!-- 图片预览 -->
+                <div id="previewContainer" style="margin-top: 10px;align-items: center; display:flex;flex-direction: column;">
+                    <img id="imagePreview" src="" style="display:none;width:100%;height:auto;" />
+                    <span id="fileName" style="display: block; color: #555; font-size: 14px;">未选择文件</span>
+                </div>
+            </td>
 
 
 
-			<td>自动生成</td>
-			<td>
-				<button type="submit">保存</button>
-			</td>
-			</form>
-		</tr>
-		@for (int i = 0; i < Model.List.Count; i++) {
-			<tr>
-				<form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data" id="uploadForm">
-				<td>@(i + 1)</td>
-				<td>@Model.List[i].Id<input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" /></td>
-				<td><input type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="无" disabled /></td>
-				<td><input type="text" name="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="无" disabled /></td>
-				<td><input type="text" name="UpdatedUser.Phone" value="@Model.List[i].Phone" placeholder="无" disabled /></td>
-				<td><input type="text" name="UpdatedUser.IdentityCard" value="@Model.List[i].IdentityCard" placeholder="无" disabled /></td>
-				<td>
-					<div class="imageContainer" data-id="@Model.List[i].Id">
-						<!-- 当前图片 -->
-						<img src="@Model.List[i].IdentityCardPictures" alt="图片加载失败"
-							 style="width: 100px; height: auto; cursor: pointer;"
-							 class="thumbnail"
-							 data-id="@Model.List[i].Id"
-							 onerror="this.style.display='none';">
-						<!-- 文件上传控件 -->
-						<input type="file" id="fileInput" name="UpdatedUser.IdentityCardPicture file" style="display: none;" class="fileUpload" data-id="@Model.List[i].Id">
+            <td>自动生成</td>
+            <td>
+                <button type="submit">保存</button>
+            </td>
+            </form>
+        </tr>
+        @for (int i = 0; i < Model.List.Count; i++)
+        {
+            <tr>
+                <form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data">
+                <td>@(i + 1)</td>
+                <td>@Model.List[i].Id<input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" /></td>
+                <td><input type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="无" disabled /></td>
+                <td><input type="text" name="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="无" disabled /></td>
+                <td><input type="text" name="UpdatedUser.Phone" value="@Model.List[i].Phone" placeholder="无" disabled /></td>
+                <td><input type="text" name="UpdatedUser.IdentityCard" value="@Model.List[i].IdentityCard" placeholder="无" disabled /></td>
+                <td>
+                    <div class="imageContainer" data-id="@Model.List[i].Id">
+                        <!-- 当前图片 -->
+                        <img src="@Model.List[i].IdentityCardPictures" alt="图片加载失败"
+                             style="width: 100px; height: auto; cursor: pointer;"
+                             class="thumbnail"
+                             data-id="@Model.List[i].Id"
+                             onerror="this.style.display='none';">
+                        <!-- 文件上传控件 -->
+                        <label for="fileInput"></label>
 
-						<!-- 图片预览 -->
-						<img src="" alt="预览图" class="preview" style="display: none; width: 100px; height: auto; margin-top: 10px;">
-					</div>
-				</td>
+                        <input type="file" id="fileInput" name="file" style="display: none;" class="fileUpload" data-id="@Model.List[i].Id" required>
+                        <input id="UserId" value="@Model.List[i].Id" />
+                        <input id="key" value="@Model.ImageName" />
+                        <input id="Signature" value="@Model.Authorization" />
+                        <input id="token" value="@Model.Token" />
+                        <input id="fileid" value="@Model.Cos_file_id" />
+                        <input id="url" value="@Model.FilePath" />
 
-				<td>@Model.List[i].CreatedAt</td>
+                        <!-- 图片预览 -->
+                        <img src="" alt="预览图" class="preview" style="display: none; width: 100px; height: auto; margin-top: 10px;">
+                    </div>
+                </td>
 
-				<td>
-					<button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
-					<button type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;">保存</button>
-				</td>
-				  
-				<input type="hidden" name="UpdatedUser.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
-				</form>
-			</tr>
-		}
+                <td>@Model.List[i].CreatedAt</td>
 
-	</table>
-	<div class="bottom">
-		<div class="bottom-item">
-			<text>第 @(Model.PageIndex) 页，共 * 页</text>
-		</div>
-		<div class="bottom-item">
-			<input placeholder="请输入页数" />
-			<button>跳转</button>
-			<button>上一页</button>
-			<button>下一页</button>
-		</div>
-	</div>
+                <td>
+                    <button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
+                    <button type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;" onclick="buttonClick()">保存</button>
+                </td>
 
-	<!-- 图片模态窗口 -->
-	<div id="imageModal" class="modal" style="display:none;">
-		<span class="close">&times;</span>
-		<img class="modal-content" id="modalImage" />
-	</div>
-	<!-- 图片操作相关 -->
-	<script>
-		const myFile = document.getElementById('fileInput');
-		const file = myFile.files[0];
-		const config = {
-			key: @Model.ImageName,
-			Signature: @Model.Authorization,
-			token: @Model.Token,
-			fileid: @Model.Cos_file_id,
-			filePath: @Model.FilePath,
-			url: @Model.FilePath
-		}
-		console.log('config:', config)
+                <input type="hidden" name="UpdatedUser.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+                </form>
+            </tr>
+        }
+        <script>
+            var file;
+            document.getElementById('fileInput').addEventListener('change', function (event) {
+                file = event.target.files[0]; // 获取用户上传的文件
+                console.log('myFile', file)
 
-		$(document).ready(function () {
-			$('#uploadForm').on('submit', function (event) {
-				event.preventDefault();
+            });
 
-				const fileInput = $('#fileInput')[0];
-				if (!fileInput.files.length) {
-					alert('Please select a file.');
-					return;
-				}
+            async function buttonClick() {
 
-				const form = new FormData();
-				form.append("key", config.key);
-				form.append("Signature", config.Signature);
-				form.append("x-cos-security-token", config.token);
-				form.append("x-cos-meta-fileid", config.fileid);
-				form.append("file", fileInput.files[0], config.filePath);
+                try {
+                    await waitForConfig(); // 等待配置完成
+                    // alert("配置完成");
 
-				const settings = {
-					"url": config.url,
-					"method": "POST",
-					"timeout": 0,
-					"headers": {
-						"User-Agent": "Apifox/1.0.0 (https://apifox.com)",
-						"Accept": "*/*",
-						"Host": "7072-prod-3g2khb36f729f21f-1331625129.cos.ap-shanghai.myqcloud.com",
-						"Connection": "keep-alive"
-					},
-					"processData": false,
-					"mimeType": "multipart/form-data",
-					"contentType": false,
-					"data": form
-				};
+                    // 配置上传的参数
+                    const config = {
+                        "key": document.getElementById("key").value,
+                        "Signature": document.getElementById("Signature").value,
+                        "token": document.getElementById("token").value,
+                        "fileid": document.getElementById("fileid").value,
+                        "filePath": file, // 使用文件的名称
+                        "url": document.getElementById("url").value
+                    };
+                    console.log("config:", config)
 
-				$.ajax(settings).done(function (response) {
+                    const fileInput = $('#fileInput')[0];
+                    console.log('fileInput:', fileInput.files[0])
+                    if (!fileInput.files.length) {
+                        alert('Please select a file.');
+                        return;
+                    }
 
-					console.log(response);
-					$('#response').text('File uploaded successfully: ' + response);
-				}).fail(function (xhr, status, error) {
+                    const form = new FormData();
+                    form.append("key", config.key);
+                    form.append("Signature", config.Signature);
+                    form.append("x-cos-security-token", config.token);
+                    form.append("x-cos-meta-fileid", config.fileid);
+                    form.append("file", fileInput.files[0], config.filePath.name);
 
-					console.error(error);
-					$('#response').text('Error uploading file: ' + error);
-				});
-			});
-		});
-	</script>
-	<script src="~/js/PageUtils.js"></script>
+                    const settings = {
+                        "url": config.url,
+                        "method": "POST",
+                        "timeout": 0,
+                        "headers": {
+                            "User-Agent": "Apifox/1.0.0 (https://apifox.com)",
+                            "Accept": "*/*",
+                            "Host": "7072-prod-3g2khb36f729f21f-1331625129.cos.ap-shanghai.myqcloud.com",
+                            "Connection": "keep-alive"
+                        },
+                        "processData": false,
+                        "mimeType": "multipart/form-data",
+                        "contentType": false,
+                        "data": form
+                    };
+
+                    $.ajax(settings).done(function (response) {
+
+                        console.log(response);
+                        $('#response').text('File uploaded successfully: ' + response);
+                    }).fail(function (xhr, status, error) {
+
+                        console.error(error);
+                        $('#response').text('Error uploading file: ' + error);
+                    });
+
+                } catch (error) {
+                    console.error(error);
+                    alert(error); // 提示超时
+                }
+            }
+            function checkConfig() {
+                const keyValue = document.getElementById("key").value;
+                return !!keyValue; // 如果 keyValue 存在则返回 true，否则返回 false
+            }
+
+            function waitForConfig(timeout = 10000) {
+                return new Promise((resolve, reject) => {
+                    const interval = 100; // 每隔 1 秒检查一次
+                    let elapsed = 0;
+
+                    const timer = setInterval(() => {
+                        elapsed += interval;
+
+                        if (checkConfig()) {
+                            clearInterval(timer); // 清除定时器
+                            resolve(); // 触发成功逻辑
+                        } else if (elapsed >= timeout) {
+                            clearInterval(timer); // 清除定时器
+                            reject("等待超时：配置未完成");
+                        }
+                    }, interval);
+                });
+            }
+
+        </script>
+
+    </table>
+    <div class="bottom">
+        <div class="bottom-item">
+            <text>第 @(Model.PageIndex) 页，共 * 页</text>
+        </div>
+        <div class="bottom-item">
+            <input placeholder="请输入页数" />
+            <button>跳转</button>
+            <button>上一页</button>
+            <button>下一页</button>
+        </div>
+    </div>
+
+    <!-- 图片模态窗口 -->
+    <div id="imageModal" class="modal" style="display:none;">
+        <span class="close">&times;</span>
+        <img class="modal-content" id="modalImage" />
+    </div>
+
+    <!-- 图片操作相关 -->
+    @*     <script>
+    $(document).ready(function () {
+    // 监听文件选择框的变化事件
+    $('input[type="file"]').change(function () {
+    const fileInput = $(this)[0];
+    const file = fileInput.files[0];
+    const fileId = $(this).data('id'); // 获取文件输入框的 ID
+
+    if (file) {
+    // 更新文件名显示
+    const fileName = $(this).next('div').find('#fileName');
+    fileName.text(file.name);
+
+    // 显示预览图
+    const previewImg = $(this).next('div').find('.preview');
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+    previewImg.attr('src', e.target.result);
+    previewImg.show();
+    }
+
+    reader.readAsDataURL(file);
+    }
+    });
+
+    // 点击上传图片按钮时，触发文件输入框点击事件
+    $('#customButton').click(function () {
+    const fileInput = $(this).siblings('input[type="file"]'); // 找到文件输入框
+    fileInput.click(); // 触发点击事件
+    });
+
+    // 提交上传表单
+    $('#uploadForm').on('submit', function (event) {
+    event.preventDefault(); // 阻止表单的默认提交行为
+
+    // 获取文件输入框中的文件
+    const fileInput = $(this).find('input[type="file"]')[0]; // 获取当前行的文件输入框
+    if (!fileInput.files.length) {
+    alert('Please select a file.');
+    return;
+    }
+
+    // 配置上传的参数
+    const config = {
+    key: "@Model.ImageName",
+    Signature: "@Model.Authorization",
+    token: "@Model.Token",
+    fileid: "@Model.Cos_file_id",
+    filePath: fileInput.files[0].name, // 使用文件的名称
+    url: "@Model.FilePath"
+    };
+
+    // 创建 FormData 实例
+    const formData = new FormData();
+    formData.append("key", config.key);
+    formData.append("Signature", config.Signature);
+    formData.append("x-cos-security-token", config.token);
+    formData.append("x-cos-meta-fileid", config.fileid);
+    formData.append("file", fileInput.files[0], config.filePath); // 将文件添加到表单数据中
+
+    // 设置 AJAX 请求的配置
+    const settings = {
+    url: config.url,
+    method: "POST",
+    timeout: 0,
+    headers: {
+    "User-Agent": "Apifox/1.0.0 (https://apifox.com)",
+    "Accept": "*/*",
+    "Host": "7072-prod-3g2khb36f729f21f-1331625129.cos.ap-shanghai.myqcloud.com",
+    "Connection": "keep-alive"
+    },
+    processData: false,
+    mimeType: "multipart/form-data",
+    contentType: false,
+    data: formData // 提交 FormData 数据
+    };
+
+    // 发送 AJAX 请求
+    $.ajax(settings).done(function (response) {
+    console.log("File uploaded successfully:", response);
+    $('#response').text('File uploaded successfully: ' + response);
+    }).fail(function (xhr, status, error) {
+    console.error("Error uploading file:", error);
+    $('#response').text('Error uploading file: ' + error);
+    });
+    });
+    });
+    </script>
+
+    *@
+
 
 </body>

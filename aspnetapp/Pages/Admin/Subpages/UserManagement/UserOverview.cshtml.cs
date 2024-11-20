@@ -8,20 +8,24 @@ using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 using Senparc.Weixin.WxOpen.Entities;
 using System.IO;
 
-namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
-    public class UserOverviewModel : PageModel {
+namespace aspnetapp.Pages.Admin.Subpages.UserManagement
+{
+    public class UserOverviewModel : PageModel
+    {
         private readonly UserControllerWeb _userController;
         private readonly ILogger<UserOverviewModel> _logger;
         private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;
 
-        public UserOverviewModel(UserControllerWeb userController, ILogger<UserOverviewModel> logger, IOptionsSnapshot<WeixinSetting> wxSetting) {
+        public UserOverviewModel(UserControllerWeb userController, ILogger<UserOverviewModel> logger, IOptionsSnapshot<WeixinSetting> wxSetting)
+        {
             _userController = userController;
             _logger = logger;
             _wxSetting = wxSetting;
         }
 
         public List<User> List { get; set; } = new List<User>();
-        public class NewUser {
+        public class NewUser
+        {
             public string Nickname { get; set; }
             public string Name { get; set; }
             public string Phone { get; set; }
@@ -64,6 +68,8 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 
         // 图片上传
         public string ImageName { get; set; }// 图片文件名
+        public string FilePath2 { get; set; }// 图片文件名
+
         // 所需信息
         public string ImageUrl { get; set; }
         public string FilePath { get; set; }
@@ -76,12 +82,16 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         /// 查询
         /// </summary>
         /// <returns></returns>
-        public async Task<IActionResult> OnGetAsync() {
+        public async Task<IActionResult> OnGetAsync()
+        {
             _logger.LogInformation("正在获取限制为{Limit}的页面{PageIndex}的用户列表", PageIndex, Limit);
-            try {
+            try
+            {
                 List = await _userController.GetTablePage(Limit, PageIndex);
 
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "获取用户列表时出错");
                 ModelState.AddModelError(string.Empty, "加载用户列表时发生错误。");
             }
@@ -92,33 +102,86 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         /// 更新
         /// </summary>
         /// <returns></returns>
-        public async Task<IActionResult> OnPostUpdateUserAsync() {
+        public async Task<IActionResult> OnPostUpdateUserAsync()
+        {
             _logger.LogInformation("正在尝试使用ID更新用户{UserId}", UpdatedUser.Id);
 
-            if (!ModelState.IsValid) {
+            if (!ModelState.IsValid)
+            {
                 _logger.LogWarning("表单验证失败。UserId: {UserId}", UpdatedUser.Id);
                 ErrorMessage = "表单验证失败，请检查输入内容";
                 return Page();
             }
 
             var result = await _userController.UpdateUser(UpdatedUser);
-            if (result is NotFoundResult) {
+            if (result is NotFoundResult)
+            {
                 _logger.LogWarning("找不到用户。UserId: {UserId}", UpdatedUser.Id);
                 ErrorMessage = "找不到用户";
-            } else if (result is StatusCodeResult status && status.StatusCode == 500) {
+            }
+            else if (result is StatusCodeResult status && status.StatusCode == 500)
+            {
                 _logger.LogError("更新用户时出错。UserId: {UserId}", UpdatedUser.Id);
                 ErrorMessage = "更新用户时出错。";
-            } else if (result is ObjectResult objResult && objResult.StatusCode == 409) {
+            }
+            else if (result is ObjectResult objResult && objResult.StatusCode == 409)
+            {
                 _logger.LogWarning("使用ID更新用户时发生并发冲突。UserId: {UserId}", UpdatedUser.Id);
                 ErrorMessage = $"您尝试编辑的记录已被其他用户修改。请重新加载数据后重试，ID：{UpdatedUser.Id}";
-            } else {
+            }
+            else
+            {
                 _logger.LogInformation("ID为{UserId}的用户已成功更新", UpdatedUser.Id);
                 // 计算行号
                 var rowIndex = List.FindIndex(user => user.Id == UpdatedUser.Id) + 1; // 行号从1开始
                 SuccessMessage = $"保存成功，已更新 ID：{UpdatedUser.Id}";
             }
 
+            //if (string.IsNullOrEmpty(ImageName))
+            //	return StatusCode(403, "文件名错误");
+
+            // 设置微信小程序的AppId和AppSecret
+            var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+            var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+            var envId = _wxSetting.Value.Env;
+
+            ImageName = Guid.NewGuid().ToString() + "_" + UpdatedUser.Id + ".png";
+
+            WxUploadFileJsonResult resultImage;
+            try
+            {
+                // 获取上传文件路径
+                resultImage = await TcbApi.UploadFileAsync(appId, envId, ImageName);
+
+                if (resultImage.ErrorCodeValue != 0)
+                {
+                    Console.WriteLine($"错误{resultImage.ToJson()}");
+                    return StatusCode(500);
+                }
+                // 输出上传结果
+                Console.WriteLine("File uploaded successfully!");
+                Console.WriteLine("File ID: " + resultImage.file_id);
+
+            }
+            catch (Exception ex)
+            {
+                // 输出错误信息
+                Console.WriteLine("获取上传文件路径：" + ex.Message);
+                return StatusCode(500);
+            }
+
+            string filePath = @"7072-prod-3g2khb36f729f21f-1331625129/admin/user/identityCardPictures/" + ImageName;// 用户身份证文件路径
+
+            ImageUrl = resultImage.url;
+            FilePath = filePath;
+            Authorization = resultImage.authorization;// 签名
+            Token = resultImage.token;
+            Cos_file_id = resultImage.cos_file_id;
+
+            //return StatusCode(200);
+
             List = await _userController.GetTablePage(Limit, PageIndex); // 刷新用户列表
+
             return Page();
         }
 
@@ -126,7 +189,8 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         /// 获取文件上传所需信息
         /// </summary>
         /// <returns></returns>
-        public async Task<IActionResult> OnPostUpdateUserImageAsync() {
+        public async Task<IActionResult> OnPostUpdateUserImageAsync()
+        {
             //设置微信小程序的AppId和AppSecret
             //var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
             //var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
@@ -135,23 +199,25 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             //WxUploadFileJsonResult result = await TcbApi.UploadFileAsync(appId, envId, "1.txt");
 
             //return StatusCode(200);
-            
-            if (string.IsNullOrEmpty(ImageName))
-                return StatusCode(403, "文件名错误");
+
+            //if (string.IsNullOrEmpty(ImageName))
+            //    return StatusCode(403, "文件名错误");
 
             // 设置微信小程序的AppId和AppSecret
             var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
             var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
             var envId = _wxSetting.Value.Env;
 
-            ImageName = Guid.NewGuid().ToString() + "_" + ImageName;
+            ImageName = Guid.NewGuid().ToString() + "_" + UpdatedUser.Id + ".png";
 
             WxUploadFileJsonResult result;
-            try {
+            try
+            {
                 // 获取上传文件路径
                 result = await TcbApi.UploadFileAsync(appId, envId, ImageName);
 
-                if (result.ErrorCodeValue != 0) {
+                if (result.ErrorCodeValue != 0)
+                {
                     Console.WriteLine($"错误{result.ToJson()}");
                     return StatusCode(500);
                 }
@@ -159,7 +225,9 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                 Console.WriteLine("File uploaded successfully!");
                 Console.WriteLine("File ID: " + result.file_id);
 
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 // 输出错误信息
                 Console.WriteLine("获取上传文件路径：" + ex.Message);
                 return StatusCode(500);
@@ -173,8 +241,8 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             Token = result.token;
             Cos_file_id = result.cos_file_id;
 
-            return StatusCode(200);
-            
+            return Page();
+
             //return await _userController.GetUploadPath(ImageName);
         }
 
@@ -182,12 +250,14 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         /// 查询
         /// </summary>
         /// <returns></returns>
-        public async Task<IActionResult> OnPostSearchAsync() {
+        public async Task<IActionResult> OnPostSearchAsync()
+        {
             _logger.LogDebug("Executing OnGetSearchAsync with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
                            SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
             // 调用 UserControllerWeb 中的 SearchUsers 方法，包含排序字段和顺序
             List = await _userController.SearchUsers(SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
             return Page();
         }
+
     }
 }
