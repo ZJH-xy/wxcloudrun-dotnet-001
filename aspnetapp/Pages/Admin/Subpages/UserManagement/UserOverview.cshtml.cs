@@ -83,7 +83,6 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 
             } catch (Exception ex) {
                 _logger.LogError(ex, "获取用户列表时出错");
-                ErrorMessage = "加载用户列表时发生错误。";
                 ModelState.AddModelError(string.Empty, "加载用户列表时发生错误。");
             }
             return Page();
