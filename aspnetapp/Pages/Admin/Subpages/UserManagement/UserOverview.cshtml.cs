@@ -76,7 +76,50 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement
         public string Authorization { get; set; }
         public string Token { get; set; }
         public string Cos_file_id { get; set; }
+        // 用于提供给前端的 API 方法
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<JsonResult> OnPostSayHelloAsync()
+        {
+            Console.WriteLine("接口已触发");
+            string message = "未定义错误"; // 默认错误信息
+            try
+            {
+                var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+                var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+                var envId = _wxSetting.Value.Env;
 
+                // 模拟业务逻辑
+                ImageName = Guid.NewGuid().ToString() + "_test.jpg";
+                WxUploadFileJsonResult result = await TcbApi.UploadFileAsync(appId, envId, ImageName);
+
+                if (result.ErrorCodeValue != 0)
+                {
+                    message = "上传失败，错误码：" + result.ErrorCodeValue;
+                    Console.WriteLine(message);
+                    return new JsonResult(new { success = false, message });
+                }
+
+                string filePath = @$"7072-prod-3g2khb36f729f21f-1331625129/admin/user/identityCardPictures/{ImageName}";
+                Console.WriteLine("文件上传成功！");
+
+                return new JsonResult(new
+                {
+                    success = true,
+                    ImageUrl = result.url,
+                    FilePath = filePath,
+                    Authorization = result.authorization,
+                    Token = result.token,
+                    Cos_file_id = result.cos_file_id
+                });
+            }
+            catch (Exception ex)
+            {
+                message = "发生异常：" + ex.Message;
+                Console.WriteLine(message);
+                return new JsonResult(new { success = false, message });
+            }
+        }
 
         /// <summary>
         /// 查询
