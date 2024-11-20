@@ -49,6 +49,28 @@
 			<button type="submit">搜索</button>
 		</form>
 
+
+
+		<script type="text/javascript">
+			function JsCallCSharp(param1) {
+				PageMethods.sayhell(param1, onSayHelloSucceeded);
+			}
+
+			function onSayHelloSucceeded(result) {
+				alert(result);
+			}
+		</script>
+
+
+		<form id="form1" runat="server">
+			<asp:ScriptManager ID="ScriptManager1" runat="server" EnablePageMethods="true"></asp:ScriptManager>
+			<div>
+				<input type="button" onclick="JsCallCSharp('hello')" value="调用C#方法" />
+			</div>
+		</form>
+
+
+
 	</div>
 
 	<table id="userTable">
