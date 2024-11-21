@@ -75,7 +75,16 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         // 用于提供给前端的 API 方法
         [HttpPost]
         [IgnoreAntiforgeryToken]
-        public async Task<JsonResult> OnPostSayHelloAsync() {
+        public JsonResult OnPostSayHelloAsync([FromBody] Dictionary<string, string> requestData) {
+            if (requestData == null || !requestData.Any()) {
+                return new JsonResult(new { success = false, message = "请求数据为空！" });
+            }
+
+            //Console.WriteLine("接收到的请求数据:");
+            //foreach (var kvp in requestData) {
+            //    Console.WriteLine($"{kvp.Key}: {kvp.Value}");
+            //}
+
             Console.WriteLine("接口已触发");
             string message = "未定义错误"; // 默认错误信息
             try {
@@ -84,9 +93,10 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                 var envId = _wxSetting.Value.Env;
 
                 // 模拟业务逻辑
-                ImageName = Guid.NewGuid().ToString() + "_test.jpg";
+                ImageName = Guid.NewGuid().ToString() + "_" + requestData["Id"] + ".jpg";
+                Console.WriteLine($"[97]ImageName: {ImageName}");
 
-                WxUploadFileJsonResult result = await TcbApi.UploadFileAsync(appId, envId, ImageName);
+                WxUploadFileJsonResult result = TcbApi.UploadFile(appId, envId, ImageName);
 
                 if (result.ErrorCodeValue != 0) {
                     message = "上传失败，错误码：" + result.ErrorCodeValue;
@@ -167,6 +177,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             var envId = _wxSetting.Value.Env;
 
             ImageName = Guid.NewGuid().ToString() + "_" + UpdatedUser.Id + ".png";
+            Console.WriteLine($"[171]ImageName: {ImageName}");
 
             WxUploadFileJsonResult resultImage;
             try {
@@ -236,7 +247,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                     return StatusCode(500);
                 }
                 // 输出上传结果
-                Console.WriteLine("File uploaded successfully!");
+                Console.WriteLine("文件上传成功！");
                 Console.WriteLine("File ID: " + result.file_id);
 
             } catch (Exception ex) {
