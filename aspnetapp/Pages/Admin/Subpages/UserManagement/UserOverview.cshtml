@@ -8,7 +8,6 @@
 	<!-- 引用外部 jQuery -->
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<link rel="stylesheet" href="~/css/table.css" />
-	 <script src="~/js/pageutils.js"></script> 
 
 </head>
 <body>
@@ -42,23 +41,23 @@
 			<button>导出</button>
 			<button id="addRowBtn">添加</button>
 		</div>
-			<form method="post" asp-page-handler="Search">
-				<input asp-for="SearchPhone" placeholder="手机号" />
-				<input asp-for="SearchName" placeholder="姓名" />
-				<input asp-for="SearchNickname" placeholder="昵称" />
-				<select asp-for="SortField">
-					<option value="Id">ID</option>  
-					<option value="Phone">手机号</option>
-					<option value="Name">姓名</option>
-					<option value="CreatedAt">创建时间</option>
-				</select>
-				<select asp-for="SortOrder">
-					<option value="asc">升序</option>
-					<option value="desc">降序</option>
-				</select>
-				<button type="submit">搜索</button>
-			</form>
-		</div>
+		<form method="post" asp-page-handler="Search">
+			<input asp-for="SearchPhone" placeholder="手机号" />
+			<input asp-for="SearchName" placeholder="姓名" />
+			<input asp-for="SearchNickname" placeholder="昵称" />
+			<select asp-for="SortField">
+				<option value="Id">ID</option>
+				<option value="Phone">手机号</option>
+				<option value="Name">姓名</option>
+				<option value="CreatedAt">创建时间</option>
+			</select>
+			<select asp-for="SortOrder">
+				<option value="asc">升序</option>
+				<option value="desc">降序</option>
+			</select>
+			<button type="submit">搜索</button>
+		</form>
+	</div>
 	</div>
 
 	<table id="userTable">
@@ -73,37 +72,6 @@
 			<th>创建时间</th>
 			<th>操作</th>
 		</tr>
-		<!-- 新增数据行 -->
-		@* <tr id="newRow" style="display: none;">
-		<form method="post" asp-page-handler="AddVehicle">
-		<td>新增</td>
-		<td>自动生成</td>
-		<td><input type="text" name="NewUser.Nickname" placeholder="请输入昵称" /></td>
-		<td><input type="text" name="NewUser.Name" placeholder="请输入姓名" /></td>
-		<td><input type="text" name="NewUser.Phone" placeholder="请输入手机号" /></td>
-		<td><input type="text" name="NewUser.IdentityCard" placeholder="请输入身份证号" /></td>
-		<td>
-		<!-- 隐藏文件输入框 -->
-		<input type="file" id="fileInputAdd" name="NewVehicle.Image" accept="image/*" style="display: none;" />
-
-		<!-- 自定义按钮 -->
-		<button type="button" id="customButton">上传图片</button>
-
-		<!-- 图片预览 -->
-		<div id="previewContainer" style="margin-top: 10px;align-items: center; display:flex;flex-direction: column;">
-		<img id="imagePreview" src="" style="display:none;width:100%;height:auto;" />
-		<span id="fileName" style="display: block; color: #555; font-size: 14px;">未选择文件</span>
-		</div>
-		</td>
-
-
-
-		<td>自动生成</td>
-		<td>
-		<button type="submit">保存</button>
-		</td>
-		</form>
-		</tr> *@
 		@for (int i = 0; i < Model.List.Count; i++) {
 			<tr>
 				<form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data">
@@ -121,7 +89,7 @@
 							 class="thumbnail"
 							 data-id="@Model.List[i].Id"
 							 onerror="this.style.display='none';">
-						<input value="@Model.List[i].Id" id="userId" style="display:none;"/>
+						<input value="@Model.List[i].Id" id="userId" style="display:none;" />
 						<input type="file" id="@("fileInput"+ i)" name="file" style="display: none;" class="fileUpload" data-id="@Model.List[i].Id" required>
 						<!-- 图片预览 -->
 						<img src="" alt="预览图" class="preview" style="display: none; width: 100px; height: auto; margin-top: 10px;">
@@ -199,10 +167,75 @@
 						}
 
 					})
+			}
+			function uploadFileSync(url, data) {
+				const xhr = new XMLHttpRequest();
+				xhr.open("POST", url, false); // 第三个参数为 false，表示同步请求
 
+				try {
+					xhr.send(data); // 发送 FormData 数据
+
+					if (xhr.status >= 200 && xhr.status < 300) {
+						return xhr.responseText; // 返回成功的响应
+					} else {
+						throw new Error(`HTTP error! Status: ${xhr.status}, Response: ${xhr.responseText}`);
+					}
+				} catch (error) {
+					console.error("File upload failed:", error);
+					throw error; // 抛出错误，供调用者处理
+				}
 			}
 
-			
+		</script>
+		<script>
+			document.addEventListener("DOMContentLoaded", function () {
+				// 获取所有文件上传控件
+				const fileInputs = document.querySelectorAll(".fileUpload");
+
+				fileInputs.forEach(input => {
+					input.addEventListener("change", function () {
+						const file = this.files[0];
+						if (file) {
+							const reader = new FileReader();
+
+							// 读取文件完成后设置预览图片的 src 属性
+							reader.onload = function (e) {
+								const preview = input.closest(".imageContainer").querySelector(".preview");
+								preview.src = e.target.result; // 设置预览图像的路径
+								preview.style.display = "block"; // 显示预览图片
+							};
+
+							// 读取文件为 Data URL
+							reader.readAsDataURL(file);
+						}
+					});
+				});
+
+				// 编辑按钮逻辑
+				const editButtons = document.querySelectorAll(".editBtn");
+				editButtons.forEach(button => {
+					button.addEventListener("click", function () {
+						const id = this.dataset.id;
+						const container = document.querySelector(`.imageContainer[data-id="${id}"]`);
+						const img = container.querySelector(".thumbnail");
+						const fileInput = container.querySelector(".fileUpload");
+
+						// 隐藏旧图片
+						if (img) img.style.display = "none";
+
+						// 显示文件上传控件
+						fileInput.style.display = "block";
+
+						// 切换其他字段为可编辑状态
+						const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
+						inputs.forEach(input => input.disabled = false);
+
+						// 切换按钮状态
+						this.style.display = "none"; // 隐藏编辑按钮
+						container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
+					});
+				});
+			});
 		</script>
 
 	</table>
