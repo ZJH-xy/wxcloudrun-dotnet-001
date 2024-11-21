@@ -154,11 +154,7 @@ namespace aspnetapp.Controllers.Web {
             return results;
         }
 
-        /// <summary>
-        /// 获取文件上传所需信息
-        /// </summary>
-        /// <param name="fileName"></param>
-        /// <returns></returns>
+        // 获取文件上传所需信息
         public async Task<IActionResult> GetUploadPath(string fileName) {
             if (string.IsNullOrEmpty(fileName))
                 return StatusCode(403, "文件名错误");
@@ -209,15 +205,33 @@ namespace aspnetapp.Controllers.Web {
             if (user == null)
                 return -1;
 
-            user.IdentityCardPictures = fileName;
+            if (user.IdentityCardPictures is not null) {
+                var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+                var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+                var envId = _wxSetting.Value.Env;
 
+                List<string> fileid_list = new() {
+                    user.IdentityCardPictures
+                };
+
+                // 删除原图片
+                var re = await TcbApi.BatchDeleteFileAsync(appId, envId, fileid_list);
+                if (re.errcode != ReturnCode.请求成功) {
+                    _logger.LogError("删除用户{UserId}原图片{ImageId}", user.Id, user.IdentityCardPictures);
+                }
+            }
+
+            // 更新图片路径
+            user.IdentityCardPictures = fileName;
             try {
-                return await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
             } catch (Exception e) {
                 _logger.LogError("保存用户{UserId}身份证图片路径", id);
                 return -2;
             }
+
+            return 0;
         }
     }
 }

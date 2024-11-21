@@ -64,18 +64,16 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 
         // 图片上传
         public string ImageName { get; set; }// 图片文件名
-        public string FilePath2 { get; set; }// 图片文件名
+        public string FileId { get; set; }
 
-        // 所需信息
-        public string ImageUrl { get; set; }
-        public string FilePath { get; set; }
-        public string Authorization { get; set; }
-        public string Token { get; set; }
-        public string Cos_file_id { get; set; }
-        // 用于提供给前端的 API 方法
+        /// <summary>
+        /// 用于提供给前端的 API 方法
+        /// </summary>
+        /// <param name="requestData"></param>
+        /// <returns></returns>
         [HttpPost]
         [IgnoreAntiforgeryToken]
-        public async Task<JsonResult> OnPostSayHelloAsync() {
+        public JsonResult OnPostSayHelloAsync() {
             Console.WriteLine("接口已触发");
             string message = "未定义错误"; // 默认错误信息
             try {
@@ -84,9 +82,10 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                 var envId = _wxSetting.Value.Env;
 
                 // 模拟业务逻辑
-                ImageName = Guid.NewGuid().ToString() + "_test.jpg";
+                ImageName = Guid.NewGuid().ToString() + ".jpg";
+                Console.WriteLine($"[97]ImageName: {ImageName}");
 
-                WxUploadFileJsonResult result = await TcbApi.UploadFileAsync(appId, envId, ImageName);
+                WxUploadFileJsonResult result = TcbApi.UploadFile(appId, envId, ImageName);
 
                 if (result.ErrorCodeValue != 0) {
                     message = "上传失败，错误码：" + result.ErrorCodeValue;
@@ -95,7 +94,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                 }
 
                 string filePath = @$"admin/user/identityCardPictures/{ImageName}";
-                Console.WriteLine("文件上传成功！");
+                FileId = result.file_id;
 
                 return new JsonResult(new {
                     success = true,
@@ -158,104 +157,11 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                 SuccessMessage = $"保存成功，已更新 ID：{UpdatedUser.Id}";
             }
 
-            //if (string.IsNullOrEmpty(ImageName))
-            //	return StatusCode(403, "文件名错误");
-
-            // 设置微信小程序的AppId和AppSecret
-            var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
-            var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
-            var envId = _wxSetting.Value.Env;
-
-            ImageName = Guid.NewGuid().ToString() + "_" + UpdatedUser.Id + ".png";
-
-            WxUploadFileJsonResult resultImage;
-            try {
-                // 获取上传文件路径
-                resultImage = await TcbApi.UploadFileAsync(appId, envId, ImageName);
-
-                if (resultImage.ErrorCodeValue != 0) {
-                    Console.WriteLine($"错误{resultImage.ToJson()}");
-                    return StatusCode(500);
-                }
-                // 输出上传结果
-                Console.WriteLine("File uploaded successfully!");
-                Console.WriteLine("File ID: " + resultImage.file_id);
-
-            } catch (Exception ex) {
-                // 输出错误信息
-                Console.WriteLine("获取上传文件路径：" + ex.Message);
-                return StatusCode(500);
-            }
-
-            string filePath = @"7072-prod-3g2khb36f729f21f-1331625129/admin/user/identityCardPictures/" + ImageName;// 用户身份证文件路径
-
-            ImageUrl = resultImage.url;
-            FilePath = filePath;
-            Authorization = resultImage.authorization;// 签名
-            Token = resultImage.token;
-            Cos_file_id = resultImage.cos_file_id;
-
-            //return StatusCode(200);
+            // 更新用户图片信息
+            await _userController.PutImagePath(UpdatedUser.Id, FileId);
 
             List = await _userController.GetTablePage(Limit, PageIndex); // 刷新用户列表
-
             return Page();
-        }
-
-        /// <summary>
-        /// 获取文件上传所需信息
-        /// </summary>
-        /// <returns></returns>
-        public async Task<IActionResult> OnPostUpdateUserImageAsync() {
-            //设置微信小程序的AppId和AppSecret
-            //var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
-            //var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
-            //var envId = "prod-3g2khb36f729f21f";
-
-            //WxUploadFileJsonResult result = await TcbApi.UploadFileAsync(appId, envId, "1.txt");
-
-            //return StatusCode(200);
-
-            //if (string.IsNullOrEmpty(ImageName))
-            //    return StatusCode(403, "文件名错误");
-
-            // 设置微信小程序的AppId和AppSecret
-            var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
-            var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
-            var envId = _wxSetting.Value.Env;
-
-            ImageName = Guid.NewGuid().ToString() + "_" + UpdatedUser.Id + ".png";
-
-            WxUploadFileJsonResult result;
-            try {
-                // 获取上传文件路径
-                result = await TcbApi.UploadFileAsync(appId, envId, ImageName);
-
-                if (result.ErrorCodeValue != 0) {
-                    Console.WriteLine($"错误{result.ToJson()}");
-                    return StatusCode(500);
-                }
-                // 输出上传结果
-                Console.WriteLine("File uploaded successfully!");
-                Console.WriteLine("File ID: " + result.file_id);
-
-            } catch (Exception ex) {
-                // 输出错误信息
-                Console.WriteLine("获取上传文件路径：" + ex.Message);
-                return StatusCode(500);
-            }
-
-            string filePath = @"7072-prod-3g2khb36f729f21f-1331625129/admin/user/identityCardPictures/" + ImageName;// 用户身份证文件路径
-
-            ImageUrl = result.url;
-            FilePath = filePath;
-            Authorization = result.authorization;// 签名
-            Token = result.token;
-            Cos_file_id = result.cos_file_id;
-
-            return Page();
-
-            //return await _userController.GetUploadPath(ImageName);
         }
 
         /// <summary>
