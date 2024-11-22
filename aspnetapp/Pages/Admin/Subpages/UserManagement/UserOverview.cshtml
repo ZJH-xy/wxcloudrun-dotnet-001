@@ -7,9 +7,20 @@
 	<!-- 引用外部 jQuery -->
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<link rel="stylesheet" href="~/css/table.css" />
+	<link rel="stylesheet" href="~/css/loading.css" />
+	<script src="~/js/loading.js"></script>
+
 	<script src="~/js/pageUtils.js"></script>
 </head>
 <body>
+	<!-- 加载动画 -->
+	<div class="box" id="loadding" style="display:none;">
+		<span></span>
+		<span></span>
+		<span></span>
+		<span></span>
+		<span></span>
+	</div>
 	<h4>用户总览</h4>
 	<!-- 显示错误消息 -->
 	@if (!string.IsNullOrEmpty(Model.ErrorMessage)) {
@@ -92,21 +103,25 @@
 				<td><input type="text" name="UpdatedUser.IdentityCard" value="@Model.List[i].IdentityCard" placeholder="无" disabled /></td>
 				<td>
 					<div class="imageContainer" data-id="@Model.List[i].Id">
-						<!-- 当前图片 -->
-						<img src="@Model.List[i].IdentityCardPictures" alt="图片加载失败"
+						<!-- 常驻显示的图片 -->
+						<img src="" alt="图片加载失败"
+							 id="imageUrl"
 							 style="width: 100px; height: auto; cursor: pointer;display:none;"
 							 class="thumbnail"
 							 data-id="@Model.List[i].Id"
 							 onclick="openModal(this)">
 
 						<!-- 查看图片 -->
-						<button id="@("getImageUrl"+ i)" data-id="@Model.List[i].IdentityCardPictures" onclick="loadImageUrl(event)" class="loadImageBtn">点击加载图片</button>
-						@* <img id="@("getImageUrl"+ i)" /> *@
-						<!-- 修改图片 -->
+						@if (!@Model.List[i].IdentityCardPictures.IsNullOrEmpty()) {
+								<button id="@("getImageUrl"+ i)" data-id="@Model.List[i].IdentityCardPictures" onclick="loadImageUrl(event)" class="loadImageBtn">点击加载图片</button>
+							} else {
+								<text>无图片</text>
+							}
+							<!-- 修改图片 -->
 						<input value="@Model.List[i].Id" id="userId" style="display:none;" />
 						<input type="file" id="@("fileInput"+ i)" name="file" style="display: none;" class="fileUpload" data-id="@Model.List[i].Id" required>
 
-						<!-- 图片预览 -->
+						<!-- 编辑的图片预览 -->
 						<img src="" alt="预览图" class="preview" style="display: none; width: 100px; height: auto; margin-top: 10px;">
 						<!-- 图片模态窗口 -->
 						<div id="imageModal" class="modal" style="display:none;">
@@ -139,6 +154,7 @@
 				});
 			}
 			async function saveClick(event) {
+				loadHTML(); // 显示加载中
 				const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
 				console.log("开始调用接口...");
@@ -174,12 +190,10 @@
 
 						const uploadResponse = await uploadFile(data["imageUrl"], formData);  // 异步上传文件
 						console.log("Upload success:", uploadResponse);
-
+						cancelloadHTML();// 取消显示加载中
 					} catch (error) {
-
 						console.error("Error during upload:", error);
 					}
-
 				} catch (error) {
 					console.error("API 调用失败:", error);
 					alert("接口调用失败: " + error.message);
@@ -204,6 +218,7 @@
 			}
 
 			async function loadImageUrl(event) {
+				loadHTML();
 				const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 				// 使用 event.target 获取被点击的按钮元素
 				const button = event.target;
@@ -233,17 +248,23 @@
 
 					if (data.success) {
 						console.log("接口返回数据:", data);
+						// 设置图片路径
+						const image = button.parentElement.querySelector('.thumbnail'); // 获取当前行的图片元素
+						image.src = data.file_list[0].download_url; // 设置图片路径
+						image.style.display = 'block'; // 显示图片
+
+						// 隐藏加载图片按钮
+						button.style.display = 'none';
 					} else {
 						alert("文件上传失败: " + (data.message || "未知错误"));
 					}
-
+					cancelloadHTML()
 
 				} catch (error) {
 					console.error("API 调用失败:", error);
-					alert("接口调用失败: " + error.message);
+					cancelloadHTML();
 				}
 			}
-			
 
 
 		</script>
@@ -286,9 +307,6 @@
 
 						// 显示文件上传控件
 						fileInput.style.display = "block";
-
-						// 隐藏加载按钮
-						loadImageBtn.style.display = "none";
 
 						// 切换其他字段为可编辑状态
 						const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
