@@ -71,7 +71,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         /// </summary>
         /// <param name="requestData"></param>
         /// <returns></returns>
-        [HttpPost]
+        [HttpGet]
         [IgnoreAntiforgeryToken]
         public JsonResult OnPostSayHelloAsync() {
             Console.WriteLine("接口已触发");
@@ -111,12 +111,14 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             }
         }
 
-		/// <summary>
-		/// 获取文件下载链接
-		/// </summary>
-		/// <param name="userId"></param>
-		/// <returns></returns>
-		public async Task<JsonResult> GetImageDownload([FromBody] Dictionary<string, string> requestData) {
+        /// <summary>
+        /// 获取文件下载链接
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<JsonResult> GetImageDownload([FromBody] Dictionary<string, string> requestData) {
 			// 确保接收到的数据被正确绑定
 			if (requestData == null || !requestData.Any()) {
 				return new JsonResult(new { success = false, message = "请求数据为空！" });
@@ -188,6 +190,9 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             await _userController.PutImagePath(UpdatedUser.Id, FileId);
 
             List = await _userController.GetTablePage(Limit, PageIndex); // 刷新用户列表
+
+            Thread.Sleep(3000);
+
             return Page();
         }
 
