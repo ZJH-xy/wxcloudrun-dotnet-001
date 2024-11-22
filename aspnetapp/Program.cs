@@ -21,10 +21,6 @@ builder.Services.AddDbContext<MyDbContext>((serviceProvider, options) => {
 // Add services to the container.
 builder.Services.AddRazorPages();
 
-// Web后台相关
-builder.Services.AddScoped<UserControllerWeb>();
-builder.Services.AddScoped<VehicleControllerWeb>();
-
 // 激活本地缓存
 builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<MyDbContext>();
@@ -35,6 +31,9 @@ builder.Services.AddScoped<IOrderRepository, OrderController>();
 builder.Services.AddScoped<IStoreAccountRepository, StoreAccountController>();
 builder.Services.AddScoped<IFavoritesStoreRepository, FavoritesStoreController>();
 
+// Web后台相关
+builder.Services.AddScoped<UserControllerWeb>();
+builder.Services.AddScoped<VehicleControllerWeb>();
 
 builder.Services.AddScoped<OrderAPI>(); // 注册 OrderAPI，定时取消订单
 builder.Services.AddHostedService<TimedHostedService>();

@@ -64,16 +64,16 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 
         // 图片上传
         public string ImageName { get; set; }// 图片文件名
-        public string FileId { get; set; }
+        public static string FileId { get; set; } = "";
 
         /// <summary>
         /// 用于提供给前端的 API 方法
         /// </summary>
         /// <param name="requestData"></param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpPost]
         [IgnoreAntiforgeryToken]
-        public JsonResult OnPostSayHelloAsync() {
+        public async Task<JsonResult> OnPostSayHelloAsync() {
             Console.WriteLine("接口已触发");
             string message = "未定义错误"; // 默认错误信息
             try {
@@ -93,9 +93,12 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                     return new JsonResult(new { success = false, message });
                 }
 
-                string filePath = @$"admin/user/identityCardPictures/{ImageName}";
                 FileId = result.file_id;
+#if DEBUG
+                Console.WriteLine($"file_id更新：{FileId}");
+#endif
 
+                string filePath = @$"admin/user/identityCardPictures/{ImageName}";
                 return new JsonResult(new {
                     success = true,
                     ImageUrl = result.url,
@@ -186,12 +189,17 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                 SuccessMessage = $"保存成功，已更新 ID：{UpdatedUser.Id}";
             }
 
-            // 更新用户图片信息
-            await _userController.PutImagePath(UpdatedUser.Id, FileId);
-
             List = await _userController.GetTablePage(Limit, PageIndex); // 刷新用户列表
 
             Thread.Sleep(3000);
+
+            if (!FileId.IsNullOrEmpty()) {
+#if DEBUG
+                Console.WriteLine($"更新用户图片信息FileId：{FileId}");
+#endif
+                // 更新用户图片信息
+                await _userController.PutImagePath(UpdatedUser.Id, FileId);
+            }
 
             return Page();
         }

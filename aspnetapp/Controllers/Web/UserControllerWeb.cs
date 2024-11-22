@@ -1,4 +1,5 @@
-﻿using aspnetapp.Dao.RepositoryInterface.Web;
+﻿using aspnetapp.Controllers.API.Miniprogram;
+using aspnetapp.Dao.RepositoryInterface.Web;
 using Microsoft.DotNet.Scaffolding.Shared.CodeModifier.CodeChange;
 using Microsoft.IdentityModel.Tokens;
 using Senparc.CO2NET.HttpUtility;
@@ -57,7 +58,6 @@ namespace aspnetapp.Controllers.Web {
             //user.Password = updatedUser.Password;
             user.Name = updatedUser.Name;
             user.IdentityCard = updatedUser.IdentityCard;
-            user.IdentityCardPictures = updatedUser.IdentityCardPictures;
             user.Nickname = updatedUser.Nickname;
             user.UpdatedAt = DateTime.Now;
 
@@ -157,15 +157,13 @@ namespace aspnetapp.Controllers.Web {
         /// <summary>
         /// 更新用户图片信息
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="fileName"></param>
+        /// <param name="user"></param>
+        /// <param name="fileId"></param>
         /// <returns>返回更改行数，负数错误</returns>
-        public async Task<int> PutImagePath(int id, string fileName) {
-            User? user = await _context.User.FindAsync(id);
-            if (user == null)
-                return -1;
+        public async Task<int> PutImagePath(int userId, string fileId) {
+            var user = await _context.User.SingleOrDefaultAsync(u => u.Id == userId);
 
-            if (user.IdentityCardPictures is not null) {
+            if (user.IdentityCardPictures.IsNullOrEmpty()) {
                 var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
                 var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
                 var envId = _wxSetting.Value.Env;
@@ -177,17 +175,18 @@ namespace aspnetapp.Controllers.Web {
                 // 删除原图片
                 var re = await TcbApi.BatchDeleteFileAsync(appId, envId, fileid_list);
                 if (re.errcode != ReturnCode.请求成功) {
-                    _logger.LogError("删除用户{UserId}原图片{ImageId}", user.Id, user.IdentityCardPictures);
+                    _logger.LogError("删除用户{UserId}原图片{ImageId}", (object)user.Id, (object)user.IdentityCardPictures);
                 }
             }
 
             // 更新图片路径
-            user.IdentityCardPictures = fileName;
+            user.IdentityCardPictures = fileId;
             try {
+                _context.User.Update((User)user);
                 await _context.SaveChangesAsync();
 
             } catch (Exception e) {
-                _logger.LogError("保存用户{UserId}身份证图片路径", id);
+                _logger.LogError("保存用户{UserId}身份证图片路径", user);
                 return -2;
             }
 
