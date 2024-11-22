@@ -82,7 +82,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                 var envId = _wxSetting.Value.Env;
 
                 // 模拟业务逻辑
-                ImageName = Guid.NewGuid().ToString() + ".jpg";
+                ImageName = "admin/user/identityCardPictures/" + Guid.NewGuid().ToString() + ".jpg";
                 Console.WriteLine($"[97]ImageName: {ImageName}");
 
                 WxUploadFileJsonResult result = TcbApi.UploadFile(appId, envId, ImageName);
@@ -98,7 +98,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                 Console.WriteLine($"file_id更新：{FileId}");
 #endif
 
-                string filePath = @$"admin/user/identityCardPictures/{ImageName}";
+                string filePath = ImageName;
                 return new JsonResult(new {
                     success = true,
                     ImageUrl = result.url,
@@ -121,7 +121,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         /// <returns></returns>
         [HttpPost]
         [IgnoreAntiforgeryToken]
-        public async Task<JsonResult> OnPostGetImageDownload([FromBody] Dictionary<string, string> requestData) {
+        public async Task<JsonResult> OnPostImageDownload([FromBody] Dictionary<string, string> requestData) {
             // 确保接收到的数据被正确绑定
             if (requestData == null || !requestData.Any()) {
                 return new JsonResult(new { success = false, message = "请求数据为空！" });
