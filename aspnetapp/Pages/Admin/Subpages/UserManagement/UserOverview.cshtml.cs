@@ -221,14 +221,29 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             return Page();
         }
 
-        //
+		// 返回总页数
+		public async Task<IActionResult> OnGetPageSumAsync() {
+			try {
+				// 获取所有用户数据的总数（可以通过服务方法获取）
+				var sum = await _userController.GetPageSum();
+
+				// 计算总页数
+				int totalPages = (sum / Limit) + 1;
+
+				// 返回总页数
+				return new JsonResult(new { totalPages });
+			} catch (Exception ex) {
+				_logger.LogError(ex, "获取总页数时发生错误");
+				return BadRequest("无法获取总页数");
+			}
+		}
 
 
-        /// <summary>
-        /// 导出功能
-        /// </summary>
-        /// <returns></returns>
-        public async Task<IActionResult> OnGetExportToExcelAsync() {
+		/// <summary>
+		/// 导出功能
+		/// </summary>
+		/// <returns></returns>
+		public async Task<IActionResult> OnGetExportToExcelAsync() {
             // 获取用户表
 			List<User> excelList = await _userController.GetAllList();
 

@@ -29,7 +29,11 @@ namespace aspnetapp.Controllers.Web {
             return await _context.User.FindAsync(id);
         }
 
-        public async Task<List<User>> GetTablePage(int limit, int pageIndex) {
+		public async Task<int> GetPageSum() {
+			return await _context.User.CountAsync();
+		}
+
+		public async Task<List<User>> GetTablePage(int limit, int pageIndex) {
             return await _context.User
                 .OrderBy(u => u.Id) // 根据主键排序，确保分页顺序一致
                 .Skip((pageIndex - 1) * limit) // 跳过前面页的数据
