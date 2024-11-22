@@ -37,7 +37,17 @@
 			<form method="get">
 				<button type="submit">刷新</button>
 			</form>
-			<button>导出</button>
+
+			<!-- 添加导出按钮 -->
+			<button id="exportButton">导出为 Excel</button>
+
+			<script>
+				document.getElementById('exportButton').addEventListener('click', function () {
+					// 导出功能，通过页面跳转下载文件
+					window.location.href = "/Admin/Subpages/UserManagement/UserOverview?handler=ExportToExcel";
+				});
+			</script>
+
 			<button id="addRowBtn">添加</button>
 		</div>
 		<form method="post" asp-page-handler="Search">

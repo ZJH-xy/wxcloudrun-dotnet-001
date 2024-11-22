@@ -4,6 +4,8 @@ using aspnetapp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 using Senparc.Weixin.WxOpen.Entities;
 using System.IO;
@@ -219,5 +221,59 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             return Page();
         }
 
+        //
+
+
+        /// <summary>
+        /// 导出功能
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> OnGetExportToExcelAsync() {
+            // 获取用户表
+			List<User> excelList = await _userController.GetAllList();
+
+            // 创建一个新的工作簿
+            IWorkbook workbook = new XSSFWorkbook();
+            ISheet sheet = workbook.CreateSheet("用户数据");
+
+            // 创建表头行
+            IRow headerRow = sheet.CreateRow(0);
+            headerRow.CreateCell(0).SetCellValue("序号");
+            headerRow.CreateCell(1).SetCellValue("用户 ID");
+            headerRow.CreateCell(2).SetCellValue("姓名");
+            headerRow.CreateCell(3).SetCellValue("手机号");
+            headerRow.CreateCell(4).SetCellValue("身份证号");
+            headerRow.CreateCell(5).SetCellValue("昵称");
+            headerRow.CreateCell(6).SetCellValue("创建时间");
+            headerRow.CreateCell(7).SetCellValue("更新时间");
+
+            // 填充数据
+            for (int i = 0; i < excelList.Count; i++) {
+                var row = sheet.CreateRow(i + 1);
+                row.CreateCell(0).SetCellValue(i + 1);
+                row.CreateCell(1).SetCellValue(excelList[i].Id.ToString());
+                row.CreateCell(2).SetCellValue(excelList[i].Name ?? "");
+                row.CreateCell(3).SetCellValue(excelList[i].Phone ?? "");
+                row.CreateCell(4).SetCellValue(excelList[i].IdentityCard ?? "");
+                row.CreateCell(5).SetCellValue(excelList[i].Nickname ?? "");
+                row.CreateCell(6).SetCellValue(excelList[i].CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+                row.CreateCell(7).SetCellValue(excelList[i].UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+            }
+
+            // 自动调整列宽
+            for (int col = 0; col < 8; col++) {
+                sheet.AutoSizeColumn(col);
+            }
+
+            // 将工作簿保存到内存流
+            using (var memoryStream = new MemoryStream()) {
+                workbook.Write(memoryStream);
+                var fileName = "用户数据.xlsx";
+                var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+                // 返回文件流供下载
+                return File(memoryStream.ToArray(), contentType, fileName);
+            }
+        }
     }
 }

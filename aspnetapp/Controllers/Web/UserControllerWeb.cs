@@ -21,6 +21,10 @@ namespace aspnetapp.Controllers.Web {
             _wxSetting = wxSetting;
         }
 
+        public async Task<List<User>> GetAllList() {
+            return await _context.User.ToListAsync();
+        }
+
         public async Task<User?> GetById(int id) {
             return await _context.User.FindAsync(id);
         }
