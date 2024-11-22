@@ -45,7 +45,10 @@ namespace aspnetapp.Controllers.Web {
         /// <param name="updatedUser"></param>
         /// <returns></returns>
         public async Task<IActionResult> UpdateUser(User updatedUser) {
-            _logger.LogInformation("Starting update process for user with ID {UserId}", updatedUser.Id);
+            _logger.LogInformation("正在启动ID为{UserId}的用户的更新过程", updatedUser.Id);
+
+            if (await _context.User.Where(u => u.Id != updatedUser.Id && u.Phone == updatedUser.Phone).AnyAsync())
+                return StatusCode(403, "与其它用户手机号重复！");
 
             var user = await _context.User.FindAsync(updatedUser.Id);
             if (user == null) {
@@ -162,6 +165,9 @@ namespace aspnetapp.Controllers.Web {
         /// <returns>返回更改行数，负数错误</returns>
         public async Task<int> PutImagePath(int userId, string fileId) {
             var user = await _context.User.SingleOrDefaultAsync(u => u.Id == userId);
+
+            if (user is null)
+                return -1;
 
             if (user.IdentityCardPictures.IsNullOrEmpty()) {
                 var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
