@@ -154,46 +154,6 @@ namespace aspnetapp.Controllers.Web {
             return results;
         }
 
-        // 获取文件上传所需信息
-        public async Task<IActionResult> GetUploadPath(string fileName) {
-            if (string.IsNullOrEmpty(fileName))
-                return StatusCode(403, "文件名错误");
-
-            // 设置微信小程序的AppId和AppSecret
-            var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
-            var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
-            var envId = _wxSetting.Value.Env;
-
-            WxUploadFileJsonResult result;
-            try {
-                // 获取上传文件路径
-                result = await TcbApi.UploadFileAsync(appId, envId, fileName);
-
-                if (result.ErrorCodeValue != 0) {
-                    Console.WriteLine($"错误{result.ToJson()}");
-                    return StatusCode(500);
-                }
-                // 输出上传结果
-                Console.WriteLine("File uploaded successfully!");
-                Console.WriteLine("File ID: " + result.file_id);
-
-            } catch (Exception ex) {
-                // 输出错误信息
-                Console.WriteLine("获取上传文件路径：" + ex.Message);
-                return StatusCode(500);
-            }
-
-            string filePath = @"7072-prod-3g2khb36f729f21f-1331625129/admin/user/identityCardPictures/" + fileName;// 用户身份证文件路径
-
-            return StatusCode(200, new {
-                result.url,
-                filePath,
-                result.authorization,// 签名
-                result.token,
-                result.cos_file_id
-            });
-        }
-
         /// <summary>
         /// 更新用户图片信息
         /// </summary>

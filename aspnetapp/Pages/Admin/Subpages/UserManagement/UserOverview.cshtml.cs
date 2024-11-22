@@ -111,6 +111,33 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             }
         }
 
+		/// <summary>
+		/// 获取文件下载链接
+		/// </summary>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		public async Task<JsonResult> GetImageDownload([FromBody] Dictionary<string, string> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+			var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+            var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+            var envId = _wxSetting.Value.Env;
+
+            List<string> fileid_list = new() {
+					requestData["fileid"]
+                };
+
+            var re = await TcbApi.BatchDeleteFileAsync(appId, envId, fileid_list);
+            if (re.errcode != ReturnCode.请求成功) {
+                _logger.LogError("{errmsg},获取下载链接{fileid_list}", re.errmsg, fileid_list.ToJson());
+			}
+
+            return new JsonResult(new { success = true, message = "获取文件下载链接结束", delete_list = re.delete_list });
+		}
+
         /// <summary>
         /// 查询
         /// </summary>
