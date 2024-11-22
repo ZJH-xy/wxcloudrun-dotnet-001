@@ -169,19 +169,19 @@ namespace aspnetapp.Controllers.Web {
             if (user is null)
                 return -1;
 
-            if (user.IdentityCardPictures.IsNullOrEmpty()) {
+            if (!user.IdentityCardPictures.IsNullOrEmpty()) {
                 var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
                 var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
                 var envId = _wxSetting.Value.Env;
 
                 List<string> fileid_list = new() {
-                    user.IdentityCardPictures
+                    user.IdentityCardPictures!
                 };
 
                 // 删除原图片
                 var re = await TcbApi.BatchDeleteFileAsync(appId, envId, fileid_list);
                 if (re.errcode != ReturnCode.请求成功) {
-                    _logger.LogError("删除用户{UserId}原图片{ImageId}", (object)user.Id, (object)user.IdentityCardPictures);
+                    _logger.LogError("删除用户{UserId}原图片{ImageId}", (object)user.Id, (object)user.IdentityCardPictures!);
                 }
             }
 
