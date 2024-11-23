@@ -26,21 +26,24 @@
 	<h4>用户总览</h4>
 	<!-- 显示错误消息 -->
 	@if (!string.IsNullOrEmpty(Model.ErrorMessage)) {
-		<div class="alert alert-danger">
-			<ul>
-				<text>@Model.ErrorMessage</text>
-				@foreach (var error in ModelState.Values.SelectMany(v => v.Errors)) {
-					<li>@error.ErrorMessage</li>
-				}
-			</ul>
-		</div>
+		<div id="message" class="failMessage">@Model.ErrorMessage</div>
+		@foreach (var error in ModelState.Values.SelectMany(v => v.Errors)) {
+			<div id="message" class="failMessage">@error.ErrorMessage</div>
+		}
+		<script>
+			setTimeout(function () {
+				showMessage("message", 4000);
+			}, 500)
+		</script>
 	}
 
 	<!-- 显示成功消息 -->
 	@if (!string.IsNullOrEmpty(Model.SuccessMessage)) {
 		<div id="message" class="message">@Model.SuccessMessage</div>
 		<script>
-			showMessage("message");
+			setTimeout(function () {
+				showMessage("message");
+			}, 500)
 		</script>
 	}
 
@@ -84,6 +87,7 @@
 			<th>身份证号</th>
 			<th>身份证照片</th>
 			<th>创建时间</th>
+			<th>更新时间</th>
 			<th>操作</th>
 		</tr>
 		@for (int i = 0; i < Model.List.Count; i++) {
@@ -111,13 +115,15 @@
 						<!-- 查看图片 -->
 							@if (!@Model.List[i].IdentityCardPictures.IsNullOrEmpty()) {
 							<a href="#" id="@("getImageUrl" + i)" data-id="@Model.List[i].IdentityCardPictures" onclick="loadImageUrl(event)">点击加载图片</a>
+							<div id="message" class="message">加载成功</div>
+
 							} else {
 								<text>无图片</text>
 							}
 						<!-- 修改图片 -->
 						<div style="display:flex;align-items: center; justify-content: center; ">
 							<input value="@Model.List[i].Id" id="userId" style="display:none;" />
-							<input type="file" id="@("fileInput"+ i)" value="true" name="file" style="display: none;" class="fileUpload" data-id="@Model.List[i].Id" >
+							<input type="file" id="@("fileInput"+ i)" value="true" name="file" style="display: none;" class="fileUpload" data-id="@Model.List[i].Id">
 						</div>
 						<div style="display:flex;align-items: center; justify-content: center; ">
 
@@ -133,6 +139,7 @@
 					</div>
 				</td>
 				<td>@Model.List[i].CreatedAt</td>
+				<td>@Model.List[i].UpdatedAt</td>
 
 				<td>
 					<button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
@@ -259,7 +266,7 @@
 						const image = button.parentElement.querySelector('.thumbnail'); // 获取当前行的图片元素
 						image.src = data.file_list[0].download_url; // 设置图片路径
 						image.style.display = 'block'; // 显示图片
-
+						showMessage("message");
 						// 隐藏加载图片按钮
 						button.style.display = 'none';
 					} else {
@@ -272,15 +279,112 @@
 					cancelloadHTML();
 				}
 			}
+			
+			async function changePage(index) {
+				const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+				try {
+					const response = await fetch('/Admin/Subpages/UserManagement/UserOverview?handler=PageIndex', {
+						method: 'Get',
+						headers: {
+							'Content-Type': 'application/json',
+							'RequestVerificationToken': token
+						},
+					});
+
+					if (!response.ok) {
+						throw new Error(`HTTP 错误！状态码: ${response.status}`);
+					}
+
+					const data = await response.json();  // 等待接口返回数据
+
+					if (data.success) {
+						var pageIndex = data.pageIndex;
+
+						console.log("接口返回数据:", data);
+
+						if (index === 0 ) {
+							pageIndex --;
+							if (pageIndex < 1) {
+								return;
+							}
+						} else if (index === 1) {
+							pageIndex++;
+						} else if (index > 1) {
+							pageIndex = index
+						}
+
+						const requestData = {
+							"PageIndex": pageIndex
+						};
+						console.log("requestData", requestData);
+						try {
+							const response = await fetch('/Admin/Subpages/UserManagement/UserOverview?handler=ChangePage', {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json',
+									'RequestVerificationToken': token 
+								},
+								body: JSON.stringify(requestData), 
+							});
+
+							if (!response.ok) {
+								throw new Error(`HTTP 错误！状态码: ${response.status}`);
+							}
 
 
+						} catch (error) {
+							console.error("API 调用失败:", error);
+						}
+
+					} else {
+						alert("失败： " + (data.message || "未知错误"));
+					}
+
+				} catch (error) {
+					console.error("API 调用失败:", error);
+				}
+			}
+			
+			async function indexPage() {
+				const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+				try {
+					const response = await fetch('/Admin/Subpages/UserManagement/UserOverview?handler=PageIndex', {
+						method: 'Get',
+						headers: {
+							'Content-Type': 'application/json',
+							'RequestVerificationToken': token
+						},
+					});
+
+					if (!response.ok) {
+						throw new Error(`HTTP 错误！状态码: ${response.status}`);
+					}
+
+					const data = await response.json();  
+
+					if (data.success) {
+						var pageIndex = data.pageIndex;
+
+						document.getElementById('page').textContent = `第 ${pageIndex} 页`;
+
+					} else {
+						alert("失败： " + (data.message || "未知错误"));
+					}
+
+				} catch (error) {
+					console.error("API 调用失败:", error);
+				}
+			}
 		</script>
 
 
 	</table>
 	<div class="bottom">
 		<div class="bottom-item">
-			<text>第 @(Model.PageIndex) 页，</text>
+			@* <text>第 @(Model.PageIndex) 页，</text> *@
+			<text id="page">第 @Model.PageIndexHtml 页</text>
 			<text id="pageSum">共 * 页</text>
 			<a href="#" id="pageSumButton" style="background: rgba(0, 0, 0, 0); font-size: 12px">显示总页数</a>
 		</div>
@@ -288,11 +392,17 @@
 		<div class="bottom-item">
 			<input placeholder="请输入页数" />
 			<button>跳转</button>
-			<button>上一页</button>
-			<button>下一页</button>
+			<form method="post" asp-page-handler="Page">
+				<button onclick="changePage(0)">上一页</button>
+				<button type="submit" onclick="changePage(1)">下一页</button>
+			</form>
 		</div>
 	</div>
 	<script>
+		// 页面加载完成后执行函数
+		window.onload = function () {
+			indexPage();
+		};
 		document.addEventListener("DOMContentLoaded", function () {
 			// 获取所有文件上传控件
 			const fileInputs = document.querySelectorAll(".fileUpload");

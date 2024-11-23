@@ -42,9 +42,8 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 
         [BindProperty(SupportsGet = true)]
 		public static int PageIndex { get; set; } = 1;
-
-        // 更新
-        [BindProperty]
+		// 更新
+		[BindProperty]
         public User UpdatedUser { get; set; } = new User();
 
         // 查询
@@ -197,7 +196,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 
             PageIndex = requestData["PageIndex"];
 
-			return new JsonResult(new { success = true, message = "成功"});
+			return new JsonResult(new { success = true, message = "成功", pageIndex = PageIndex });
 		}
 
 		/// <summary>
