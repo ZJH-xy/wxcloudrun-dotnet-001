@@ -9,10 +9,10 @@
 	<link rel="stylesheet" href="~/css/table.css" />
 	<link rel="stylesheet" href="~/css/loading.css" />
 	<script src="~/js/loading.js"></script>
-
 	<script src="~/js/pageUtils.js"></script>
 </head>
 <body>
+
 	<!-- 加载动画 -->
 	<div class="box" id="loadding" style="display:none;">
 		<span></span>
@@ -21,6 +21,8 @@
 		<span></span>
 		<span></span>
 	</div>
+	<!-- 锁住页面的遮罩层 -->
+	<div id="overlay" style="display:none;"></div>
 	<h4>用户总览</h4>
 	<!-- 显示错误消息 -->
 	@if (!string.IsNullOrEmpty(Model.ErrorMessage)) {
@@ -36,11 +38,10 @@
 
 	<!-- 显示成功消息 -->
 	@if (!string.IsNullOrEmpty(Model.SuccessMessage)) {
-		<div class="alert alert-success">
-			<text>@Model.SuccessMessage</text>
-			<text id="response"></text>
-
-		</div>
+		<div id="message" class="message">@Model.SuccessMessage</div>
+		<script>
+			showMessage("message");
+		</script>
 	}
 
 	<div class="header">
@@ -50,16 +51,9 @@
 			</form>
 
 			<!-- 添加导出按钮 -->
-			<button id="exportButton">导出为 Excel</button>
+			<button id="exportButton" class="editBtn">导出为 Excel</button>
 
-			<script>
-				document.getElementById('exportButton').addEventListener('click', function () {
-					// 导出功能，通过页面跳转下载文件
-					window.location.href = "/Admin/Subpages/UserManagement/UserOverview?handler=ExportToExcel";
-				});
-			</script>
-
-			<button id="addRowBtn">添加</button>
+			@* <button id="addRowBtn">添加</button> *@
 		</div>
 		<form method="post" asp-page-handler="Search">
 			<input asp-for="SearchPhone" placeholder="手机号" />
@@ -104,25 +98,33 @@
 				<td>
 					<div class="imageContainer" data-id="@Model.List[i].Id">
 						<!-- 常驻显示的图片 -->
-						<img src="" alt="图片加载失败"
-							 id="imageUrl"
-							 style="width: 100px; height: auto; cursor: pointer;display:none;"
-							 class="thumbnail"
-							 data-id="@Model.List[i].Id"
-							 onclick="openModal(this)">
+						<div style="display:flex;align-items: center; justify-content: center; ">
+							<img src="" alt="图片加载失败"
+								 id="imageUrl"
+								 style="width: 100px; height: auto; cursor: pointer;display:none;"
+								 class="thumbnail"
+								 data-id="@Model.List[i].Id"
+								 onclick="openModal(this)">
+
+						</div>
 
 						<!-- 查看图片 -->
-						@if (!@Model.List[i].IdentityCardPictures.IsNullOrEmpty()) {
-								<button id="@("getImageUrl"+ i)" data-id="@Model.List[i].IdentityCardPictures" onclick="loadImageUrl(event)" class="loadImageBtn">点击加载图片</button>
+							@if (!@Model.List[i].IdentityCardPictures.IsNullOrEmpty()) {
+							<a href="#" id="@("getImageUrl" + i)" data-id="@Model.List[i].IdentityCardPictures" onclick="loadImageUrl(event)">点击加载图片</a>
 							} else {
 								<text>无图片</text>
 							}
-							<!-- 修改图片 -->
-						<input value="@Model.List[i].Id" id="userId" style="display:none;" />
-						<input type="file" id="@("fileInput"+ i)" name="file" style="display: none;" class="fileUpload" data-id="@Model.List[i].Id" required>
+						<!-- 修改图片 -->
+						<div style="display:flex;align-items: center; justify-content: center; ">
+							<input value="@Model.List[i].Id" id="userId" style="display:none;" />
+							<input type="file" id="@("fileInput"+ i)" value="true" name="file" style="display: none;" class="fileUpload" data-id="@Model.List[i].Id" >
+						</div>
+						<div style="display:flex;align-items: center; justify-content: center; ">
 
-						<!-- 编辑的图片预览 -->
-						<img src="" alt="预览图" class="preview" style="display: none; width: 100px; height: auto; margin-top: 10px;">
+							<!-- 编辑的图片预览 -->
+							<img src="" alt="预览图" class="preview" style="display: none; width: 100px; height: auto; margin-top: 10px;">
+
+						</div>
 						<!-- 图片模态窗口 -->
 						<div id="imageModal" class="modal" style="display:none;">
 							<span class="close" onclick="closeModal()">&times;</span>
@@ -159,7 +161,10 @@
 
 				console.log("开始调用接口...");
 
-				try {
+				if (!file) {
+					console.log("未选择文件"); // 用户没有选择文件不请求
+					return;
+				} else {
 					const response = await fetch('/Admin/Subpages/UserManagement/UserOverview?handler=SayHello', {
 						method: 'POST',
 						headers: {
@@ -190,14 +195,16 @@
 
 						const uploadResponse = await uploadFile(data["imageUrl"], formData);  // 异步上传文件
 						console.log("Upload success:", uploadResponse);
-						cancelloadHTML();// 取消显示加载中
+
+						setTimeout(function () {
+							cancelloadHTML();// 取消显示加载中
+						}, 2500)
+
 					} catch (error) {
 						console.error("Error during upload:", error);
 					}
-				} catch (error) {
-					console.error("API 调用失败:", error);
-					alert("接口调用失败: " + error.message);
 				}
+
 			}
 
 			async function uploadFile(url, data) {
@@ -211,7 +218,7 @@
 						throw new Error(`HTTP 错误！状态码: ${response.status}`);
 					}
 
-					return ;  // 返回服务器的响应
+					return;  // 返回服务器的响应
 				} catch (error) {
 					throw error;
 				}
@@ -268,88 +275,15 @@
 
 
 		</script>
-		<script>
-			document.addEventListener("DOMContentLoaded", function () {
-				// 获取所有文件上传控件
-				const fileInputs = document.querySelectorAll(".fileUpload");
 
-				fileInputs.forEach(input => {
-					input.addEventListener("change", function () {
-						const file = this.files[0];
-						if (file) {
-							const reader = new FileReader();
-
-							// 读取文件完成后设置预览图片的 src 属性
-							reader.onload = function (e) {
-								const preview = input.closest(".imageContainer").querySelector(".preview");
-								preview.src = e.target.result; // 设置预览图像的路径
-								preview.style.display = "block"; // 显示预览图片
-							};
-
-							// 读取文件为 Data URL
-							reader.readAsDataURL(file);
-						}
-					});
-				});
-
-				// 编辑按钮逻辑
-				const editButtons = document.querySelectorAll(".editBtn");
-				editButtons.forEach(button => {
-					button.addEventListener("click", function () {
-						const id = this.dataset.id;
-						const container = document.querySelector(`.imageContainer[data-id="${id}"]`);
-						const img = container.querySelector(".thumbnail");
-						const fileInput = container.querySelector(".fileUpload"); 
-						const loadImageBtn = container.querySelector(".loadImageBtn");
-
-						// 隐藏旧图片
-						if (img) img.style.display = "none";
-
-						// 显示文件上传控件
-						fileInput.style.display = "block";
-
-						// 切换其他字段为可编辑状态
-						const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
-						inputs.forEach(input => input.disabled = false);
-
-						// 切换按钮状态
-						this.style.display = "none"; // 隐藏编辑按钮
-						container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
-					});
-				});
-			});
-
-			
-		</script>
 
 	</table>
 	<div class="bottom">
 		<div class="bottom-item">
 			<text>第 @(Model.PageIndex) 页，</text>
 			<text id="pageSum">共 * 页</text>
-			<button id="pageSumButton" style="background: rgba(0, 0, 0, 0); color: rgb(0, 0, 200); font-size: 12px">显示总页数</button>
+			<a href="#" id="pageSumButton" style="background: rgba(0, 0, 0, 0); font-size: 12px">显示总页数</a>
 		</div>
-
-		<script>
-			// 监听“显示总页数”按钮点击事件
-			document.getElementById('pageSumButton').addEventListener('click', function () {
-				fetch('/Admin/Subpages/UserManagement/UserOverview?handler=PageSum')
-					.then(response => {
-						if (!response.ok) {
-							throw new Error(`HTTP 错误！状态码: ${response.status}`);
-						}
-						return response.json();
-					})
-					.then(data => {
-						// 更新总页数
-						document.getElementById('pageSum').textContent = `共 ${data.totalPages} 页`;
-					})
-					.catch(error => {
-						console.error("获取总页数失败：", error);
-						alert("无法获取总页数，请检查控制台日志。");
-					});
-			});
-		</script>
 
 		<div class="bottom-item">
 			<input placeholder="请输入页数" />
@@ -358,7 +292,88 @@
 			<button>下一页</button>
 		</div>
 	</div>
+	<script>
+		document.addEventListener("DOMContentLoaded", function () {
+			// 获取所有文件上传控件
+			const fileInputs = document.querySelectorAll(".fileUpload");
 
+			fileInputs.forEach(input => {
+				input.addEventListener("change", function () {
+					const file = this.files[0];
+					if (file) {
+						const reader = new FileReader();
+
+						// 读取文件完成后设置预览图片的 src 属性
+						reader.onload = function (e) {
+							const preview = input.closest(".imageContainer").querySelector(".preview");
+							preview.src = e.target.result; // 设置预览图像的路径
+							preview.style.display = "block"; // 显示预览图片
+						};
+
+						// 读取文件为 Data URL
+						reader.readAsDataURL(file);
+					}
+				});
+			});
+
+			// 编辑按钮逻辑
+			const editButtons = document.querySelectorAll(".editBtn");
+			editButtons.forEach(button => {
+				button.addEventListener("click", function () {
+					const id = this.dataset.id;
+					console.log('id', id)
+					const container = document.querySelector(`.imageContainer[data-id="${id}"]`);
+					const img = container.querySelector(".thumbnail");
+					const fileInput = container.querySelector(".fileUpload");
+					const loadImageBtn = container.querySelector(".loadImageBtn");
+
+					// 隐藏旧图片
+					if (img) img.style.display = "none";
+
+					// 显示文件上传控件
+					fileInput.style.display = "block";
+
+					// 切换其他字段为可编辑状态
+					const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
+					inputs.forEach(input => input.disabled = false);
+
+					// 切换按钮状态
+					this.style.display = "none"; // 隐藏编辑按钮
+					container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
+				});
+			});
+		});
+
+		// 导出功能，通过页面跳转下载文件
+		document.getElementById('exportButton').addEventListener('click', function () {
+			window.location.href = "/Admin/Subpages/UserManagement/UserOverview?handler=ExportToExcel";
+		});
+
+		// 监听“显示总页数”按钮点击事件
+		document.getElementById('pageSumButton').addEventListener('click', function () {
+			loadHTML();
+			fetch('/Admin/Subpages/UserManagement/UserOverview?handler=PageSum')
+				.then(response => {
+					if (!response.ok) {
+						throw new Error(`HTTP 错误！状态码: ${response.status}`);
+					}
+					return response.json();
+				})
+				.then(data => {
+					// 更新总页数
+					document.getElementById('pageSum').textContent = `共 ${data.totalPages} 页`;
+					document.getElementById('pageSumButton').style.display = 'none';
+					cancelloadHTML();
+
+				})
+				.catch(error => {
+					cancelloadHTML();
+					console.error("获取总页数失败：", error);
+					alert("无法获取总页数，请检查控制台日志。");
+				});
+
+		});
+	</script>
 
 
 </body>

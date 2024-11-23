@@ -151,18 +151,12 @@ input.editing {
 .saveBtn  {
     display: none; /* 默认隐藏保存按钮 */
 }
-.editBtn.loadImageBtn {
+.editBtn{
     color: #07C160;
     background-color: #f2f2f2;
 }
 /* 悬停效果 */
-.editBtn:hover {
+.editBtn:hover{
     background-color: #cfcfcf; /* 悬停时的背景颜色 */
 }
-.loadImageBtn:hover {
-    background-color: #cfcfcf; /* 悬停时的背景颜色 */
-}
-.loadImageBtn {
-    color: #07C160;
-    background-color: #f2f2f2;
-}
+

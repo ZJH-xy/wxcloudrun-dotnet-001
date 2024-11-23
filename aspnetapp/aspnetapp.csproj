@@ -8,7 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Pages\Admin\Subpages\Loading\loading.html" />
+    <Compile Remove="Pages\Admin\Subpages\Loading\**" />
+    <Content Remove="Pages\Admin\Subpages\Loading\**" />
+    <EmbeddedResource Remove="Pages\Admin\Subpages\Loading\**" />
+    <None Remove="Pages\Admin\Subpages\Loading\**" />
   </ItemGroup>
 
   <ItemGroup>
