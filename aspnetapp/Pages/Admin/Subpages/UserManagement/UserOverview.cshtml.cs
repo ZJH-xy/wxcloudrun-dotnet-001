@@ -41,7 +41,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         public int Limit { get; set; } = 10;
 
         [BindProperty(SupportsGet = true)]
-        public int PageIndex { get; set; } = 1;
+		public static int PageIndex { get; set; } = 1;
 
         // 更新
         [BindProperty]
@@ -336,5 +336,9 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
                 return File(memoryStream.ToArray(), contentType, fileName);
             }
         }
-    }
+
+		public async Task<IActionResult> OnGetPageIndexAsync() {
+			return new JsonResult(new { success = true, PageIndex });
+		}
+	}
 }
