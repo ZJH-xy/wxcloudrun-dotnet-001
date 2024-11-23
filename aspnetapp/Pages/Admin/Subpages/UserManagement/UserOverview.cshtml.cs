@@ -204,6 +204,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 #endif
                 // 更新用户图片信息
                 await _userController.PutImagePath(UpdatedUser.Id, FileId);
+                FileId = "";
             }
 
             return Page();

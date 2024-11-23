@@ -195,12 +195,13 @@ namespace aspnetapp.Controllers.Web {
 
             // 更新图片路径
             user.IdentityCardPictures = fileId;
+            user.UpdatedAt = DateTime.Now;
             try {
                 _context.User.Update((User)user);
                 await _context.SaveChangesAsync();
 
             } catch (Exception e) {
-                _logger.LogError("保存用户{UserId}身份证图片路径", user);
+                _logger.LogError(e, "保存用户{UserId}身份证图片路径", user);
                 return -2;
             }
 
