@@ -165,10 +165,27 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         }
 
         /// <summary>
-        /// 更新
+        /// 页码查询
         /// </summary>
+        /// <param name="requestData"></param>
         /// <returns></returns>
-        public async Task<IActionResult> OnPostUpdateUserAsync() {
+		public async Task<IActionResult> OnGetPageAsync([FromBody] Dictionary<string, int> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+            int limit = requestData["limit"];
+
+            List = await _userController.SearchUsers(limit, SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
+            return new JsonResult(new { success = true, message = "查询成功" });
+		}
+
+		/// <summary>
+		/// 更新
+		/// </summary>
+		/// <returns></returns>
+		public async Task<IActionResult> OnPostUpdateUserAsync() {
             _logger.LogInformation("正在尝试使用ID更新用户{UserId}", UpdatedUser.Id);
 
             if (!ModelState.IsValid) {
@@ -218,11 +235,14 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             _logger.LogDebug("Executing OnGetSearchAsync with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
                            SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
             // 调用 UserControllerWeb 中的 SearchUsers 方法，包含排序字段和顺序
-            List = await _userController.SearchUsers(SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
+            List = await _userController.SearchUsers(Limit, SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
             return Page();
         }
 
-		// 返回总页数
+		/// <summary>
+        /// 返回总页数
+        /// </summary>
+        /// <returns></returns>
 		public async Task<IActionResult> OnGetPageSumAsync() {
 			try {
 				// 获取所有用户数据的总数（可以通过服务方法获取）

@@ -96,36 +96,6 @@ namespace aspnetapp.Controllers.Web {
         }
 
         /// <summary>
-        /// 查询用户
-        /// </summary>
-        /// <param name="phone"></param>
-        /// <param name="name"></param>
-        /// <param name="nickname"></param>
-        /// <returns></returns>
-        public async Task<List<User>> SearchUsers(string? phone = null, string? name = null, string? nickname = null) {
-            _logger.LogInformation("Starting search with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}", phone, name, nickname);
-
-            // 构建查询的基础对象
-            var query = _context.User.AsQueryable();
-
-            // 根据传入的参数动态添加条件
-            if (!string.IsNullOrEmpty(phone)) {
-                query = query.Where(u => u.Phone.Contains(phone));
-            }
-            if (!string.IsNullOrEmpty(name)) {
-                query = query.Where(u => u.Name.Contains(name));
-            }
-            if (!string.IsNullOrEmpty(nickname)) {
-                query = query.Where(u => u.Nickname.Contains(nickname));
-            }
-
-            var results = await query.ToListAsync();
-            _logger.LogInformation("Found {Count} users with given filters", results.Count);
-
-            return results;
-        }
-
-        /// <summary>
         /// 查询
         /// </summary>
         /// <param name="phone"></param>
@@ -134,7 +104,7 @@ namespace aspnetapp.Controllers.Web {
         /// <param name="sortField"></param>
         /// <param name="sortOrder"></param>
         /// <returns></returns>
-        public async Task<List<User>> SearchUsers(string? phone = null, string? name = null, string? nickname = null, string sortField = "Id", string sortOrder = "asc") {
+        public async Task<List<User>> SearchUsers(int limit, string? phone = null, string? name = null, string? nickname = null, string sortField = "Id", string sortOrder = "asc") {
             _logger.LogInformation("Starting search with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
                                    phone, name, nickname, sortField, sortOrder);
 
@@ -159,7 +129,7 @@ namespace aspnetapp.Controllers.Web {
                 _ => sortOrder == "asc" ? query.OrderBy(u => u.Id) : query.OrderByDescending(u => u.Id),
             };
 
-            var results = await query.ToListAsync();
+            var results = await query.Take(limit).ToListAsync();
             _logger.LogInformation("Found {Count} users with given filters and sorting", results.Count);
 
             return results;
