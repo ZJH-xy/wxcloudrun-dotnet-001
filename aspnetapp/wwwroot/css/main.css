@@ -14,7 +14,7 @@ body {
 
 /* 侧边栏样式 */
 .sidebar {
-    width: 250px; /* 侧边栏宽度 */
+    width: 29vh; /* 侧边栏宽度 */
     background-color: #ffffff; /* 背景颜色 */
     height: 100vh; /* 侧边栏高度全屏 */
     color: #000000; /* 字体颜色 */
@@ -47,7 +47,7 @@ body {
 /* 主内容区域样式 */
 .main-content {
     height: 100vh; /* 确保主内容区域填满视口 */
-    margin-left: 270px; /* 留出侧边栏宽度的空间 */
+    margin-left: 30vh; /* 留出侧边栏宽度的空间 */
     flex: 1; /* 自动填充剩余空间 */
 }
 

@@ -40,7 +40,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         [BindProperty(SupportsGet = true)]
         public int Limit { get; set; } = 10;
 
-		[BindProperty(SupportsGet = true)]
+        [BindProperty(SupportsGet = true)]
 		public static int PageIndex { get; set; } = 1;
 		public int PageIndexHtml { get; set; }
 
@@ -197,9 +197,8 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 			}
 
             PageIndex = requestData["PageIndex"];
-            PageIndexHtml = PageIndex;
 
-			return new JsonResult(new { success = true, message = "成功"});
+			return new JsonResult(new { success = true, message = "成功", pageIndex = PageIndex });
 		}
 
 		/// <summary>

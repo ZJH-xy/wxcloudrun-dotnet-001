@@ -1,13 +1,14 @@
 ﻿body {
-    background-color:white;
+    background-color: white;
     padding: 20px;
 }
 
 /* 表格整体样式 */
 table {
-    margin:20px 0;
+    margin: 20px 0;
     width: 100%; /* 表格宽度占满父容器 */
     border-collapse: collapse; /* 合并边框 */
+    white-space: nowrap;
 }
 
 /* 表头样式 */
@@ -28,6 +29,7 @@ td {
 /* 奇数行背景色 */
 tr:nth-child(odd) {
     background-color: #ffffff; /* 奇数行背景颜色 */
+
 }
 
 /* 鼠标悬停效果 */
@@ -87,12 +89,14 @@ input{
     justify-content: space-between;
     align-items: center;
     text-align: center; /* 文本居中 */
+    white-space: nowrap;
 }
-.header{
+.header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     text-align: center; /* 文本居中 */
+    white-space: nowrap;
 }
 /* 模态窗口的样式 */
 .modal {
