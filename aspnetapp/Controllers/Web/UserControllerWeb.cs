@@ -104,7 +104,7 @@ namespace aspnetapp.Controllers.Web {
         /// <param name="sortField"></param>
         /// <param name="sortOrder"></param>
         /// <returns></returns>
-        public async Task<List<User>> SearchUsers(int limit, string? phone = null, string? name = null, string? nickname = null, string sortField = "Id", string sortOrder = "asc") {
+        public async Task<List<User>> SearchUsers(string? phone = null, string? name = null, string? nickname = null, string sortField = "Id", string sortOrder = "asc") {
             _logger.LogInformation("Starting search with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
                                    phone, name, nickname, sortField, sortOrder);
 
@@ -129,7 +129,7 @@ namespace aspnetapp.Controllers.Web {
                 _ => sortOrder == "asc" ? query.OrderBy(u => u.Id) : query.OrderByDescending(u => u.Id),
             };
 
-            var results = await query.Take(limit).ToListAsync();
+			List<User> results = await query.ToListAsync();
             _logger.LogInformation("Found {Count} users with given filters and sorting", results.Count);
 
             return results;

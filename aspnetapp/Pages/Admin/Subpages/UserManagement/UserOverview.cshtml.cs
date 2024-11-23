@@ -49,6 +49,9 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 
         // 查询
         [BindProperty(SupportsGet = true)]
+        public int SearchSum { get; set; } = 0;// 查询结果总数
+
+		[BindProperty(SupportsGet = true)]
         public string? SearchPhone { get; set; }
 
         [BindProperty(SupportsGet = true)]
@@ -167,20 +170,16 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 		/// <summary>
 		/// 页码查询
 		/// </summary>
-		/// <param name="requestData"></param>
 		/// <returns></returns>
-		[HttpPost]
-		[IgnoreAntiforgeryToken]
-		public async Task<IActionResult> OnPostPageAsync([FromBody] Dictionary<string, int> requestData) {
-			// 确保接收到的数据被正确绑定
-			if (requestData == null || !requestData.Any()) {
-				return new JsonResult(new { success = false, message = "请求数据为空！" });
-			}
+		public async Task<IActionResult> OnPostPageAsync() {
+			var reList = await _userController.SearchUsers(SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
+            List = reList
+                .Skip((PageIndex - 1) * Limit) // 跳过前面页的数据
+                .Take(Limit).ToList(); // 获取当前页的数据
 
-            int limit = requestData["limit"];
+			SearchSum = reList.Count;
 
-            List = await _userController.SearchUsers(limit, SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
-            return new JsonResult(new { success = true, message = "查询成功" });
+			return new JsonResult(new { success = true, message = "查询成功", SearchSum });
 		}
 
 		/// <summary>
@@ -230,15 +229,21 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         }
 
         /// <summary>
-        /// 查询
+        /// 搜索
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnPostSearchAsync() {
             _logger.LogDebug("Executing OnGetSearchAsync with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
                            SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
             // 调用 UserControllerWeb 中的 SearchUsers 方法，包含排序字段和顺序
-            List = await _userController.SearchUsers(Limit, SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
-            return Page();
+            var reList = await _userController.SearchUsers(SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
+
+			List = reList
+				.Skip((PageIndex - 1) * Limit) // 跳过前面页的数据
+				.Take(Limit).ToList(); // 获取当前页的数据
+
+			SearchSum = reList.Count;
+			return Page();
         }
 
 		/// <summary>
