@@ -179,7 +179,25 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 
 			SearchSum = reList.Count;
 
-			return new JsonResult(new { success = true, message = "查询成功", SearchSum });
+			return Page();
+		}
+
+        /// <summary>
+        /// 更改页码
+        /// </summary>
+        /// <param name="requestData"></param>
+        /// <returns></returns>
+		[HttpPost]
+		[IgnoreAntiforgeryToken]
+		public async Task<JsonResult> OnPostChangePageAsync([FromBody] Dictionary<string, int> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+            PageIndex = requestData["PageIndex"];
+
+			return new JsonResult(new { success = true, message = "成功"});
 		}
 
 		/// <summary>
