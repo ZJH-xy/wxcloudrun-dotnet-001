@@ -164,12 +164,14 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             return Page();
         }
 
-        /// <summary>
-        /// 页码查询
-        /// </summary>
-        /// <param name="requestData"></param>
-        /// <returns></returns>
-		public async Task<IActionResult> OnGetPageAsync([FromBody] Dictionary<string, int> requestData) {
+		/// <summary>
+		/// 页码查询
+		/// </summary>
+		/// <param name="requestData"></param>
+		/// <returns></returns>
+		[HttpPost]
+		[IgnoreAntiforgeryToken]
+		public async Task<IActionResult> OnPostPageAsync([FromBody] Dictionary<string, int> requestData) {
 			// 确保接收到的数据被正确绑定
 			if (requestData == null || !requestData.Any()) {
 				return new JsonResult(new { success = false, message = "请求数据为空！" });
