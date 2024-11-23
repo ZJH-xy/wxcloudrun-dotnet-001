@@ -337,7 +337,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
         }
 
 		public async Task<IActionResult> OnGetPageIndexAsync() {
-			return new JsonResult(new { success = true, PageIndex });
+			return new JsonResult(new { success = true, pageIndex = PageIndex });
 		}
 	}
 }
