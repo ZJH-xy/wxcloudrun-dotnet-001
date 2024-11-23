@@ -42,7 +42,6 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 
 		[BindProperty(SupportsGet = true)]
 		public static int PageIndex { get; set; } = 1;
-		public int PageIndexHtml { get; set; } = PageIndex;
 
 		// 更新
 		[BindProperty]
@@ -326,16 +325,6 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
             // 自动调整列宽
             for (int col = 0; col < 8; col++) {
                 sheet.AutoSizeColumn(col);
-            }
-
-            // 将工作簿保存到内存流
-            using (var memoryStream = new MemoryStream()) {
-                workbook.Write(memoryStream);
-                var fileName = "用户数据.xlsx";
-                var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-
-                // 返回文件流供下载
-                return File(memoryStream.ToArray(), contentType, fileName);
             }
         }
 	}
