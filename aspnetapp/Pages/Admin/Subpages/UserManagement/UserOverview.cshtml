@@ -151,6 +151,7 @@
 			</tr>
 		}
 		<script>
+			const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 			const LENGTH = 10;
 			var file;
 			var fileId;
@@ -281,7 +282,6 @@
 			}
 			
 			async function changePage(index) {
-				const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
 				try {
 					const response = await fetch('/Admin/Subpages/UserManagement/UserOverview?handler=PageIndex', {
@@ -300,9 +300,8 @@
 
 					if (data.success) {
 						var pageIndex = data.pageIndex;
-
-						console.log("接口返回数据:", data);
-
+						const PageIndexTotal = document.getElementById('PageCount').value;
+						const PageLimit = document.getElementById('PageLimit').value;
 						if (index === 0 ) {
 							pageIndex --;
 							if (pageIndex < 1) {
@@ -310,7 +309,11 @@
 							}
 						} else if (index === 1) {
 							pageIndex++;
-						} else if (index > 1) {
+							if (PageIndexTotal < PageLimit) {
+								return;
+							}
+
+						}  else if (index > 1) {
 							pageIndex = index
 						}
 
@@ -347,8 +350,6 @@
 			}
 			
 			async function indexPage() {
-				const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-
 				try {
 					const response = await fetch('/Admin/Subpages/UserManagement/UserOverview?handler=PageIndex', {
 						method: 'Get',
@@ -383,18 +384,21 @@
 	</table>
 	<div class="bottom">
 		<div class="bottom-item">
-			@* <text>第 @(Model.PageIndex) 页，</text> *@
 			<text id="page">第 1 页</text>
+			<input id="PageCount" value="@Model.List.Count" style="display:none;" />
+			<input id="PageLimit" value="@Model.Limit" style="display:none;" />
+
 			<text id="pageSum">共 * 页</text>
 			<a href="#" id="pageSumButton" style="background: rgba(0, 0, 0, 0); font-size: 12px">显示总页数</a>
 		</div>
 
 		<div class="bottom-item">
-			<input placeholder="请输入页数" />
-			<button>跳转</button>
+
 			<form method="post" asp-page-handler="Page">
+				<input placeholder="请输入页数" />
+				<button onclick="changePage(3)">跳转</button>
 				<button onclick="changePage(0)">上一页</button>
-				<button type="submit" onclick="changePage(1)">下一页</button>
+				<button onclick="changePage(1)">下一页</button>
 			</form>
 		</div>
 	</div>
