@@ -66,6 +66,7 @@
     z-index: 9998; /* 置于其他元素之上 */
     opacity: 0; /* 让它不可见 */
     pointer-events: all; /* 启用鼠标事件，阻止点击操作 */
+    transition: background-color 0.3s ease, color 0.3s ease; /* 背景色和字体颜色的过渡 */
 }
 
 /* 通用的提示消息样式 */
