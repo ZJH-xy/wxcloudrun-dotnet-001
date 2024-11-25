@@ -193,7 +193,6 @@ async function changeEndPage(index) {
 			confirmChangePage(pageSum);
 		}
 	} catch (error) {
-		alert("操作过于频繁 " + (error || "未知错误"));
 		console.error('获取总页数失败:', error);
 	}
 }
@@ -252,7 +251,6 @@ async function getIndexPage() {
 		} 
 
 	} catch (error) {
-		alert("操作过于频繁 " + (error || "未知错误"));
 		console.error("API 调用失败:", error);
 	}
 }
@@ -308,56 +306,6 @@ async function loadPageSum() {
 }
 
 
-document.addEventListener("DOMContentLoaded", function () {
-	// 获取所有文件上传控件
-	const fileInputs = document.querySelectorAll(".fileUpload");
-
-	fileInputs.forEach(input => {
-		input.addEventListener("change", function () {
-			const file = this.files[0];
-			if (file) {
-				const reader = new FileReader();
-
-				// 读取文件完成后设置预览图片的 src 属性
-				reader.onload = function (e) {
-					const preview = input.closest(".imageContainer").querySelector(".preview");
-					preview.src = e.target.result; // 设置预览图像的路径
-					preview.style.display = "block"; // 显示预览图片
-				};
-
-				// 读取文件为 Data URL
-				reader.readAsDataURL(file);
-			}
-		});
-	});
-
-	// 编辑按钮逻辑
-	const editButtons = document.querySelectorAll(".editBtn");
-	editButtons.forEach(button => {
-		button.addEventListener("click", function () {
-			const id = this.dataset.id;
-			console.log('id', id)
-			const container = document.querySelector(`.imageContainer[data-id="${id}"]`);
-			const img = container.querySelector(".thumbnail");
-			const fileInput = container.querySelector(".fileUpload");
-			const loadImageBtn = container.querySelector(".loadImageBtn");
-
-			// 隐藏旧图片
-			if (img) img.style.display = "none";
-
-			// 显示文件上传控件
-			fileInput.style.display = "block";
-
-			// 切换其他字段为可编辑状态
-			const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
-			inputs.forEach(input => input.disabled = false);
-
-			// 切换按钮状态
-			this.style.display = "none"; // 隐藏编辑按钮
-			container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
-		});
-	});
-});
 
 // 打开模态窗口并加载点击的图片
 function openModal(imgElement) {
@@ -383,3 +331,4 @@ window.onclick = function (event) {
 		modal.style.display = "none";
 	}
 }
+

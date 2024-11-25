@@ -23,12 +23,6 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 		}
 
 		public List<User> List { get; set; } = new List<User>();
-		public class NewUser {
-			public string Nickname { get; set; }
-			public string Name { get; set; }
-			public string Phone { get; set; }
-			public string IdentityCard { get; set; }
-		}
 
 		// 用于在页面显示错误信息
 		public string ErrorMessage { get; set; }
