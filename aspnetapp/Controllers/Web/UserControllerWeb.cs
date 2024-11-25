@@ -105,7 +105,7 @@ namespace aspnetapp.Controllers.Web {
         /// <param name="sortOrder"></param>
         /// <returns></returns>
         public async Task<List<User>> SearchUsers(string? phone = null, string? name = null, string? nickname = null, string sortField = "Id", string sortOrder = "asc") {
-            _logger.LogInformation("Starting search with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
+            _logger.LogInformation("[SearchUsers]Starting search with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
                                    phone, name, nickname, sortField, sortOrder);
 
             var query = _context.User.AsQueryable();

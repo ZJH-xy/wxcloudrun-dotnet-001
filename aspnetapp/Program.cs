@@ -33,7 +33,8 @@ builder.Services.AddScoped<IFavoritesStoreRepository, FavoritesStoreController>(
 
 // Web后台相关
 builder.Services.AddScoped<UserControllerWeb>();
-builder.Services.AddScoped<VehicleControllerWeb>();
+builder.Services.AddScoped<VehicleControllerWeb>(); 
+builder.Services.AddScoped<StatisticsControllerWeb>();
 
 builder.Services.AddScoped<OrderAPI>(); // 注册 OrderAPI，定时取消订单
 builder.Services.AddHostedService<TimedHostedService>();

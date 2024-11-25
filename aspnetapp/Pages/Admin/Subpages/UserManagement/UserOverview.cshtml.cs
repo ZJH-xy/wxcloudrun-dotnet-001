@@ -24,6 +24,13 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 
 		public List<User> List { get; set; } = new List<User>();
 
+		public class NewUser {
+			public string Nickname { get; set; }
+			public string Name { get; set; }
+			public string Phone { get; set; }
+			public string IdentityCard { get; set; }
+		}
+
 		// 用于在页面显示错误信息
 		public string ErrorMessage { get; set; }
 
@@ -43,17 +50,23 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 		public User UpdatedUser { get; set; } = new User();
 
 		// 查询
+		public static List<User> SearchList { get; set; } = new();// 查询用List
+
 		[BindProperty(SupportsGet = true)]
 		public int SearchSum { get; set; } = 0;// 查询结果总数
 
+		// 数据
 		[BindProperty(SupportsGet = true)]
-		public string? SearchPhone { get; set; }
+		public static string? SearchPhone { get; set; }
+		public string? SearchPhoneHtml { get; set; }
 
 		[BindProperty(SupportsGet = true)]
-		public string? SearchName { get; set; }
+		public static string? SearchName { get; set; }
+		public string? SearchNameHtml { get; set; }
 
 		[BindProperty(SupportsGet = true)]
-		public string? SearchNickname { get; set; }
+		public static string? SearchNickname { get; set; }
+		public string? SearchNicknameHtml { get; set; }
 
 		// 排序
 		[BindProperty(SupportsGet = true)]
@@ -147,11 +160,12 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 		}
 
 		/// <summary>
-		/// 查询
+		/// 默认页码查询
 		/// </summary>
 		/// <returns></returns>
 		public async Task<IActionResult> OnGetAsync() {
-			_logger.LogInformation("正在获取限制为{Limit}的页面{PageIndex}的用户列表", PageIndex, Limit);
+			_logger.LogInformation("[OnGetAsync]正在获取限制为{Limit}的页面{PageIndex}的用户列表", PageIndex, Limit);
+
 			try {
 				List = await _userController.GetTablePage(Limit, PageIndex);
 
@@ -163,36 +177,22 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 		}
 
 		/// <summary>
-		/// 页码查询
+		/// 搜索
 		/// </summary>
 		/// <returns></returns>
-		public async Task<IActionResult> OnPostPageAsync() {
-			var reList = await _userController.SearchUsers(SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
-			List = reList
+		public async Task<IActionResult> OnPostSearchAsync() {
+			_logger.LogDebug("[OnPostPageAsync]正在条件查询: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
+						   SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
+
+			// 调用 UserControllerWeb 中的 SearchUsers 方法，包含排序字段和顺序
+			SearchList = await _userController.SearchUsers(SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
+
+			List = SearchList
 				.Skip((PageIndex - 1) * Limit) // 跳过前面页的数据
 				.Take(Limit).ToList(); // 获取当前页的数据
 
-			SearchSum = reList.Count;
-
+			SearchSum = SearchList.Count;
 			return Page();
-		}
-
-		/// <summary>
-		/// 更改页码
-		/// </summary>
-		/// <param name="requestData"></param>
-		/// <returns></returns>
-		[HttpPost]
-		[IgnoreAntiforgeryToken]
-		public async Task<JsonResult> OnPostChangePageAsync([FromBody] Dictionary<string, int> requestData) {
-			// 确保接收到的数据被正确绑定
-			if (requestData == null || !requestData.Any()) {
-				return new JsonResult(new { success = false, message = "请求数据为空！" });
-			}
-
-			PageIndex = requestData["PageIndex"];
-
-			return new JsonResult(new { success = true, message = "成功", pageIndex = PageIndex });
 		}
 
 		/// <summary>
@@ -238,24 +238,6 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 				FileId = "";
 			}
 
-			return Page();
-		}
-
-		/// <summary>
-		/// 搜索
-		/// </summary>
-		/// <returns></returns>
-		public async Task<IActionResult> OnPostSearchAsync() {
-			_logger.LogDebug("Executing OnGetSearchAsync with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
-						   SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
-			// 调用 UserControllerWeb 中的 SearchUsers 方法，包含排序字段和顺序
-			var reList = await _userController.SearchUsers(SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
-
-			List = reList
-				.Skip((PageIndex - 1) * Limit) // 跳过前面页的数据
-				.Take(Limit).ToList(); // 获取当前页的数据
-
-			SearchSum = reList.Count;
 			return Page();
 		}
 
@@ -331,8 +313,89 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 				return File(memoryStream.ToArray(), contentType, fileName);
 			}
 		}
+
+		/// <summary>
+		/// 获取页码
+		/// </summary>
+		/// <returns></returns>
 		public async Task<IActionResult> OnGetPageIndexAsync() {
 			return new JsonResult(new { success = true, pageIndex = PageIndex });
+		}
+
+		/// <summary>
+		/// 更改页码
+		/// </summary>
+		/// <param name="requestData"></param>
+		/// <returns></returns>
+		[HttpPost]
+		[IgnoreAntiforgeryToken]
+		public async Task<JsonResult> OnPostChangePageAsync([FromBody] Dictionary<string, int> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+			PageIndex = requestData["PageIndex"];
+
+			return new JsonResult(new { success = true, message = "成功", pageIndex = PageIndex });
+		}
+
+		// 更改查询数据
+
+		[HttpPost]
+		[IgnoreAntiforgeryToken]
+		public async Task<JsonResult> OnPostChangeSearchPhoneAsync([FromBody] Dictionary<string, string> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+			SearchPhone = requestData["SearchPhone"];
+
+			return new JsonResult(new { success = true, message = "成功" });
+		}
+
+		[HttpPost]
+		[IgnoreAntiforgeryToken]
+		public async Task<JsonResult> OnPostChangeSearchNameAsync([FromBody] Dictionary<string, string> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+			SearchName = requestData["SearchName"];
+
+			return new JsonResult(new { success = true, message = "成功" });
+		}
+
+		[HttpPost]
+		[IgnoreAntiforgeryToken]
+		public async Task<JsonResult> OnPostChangeSearchNicknameAsync([FromBody] Dictionary<string, string> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+			SearchNickname = requestData["SearchNickname"];
+
+			return new JsonResult(new { success = true, message = "成功" });
+		}
+
+		// 获取查询数据
+
+		public async Task<JsonResult> OnGetSearchPhoneAsync() {
+
+			return new JsonResult(new { success = true, message = "成功", SearchPhone });
+		}
+
+		public async Task<JsonResult> OnGetSearchNameAsync() {
+
+			return new JsonResult(new { success = true, message = "成功", SearchName });
+		}
+
+		public async Task<JsonResult> OnGetSearchNicknameAsync() {
+
+			return new JsonResult(new { success = true, message = "成功", SearchNickname });
 		}
 	}
 }
