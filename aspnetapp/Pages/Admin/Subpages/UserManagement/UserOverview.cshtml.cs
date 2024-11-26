@@ -340,62 +340,33 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 			return new JsonResult(new { success = true, message = "成功", pageIndex = PageIndex });
 		}
 
-		// 更改查询数据
-
+		/// <summary>
+		/// 更改查询数据
+		/// </summary>
+		/// <param name="requestData"></param>
+		/// <returns></returns>
 		[HttpPost]
 		[IgnoreAntiforgeryToken]
-		public async Task<JsonResult> OnPostChangeSearchPhoneAsync([FromBody] Dictionary<string, string> requestData) {
+		public async Task<JsonResult> OnPostChangeSearchDataAsync([FromBody] Dictionary<string, string> requestData) {
 			// 确保接收到的数据被正确绑定
 			if (requestData == null || !requestData.Any()) {
 				return new JsonResult(new { success = false, message = "请求数据为空！" });
 			}
 
 			SearchPhone = requestData["SearchPhone"];
-
-			return new JsonResult(new { success = true, message = "成功" });
-		}
-
-		[HttpPost]
-		[IgnoreAntiforgeryToken]
-		public async Task<JsonResult> OnPostChangeSearchNameAsync([FromBody] Dictionary<string, string> requestData) {
-			// 确保接收到的数据被正确绑定
-			if (requestData == null || !requestData.Any()) {
-				return new JsonResult(new { success = false, message = "请求数据为空！" });
-			}
-
 			SearchName = requestData["SearchName"];
-
-			return new JsonResult(new { success = true, message = "成功" });
-		}
-
-		[HttpPost]
-		[IgnoreAntiforgeryToken]
-		public async Task<JsonResult> OnPostChangeSearchNicknameAsync([FromBody] Dictionary<string, string> requestData) {
-			// 确保接收到的数据被正确绑定
-			if (requestData == null || !requestData.Any()) {
-				return new JsonResult(new { success = false, message = "请求数据为空！" });
-			}
-
 			SearchNickname = requestData["SearchNickname"];
 
 			return new JsonResult(new { success = true, message = "成功" });
 		}
 
-		// 获取查询数据
+		/// <summary>
+		/// 获取查询数据
+		/// </summary>
+		/// <returns></returns>
+		public async Task<JsonResult> OnGetSearchDataAsync() {
 
-		public async Task<JsonResult> OnGetSearchPhoneAsync() {
-
-			return new JsonResult(new { success = true, message = "成功", SearchPhone });
-		}
-
-		public async Task<JsonResult> OnGetSearchNameAsync() {
-
-			return new JsonResult(new { success = true, message = "成功", SearchName });
-		}
-
-		public async Task<JsonResult> OnGetSearchNicknameAsync() {
-
-			return new JsonResult(new { success = true, message = "成功", SearchNickname });
+			return new JsonResult(new { success = true, message = "成功", SearchPhone, SearchName, SearchNickname });
 		}
 	}
 }
