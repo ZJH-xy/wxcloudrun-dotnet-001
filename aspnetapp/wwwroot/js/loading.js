@@ -47,3 +47,4 @@ function showMessage(elementId, duration = 2000) {
 		message.classList.add('hidden');
 	}, duration);
 }
+

@@ -73,7 +73,6 @@ function toggleSubMenu(event) {
 	const allLinks = document.querySelectorAll('.menu > li > a');
 	allLinks.forEach(function (link) {
 		link.classList.remove('selected'); // 移除选中状态
-
 	});
 
 	// 如果当前子菜单未展开，则展开它并添加选中状态

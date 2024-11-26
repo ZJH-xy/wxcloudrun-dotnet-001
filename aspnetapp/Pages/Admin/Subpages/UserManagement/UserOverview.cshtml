@@ -57,9 +57,9 @@
 
 		</div>
 		<form method="post" asp-page-handler="Search">
-			<input asp-for="SearchPhoneHtml" placeholder="手机号" />
-			<input asp-for="SearchNameHtml" placeholder="姓名" />
-			<input asp-for="SearchNicknameHtml" placeholder="昵称" />
+			<input asp-for="SearchPhoneHtml" id="SearchPhoneHtml" value="@Model.SearchPhoneHtml" placeholder="手机号" />
+			<input asp-for="SearchNameHtml" id="SearchNameHtml" value="@Model.SearchNameHtml" placeholder="姓名" />
+			<input asp-for="SearchNicknameHtml" id="SearchNicknameHtml" value="@Model.SearchNicknameHtml" placeholder="昵称" />
 			<select asp-for="SortField">
 				<option value="Id">ID</option>
 				<option value="Phone">手机号</option>
@@ -71,9 +71,8 @@
 				<option value="asc">升序</option>
 				<option value="desc">降序</option>
 			</select>
-			<button type="submit">搜索</button>
+			<button type="submit" onclick="confirmChangeSearchData()">搜索</button>
 		</form>
-	</div>
 	</div>
 
 	<table id="userTable">
@@ -156,6 +155,10 @@
 	<div class="bottom">
 		<div class="bottom-item">
 			<text id="page">第 1 页</text>
+			@if(@Model.SearchSum!=0){
+
+				<text >，共搜索到 @Model.SearchSum 条数据，</text>
+			}
 			<input id="PageCount" value="@Model.List.Count" style="display:none;" />
 			<input id="PageLimit" value="@Model.Limit" style="display:none;" />
 
@@ -175,62 +178,12 @@
 			</form>
 		</div>
 	</div>
-	<input value="@Model.SearchSum" />
 
 	<script>
 		// 页面加载完成后执行函数
 		window.onload = function () {
 			loadIndexPage();// 加载页码
-			// 获取所有文件上传控件
-			const fileInputs = document.querySelectorAll(".fileUpload");
-
-			fileInputs.forEach(input => {
-				input.addEventListener("change", function () {
-					const file = this.files[0];
-					if (file) {
-						const reader = new FileReader();
-
-						// 读取文件完成后设置预览图片的 src 属性
-						reader.onload = function (e) {
-							const preview = input.closest(".imageContainer").querySelector(".preview");
-							preview.src = e.target.result; // 设置预览图像的路径
-							preview.style.display = "block"; // 显示预览图片
-						};
-
-						// 读取文件为 Data URL
-						reader.readAsDataURL(file);
-					}
-				});
-			});
-
-			// 编辑按钮逻辑
-			const editButtons = document.querySelectorAll(".editBtn");
-			editButtons.forEach(button => {
-				button.addEventListener("click", function () {
-					const id = this.dataset.id;
-					console.log('id', id)
-					const container = document.querySelector(`.imageContainer[data-id="${id}"]`);
-					const img = container.querySelector(".thumbnail");
-					const fileInput = container.querySelector(".fileUpload");
-					const loadImageBtn = container.querySelector(".loadImageBtn");
-
-					// 隐藏旧图片
-					if (img) img.style.display = "none";
-
-					// 显示文件上传控件
-					fileInput.style.display = "block";
-
-					// 切换其他字段为可编辑状态
-					const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
-					inputs.forEach(input => input.disabled = false);
-
-					// 切换按钮状态
-					this.style.display = "none"; // 隐藏编辑按钮
-					container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
-				});
-			});
-
-
+			loadButton();// 加载按钮
 		};
 
 

@@ -135,6 +135,7 @@ async function loadImageUrl(event) {
 // 更改页面
 async function changePage(index) {
 	loadHTML();
+	//const SearchSum = document.getElementById("SearchSum");待修改
 	try {
 		const response = await fetch(`${RESPONSEURL}?handler=PageIndex`, {
 			method: 'Get',
@@ -292,7 +293,6 @@ async function getPageSum() {
 	} catch (error) {
 		cancelloadHTML(); // 确保在出错时也取消加载动画
 		console.error('出错:', error);
-		alert("操作过于频繁 " + (error || "未知错误"));
 		return null; // 返回 null 表示没有有效结果
 	}
 }
@@ -305,7 +305,57 @@ async function loadPageSum() {
 	document.getElementById('pageSumButton').style.display = 'none';
 }
 
+// 加载按钮
+function loadButton() {
+	// 获取所有文件上传控件
+	const fileInputs = document.querySelectorAll(".fileUpload");
 
+	fileInputs.forEach(input => {
+		input.addEventListener("change", function () {
+			const file = this.files[0];
+			if (file) {
+				const reader = new FileReader();
+
+				// 读取文件完成后设置预览图片的 src 属性
+				reader.onload = function (e) {
+					const preview = input.closest(".imageContainer").querySelector(".preview");
+					preview.src = e.target.result; // 设置预览图像的路径
+					preview.style.display = "block"; // 显示预览图片
+				};
+
+				// 读取文件为 Data URL
+				reader.readAsDataURL(file);
+			}
+		});
+	});
+
+	// 编辑按钮逻辑
+	const editButtons = document.querySelectorAll(".editBtn");
+	editButtons.forEach(button => {
+		button.addEventListener("click", function () {
+			const id = this.dataset.id;
+			console.log('id', id)
+			const container = document.querySelector(`.imageContainer[data-id="${id}"]`);
+			const img = container.querySelector(".thumbnail");
+			const fileInput = container.querySelector(".fileUpload");
+			const loadImageBtn = container.querySelector(".loadImageBtn");
+
+			// 隐藏旧图片
+			if (img) img.style.display = "none";
+
+			// 显示文件上传控件
+			fileInput.style.display = "block";
+
+			// 切换其他字段为可编辑状态
+			const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
+			inputs.forEach(input => input.disabled = false);
+
+			// 切换按钮状态
+			this.style.display = "none"; // 隐藏编辑按钮
+			container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
+		});
+	});
+}
 
 // 打开模态窗口并加载点击的图片
 function openModal(imgElement) {
@@ -316,7 +366,6 @@ function openModal(imgElement) {
 	modal.style.display = "flex"; // 使用 flexbox 居中
 	modalImg.src = imgElement.src; // 设置模态窗口图片源
 }
-
 
 // 关闭模态窗口
 function closeModal() {
@@ -332,3 +381,66 @@ window.onclick = function (event) {
 	}
 }
 
+// 获取搜索输入框的数据
+async function getSearchData() {
+	const SearchPhone = document.querySelector('SearchPhoneHtml');
+	const SearchName = document.querySelector('SearchNameHtml');
+	const SearchNickname = document.querySelector('SearchNicknameHtml');
+	console.log("requestData", requestData);
+	try {
+		const response = await fetch(`${RESPONSEURL}?handler=SearchData`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'RequestVerificationToken': TOKEN
+			},
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP 错误！状态码: ${response.status}`);
+		}
+		if (data.success) {
+			SearchPhone.value = data.SearchPhone;
+			SearchName.value = data.SearchName;
+			SearchNickname.value = data.SearchNickname;
+
+		} else {
+			alert(data.message + '请刷新页面后重试');
+		}
+	} catch (error) {
+		console.error("API 调用失败:", error);
+	}
+}
+// 确认搜索
+async function confirmChangeSearchData() {
+	const SearchPhone = document.getElementById('SearchPhoneHtml').value;
+	const SearchName = document.getElementById('SearchNameHtml').value;
+	const SearchNickname = document.getElementById('SearchNicknameHtml').value;
+	const requestData = {
+		"SearchPhone": SearchPhone,
+		"SearchName": SearchName,
+		"SearchNickname": SearchNickname
+	};
+	console.log("requestData", requestData);
+	try {
+		const response = await fetch(`${RESPONSEURL}?handler=ChangeSearchData`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'RequestVerificationToken': TOKEN
+			},
+			body: JSON.stringify(requestData),
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP 错误！状态码: ${response.status}`);
+		}
+		if (data.success) {
+			getSearchData();
+		} else {
+			alert(data.message + '请刷新页面后重试');
+		}
+	} catch (error) {
+		console.error("API 调用失败:", error);
+	}
+}
