@@ -125,3 +125,14 @@ content-type: application/json
 {
     "OderId": 28
 }
+
+
+### 下单 ==========================================================
+Post {{localhost}}/order/pay HTTP/1.1
+Authorization: Bearer {{authorization}}
+content-type: application/json
+
+{
+    "openid": "0f3kP5ll2GmuBe4X1Kml25ydZf0kP5lC",
+    "orderId": 13
+}
