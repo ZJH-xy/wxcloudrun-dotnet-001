@@ -1,6 +1,7 @@
 using aspnetapp.Controllers.API.Miniprogram;
 using aspnetapp.Controllers.API.StoreAccount;
 using aspnetapp.Controllers.Miniprogram;
+using Senparc.Weixin.TenPayV3;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,11 +50,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     });
 
 
-// 用于完成 Senparc.Weixin 的注册。
-//builder.Services.AddSenparcWeixinServices(builder.Configuration);
-
 //Senparc.Weixin 注册（必须）
 builder.Services.AddSenparcWeixin(builder.Configuration);
+// 用于完成 Senparc.Weixin 的注册。
+//builder.Services.AddSenparcWeixinServices(builder.Configuration);
 
 
 // 配置日志
@@ -65,7 +65,6 @@ builder.Logging.SetMinimumLevel(LogLevel.Information); // 设置最小日志级别
 
 // 还可以从 appsettings.json 中读取配置
 builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
-
 
 
 var app = builder.Build();
@@ -80,7 +79,9 @@ var registerService = app.UseSenparcWeixin(app.Environment,
     (register, weixinSetting) => {
         //注册公众号信息（可以执行多次，注册多个小程序）
         register.RegisterWxOpenAccount(weixinSetting, "文旅小程序");
-    });
+		//注册微信支付（可以执行多次，注册多个微信支付）
+		register.RegisterTenpayApiV3(weixinSetting, "【盛派网络小助手】微信支付（ApiV3）");
+	});
 
 
 //var registerService = app.UseSenparcWeixin(app.Environment, null, null,
