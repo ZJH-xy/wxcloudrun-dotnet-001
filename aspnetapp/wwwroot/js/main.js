@@ -55,30 +55,40 @@ function loadPage(pageName, clickedLink) {
 
 
 function toggleSubMenu(event) {
-	event.preventDefault(); // 阻止默认点击行为
-	// 获取当前被点击的主菜单项
-	const clickedLink = event.target;
-	const submenu = clickedLink.nextElementSibling; // 获取当前链接的子菜单
+	event.preventDefault(); // 阻止默认点击行为  
 
-	// 获取当前子菜单的展开状态
-	const isOpen = submenu.classList.contains('show'); // 检查当前子菜单是否已展开
+	// 获取当前被点击的链接和子菜单  
+	const clickedLink = event.currentTarget; // 使用 currentTarget 确保获取绑定的元素  
+	const submenu = clickedLink.nextElementSibling; // 获取当前链接的子菜单  
+	const arrow = clickedLink.querySelector('.arrow'); // 找到箭头  
 
-	// 隐藏所有子菜单
+	// 获取当前子菜单的展开状态  
+	const isOpen = submenu.classList.contains('show'); // 检查当前子菜单是否已展开  
+
+	// 隐藏所有子菜单  
 	const allSubMenus = document.querySelectorAll('.menu > li > ul');
 	allSubMenus.forEach(function (menu) {
-		menu.classList.remove('show'); // 移除展开状态
+		menu.classList.remove('show'); // 移除展开状态  
 	});
 
-	// 移除所有主菜单的选中状态
+	// 移除所有主菜单的选中状态  
 	const allLinks = document.querySelectorAll('.menu > li > a');
 	allLinks.forEach(function (link) {
-		link.classList.remove('selected'); // 移除选中状态
+		link.classList.remove('selected'); // 移除选中状态  
+		const linkArrow = link.querySelector('.arrow'); // 确保箭头跟着一起收起  
+		if (linkArrow) {
+			linkArrow.classList.remove('active'); // 收起箭头  
+		}
 	});
 
-	// 如果当前子菜单未展开，则展开它并添加选中状态
+	// 如果当前子菜单未展开，则展开它并添加选中状态  
 	if (!isOpen) {
-		submenu.classList.add('show'); // 展开当前子菜单
-		clickedLink.classList.add('selected'); // 添加选中状态
-	}
+		submenu.classList.add('show'); // 展开当前子菜单  
+		clickedLink.classList.add('selected'); // 添加选中状态  
+		arrow.classList.add('active'); // 展开箭头  
+	}  
 
 }
+
+
+

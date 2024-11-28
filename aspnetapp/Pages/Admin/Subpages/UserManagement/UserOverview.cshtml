@@ -39,10 +39,10 @@
 
 	<!-- 显示成功消息 -->
 	@if (!string.IsNullOrEmpty(Model.SuccessMessage)) {
-		<div id="SuccessMessage" class="message">@Model.SuccessMessage</div>
+		<div id="successMessage" class="message">@Model.SuccessMessage</div>
 		<script>
 			setTimeout(function () {
-				showMessage("SuccessMessage");
+				showMessage("successMessage");
 			}, 500)
 		</script>
 	}
@@ -50,16 +50,16 @@
 	<div class="header">
 		<div class="header">
 			<form method="get">
-				<button type="submit">刷新</button>
+				<button type="submit" onclick="init()">刷新</button>
 			</form>
 
 			<button onclick="exportFile()" class="editBtn">导出为 Excel</button>
 
 		</div>
 		<form method="post" asp-page-handler="Search">
-			<input asp-for="SearchPhoneHtml" id="SearchPhoneHtml" value="@Model.SearchPhoneHtml" placeholder="手机号" />
-			<input asp-for="SearchNameHtml" id="SearchNameHtml" value="@Model.SearchNameHtml" placeholder="姓名" />
-			<input asp-for="SearchNicknameHtml" id="SearchNicknameHtml" value="@Model.SearchNicknameHtml" placeholder="昵称" />
+			<input asp-for="SearchPhoneHtml" id="SearchPhoneHtml" value="" placeholder="手机号" />
+			<input asp-for="SearchNameHtml" id="SearchNameHtml" value="" placeholder="姓名" />
+			<input asp-for="SearchNicknameHtml" id="SearchNicknameHtml" value="" placeholder="昵称" />
 			<select asp-for="SortField">
 				<option value="Id">ID</option>
 				<option value="Phone">手机号</option>
@@ -156,10 +156,12 @@
 	<div class="bottom">
 		<div class="bottom-item">
 			<text id="page">第 1 页</text>
-			@if(@Model.SearchSum!=0){
-
-				<text >，共搜索到 @Model.SearchSum 条数据，</text>
+			<text>，当前页共 @Model.List.Count 条数据</text>
+			@if (@Model.SearchSum!=0) {
+				<text>，共搜索到 @Model.SearchSum 条数据，</text>
 			}
+			@* <text id="searchData" style="display:none;">，共搜索到 @Model.SearchSum 条数据，</text> *@
+
 			<input id="PageCount" value="@Model.List.Count" style="display:none;" />
 			<input id="PageLimit" value="@Model.Limit" style="display:none;" />
 
@@ -186,7 +188,5 @@
 			loadIndexPage();// 加载页码
 			loadButton();// 加载按钮
 		};
-
-
 	</script>
 </body>

@@ -21,9 +21,6 @@ body {
     height: 100vh; /* 侧边栏高度全屏 */
     color: #000000; /* 字体颜色 */
     padding-top: 20px; /* 顶部内边距 */
-    position: fixed; /* 固定位置 */
-    left: 0; /* 靠左对齐 */
-    top: 0; /* 靠上对齐 */
     overflow-y: auto; /* 支持垂直滚动 */
 }
 
@@ -37,20 +34,28 @@ body {
         gap: 20px;
         transition: background-color 0.3s ease, color 0.3s ease; /* 背景色和字体颜色的过渡 */
         position: relative;
+        border-radius: 5px;
+
     }
 
-        /* 链接的悬停效果 */
-        .sidebar a:hover {
-            background-color: #E9EAEB; /* 悬停背景颜色 */
-            transition: background-color 0.3s ease, color 0.3s ease; /* 背景色和字体颜色的过渡 */
-            color: #333; /* 悬停时字体颜色 */
-            border-radius: 5px;
-        }
+        /* 链接的悬停效果 */  
+        .sidebar a {  
+            transition: padding-left 0.3s ease, background-color 0.3s ease, color 0.3s ease; /* 添加对 padding-left 的过渡 */  
+        }  
+        .sidebar a:hover {  
+            padding-left: 10px; /* 悬停时的左内边距 */  
+            background-color: #f0f0f0; /* 可选：背景色变化 */  
+        }  
+        .sidebar a.selected  {  
+            padding-left: 30px; 
+            background-color: #f0f0f0; /* 可选：背景色变化 */  
+        }  
+
 
 /* 主内容区域样式 */
 .main-content {
     height: 100vh; /* 确保主内容区域填满视口 */
-    margin-left: 30vh; /* 留出侧边栏宽度的空间 */
+    margin-left: 10px; /* 留出侧边栏宽度的空间 */
     flex: 1; /* 自动填充剩余空间 */
 }
 
@@ -74,8 +79,8 @@ body {
             overflow: hidden; /* 超出隐藏 */
             transition: max-height 0.3s ease, opacity 0.3s ease; /* 过渡效果 */
             background-color: #ffffff; /* 子菜单背景颜色 */
-            padding: 0; /* 内边距 */
-            margin: 0; /* 外边距 */
+            padding: 0; 
+            margin: 0; 
             width: 100%; 
             height:100%;
             box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.1); /* 阴影效果 */
@@ -85,35 +90,50 @@ body {
 
             /* 子菜单项样式 */
             .menu > li > ul > li {
-                padding: 10px; /* 内边距 */
                 color: #fff; /* 字体颜色 */
                 font-size: 14px; /* 字体大小 */
                 list-style-type: none; /* 移除列表样式 */
-                border-radius: 5px;
                 transition: max-height 0.3s ease, opacity 0.3s ease; /* 过渡效果 */
+                
             }
 
                 /* 子菜单项悬停效果 */
                 .menu > li > ul > li:hover {
                     background-color: #E6F9EF; /* 子菜单项悬停背景颜色 */
-                    border-radius: 5px;
                     transition: background-color 0.3s ease, color 0.3s ease; /* 背景色和字体颜色的过渡 */
                 }
 
             /* 子菜单展开时的状态 */
             .menu > li > ul.show {
-                max-height: 200px; /* 展开时设置一个足够大的高度 */
-                color: #07C160;
+                max-height: 500px; /* 展开时设置一个足够大的高度 */
+                color: #07c160 !important; /* 子菜单项被选中时的字体颜色 */  
                 opacity: 1; /* 变为完全不透明 */
                 transition: max-height 0.3s ease, opacity 0.3s ease; /* 过渡效果 */
-            }
+            }            
+            
+
+/* 选中状态的背景颜色 */
+.selected {
+    background-color: #E6F9EF !important; /* 被选中时的背景颜色 */
+    color: #07c160 !important; /* 被选中时字体颜色 */  
+
+}
+
+.submenuSelected {
+    background-color: #E6F9EF !important; /* 被选中时的背景颜色 */
+    border-radius: 5px;
+    padding-left: 30px !important;
+    transition: padding-left 0.3s ease; /* 过渡效果 */
+    color: #07C160 !important;
+}
+
 .arrow{
     position: absolute;
     top: 14.5px;
     right: 20px;
     width: 12px;
     height: 12px;
-    background-color: rgb(239, 238, 238);
+    background-color: gray;
     border-radius: 2.5px;
     clip-path: polygon(0 75%, 0 100%, 100% 100%, 100% 0, 75% 0, 75% 75%);
     transform: rotate(45deg);
@@ -121,21 +141,8 @@ body {
     transition: all .3s;
     pointer-events: none;
 }
+    .arrow.active {
+        transform: rotate(-135deg); /* 活动状态旋转 */
+        background-color: #07C160;
 
-.arrow.active {
-    transform: rotate(-135deg);
-}
-/* 选中状态的背景颜色 */
-.selected {
-    background-color: #E6F9EF !important; /* 被选中时的背景颜色 */
-    color: white; /* 选中时字体颜色 */
-    border-radius: 5px;
-    transition: max-height 0.3s ease, opacity 0.3s ease; /* 过渡效果 */
-}
-
-.submenuSelected {
-    background-color: #E6F9EF !important; /* 被选中时的背景颜色 */
-    border-radius: 5px;
-    height: 100%;
-    transition: max-height 0.3s ease, opacity 0.3s ease; /* 过渡效果 */
-}
+    }  

@@ -1,7 +1,7 @@
 ﻿
 const RESPONSEURL = `/Admin/Subpages/UserManagement/UserOverview`;
 const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]').value;
-const LENGTH = document.getElementById('PageCount').value;
+const LENGTH = document.getElementById('PageCount').value;// 显示长度
 var file;
 var fileId;
 // 监听每行的文件是否有变化
@@ -124,10 +124,10 @@ async function loadImageUrl(event) {
 		} else {
 			alert("文件上传失败: " + (data.message || "未知错误"));
 		}
-		cancelloadHTML()
 
 	} catch (error) {
 		console.error("API 调用失败:", error);
+	} finally {
 		cancelloadHTML();
 	}
 }
@@ -381,15 +381,16 @@ window.onclick = function (event) {
 	}
 }
 
+
 // 获取搜索输入框的数据
 async function getSearchData() {
-	const SearchPhone = document.querySelector('SearchPhoneHtml');
-	const SearchName = document.querySelector('SearchNameHtml');
-	const SearchNickname = document.querySelector('SearchNicknameHtml');
-	console.log("requestData", requestData);
+	var SearchPhone = document.getElementById('SearchPhoneHtml');
+	var SearchName = document.getElementById('SearchNameHtml');
+	var SearchNickname = document.getElementById('SearchNicknameHtml');
+
 	try {
 		const response = await fetch(`${RESPONSEURL}?handler=SearchData`, {
-			method: 'GET',
+			method: 'Get',
 			headers: {
 				'Content-Type': 'application/json',
 				'RequestVerificationToken': TOKEN
@@ -399,22 +400,27 @@ async function getSearchData() {
 		if (!response.ok) {
 			throw new Error(`HTTP 错误！状态码: ${response.status}`);
 		}
+		const data = await response.json();
+
 		if (data.success) {
-			SearchPhone.value = data.SearchPhone;
-			SearchName.value = data.SearchName;
-			SearchNickname.value = data.SearchNickname;
-			setTimeout(function () {
-				showMessage("searchMessage");
-			}, 500)
+			SearchPhone.value = data.searchPhone || '';
+			SearchName.value = data.searchName || '';
+			SearchNickname.value = data.searchNickname || '';
+			console.log('搜索成功')
+
 		} else {
 			alert(data.message + '请刷新页面后重试');
 		}
 	} catch (error) {
 		console.error("API 调用失败:", error);
+	} finally {
+		cancelloadHTML();
 	}
 }
+
 // 确认搜索
 async function confirmChangeSearchData() {
+	loadHTML(); // 显示加载中
 	const SearchPhone = document.getElementById('SearchPhoneHtml').value;
 	const SearchName = document.getElementById('SearchNameHtml').value;
 	const SearchNickname = document.getElementById('SearchNicknameHtml').value;
@@ -437,13 +443,16 @@ async function confirmChangeSearchData() {
 		if (!response.ok) {
 			throw new Error(`HTTP 错误！状态码: ${response.status}`);
 		}
+		const data = await response.json();
 		if (data.success) {
 			getSearchData();
-
+			cancelloadHTML();
 		} else {
 			alert(data.message + '请刷新页面后重试');
 		}
 	} catch (error) {
 		console.error("API 调用失败:", error);
+	} finally {
+		cancelloadHTML();
 	}
 }
