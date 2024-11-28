@@ -5,7 +5,7 @@ const LENGTH = document.getElementById('PageCount').value;
 var file;
 var fileId;
 // 监听每行的文件是否有变化
-for (var i = 0; i < 10; i++) {
+for (var i = 0; i < LENGTH; i++) {
 	document.getElementById('fileInput' + i).addEventListener('change', function (event) {
 		if (event.target.files[0]) {
 			file = event.target.files[0]; // 获取用户上传的文件
@@ -403,7 +403,9 @@ async function getSearchData() {
 			SearchPhone.value = data.SearchPhone;
 			SearchName.value = data.SearchName;
 			SearchNickname.value = data.SearchNickname;
-
+			setTimeout(function () {
+				showMessage("searchMessage");
+			}, 500)
 		} else {
 			alert(data.message + '请刷新页面后重试');
 		}
@@ -437,6 +439,7 @@ async function confirmChangeSearchData() {
 		}
 		if (data.success) {
 			getSearchData();
+
 		} else {
 			alert(data.message + '请刷新页面后重试');
 		}

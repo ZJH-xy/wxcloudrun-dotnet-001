@@ -70,12 +70,12 @@
 }
 
 /* 通用的提示消息样式 */
-.message,.failMessage {
+.message, .failMessage {
     position: fixed;
     top: 10px; /* 初始位置在视图上方 */
     left: 50%;
     color: #07C160;
-    background-color: #e9fceb; 
+    background-color: #e9fceb;
     box-shadow: 0 2px 5px #e9fceb; /* 添加阴影效果 */
     border: 1px solid #e9fceb; /* 深绿色边框 */
     border-radius: 10px;
@@ -87,7 +87,7 @@
     align-items: center;
     display: flex;
     text-align: center;
-    font-size:large;
+    font-size: large;
 }
 .failMessage {
     color: #ff0000;
@@ -96,13 +96,13 @@
     border: 1px solid #fde4e4; /* 深绿色边框 */
 }
 /* 显示提示消息时的状态 */
-.message.visible,.failMessage.visible {
-    opacity: 1;
-    transform: translate(-50%, 50px); /* 向下滑动 */
-}
+    .message.visible, .failMessage.visible {
+        opacity: 1;
+        transform: translate(-50%, 50px); /* 向下滑动 */
+    }
 
     /* 消失时回到初始状态 */
-    .message.hidden,.failMessage.hidden {
+    .message.hidden, .failMessage.hidden{
         opacity: 0;
         transform: translate(-50%, -50px); /* 向上滑动 */
     }

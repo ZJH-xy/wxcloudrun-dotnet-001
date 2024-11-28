@@ -28,7 +28,7 @@
 	@if (!string.IsNullOrEmpty(Model.ErrorMessage)) {
 		<div id="failMessage" class="failMessage">@Model.ErrorMessage</div>
 		@foreach (var error in ModelState.Values.SelectMany(v => v.Errors)) {
-			<div id="message" class="failMessage">@error.ErrorMessage</div>
+			<div id="failMessage" class="failMessage">@error.ErrorMessage</div>
 		}
 		<script>
 			setTimeout(function () {
@@ -71,6 +71,7 @@
 				<option value="asc">升序</option>
 				<option value="desc">降序</option>
 			</select>
+			<div id="searchMessage" class="message">搜索成功</div>
 			<button type="submit" onclick="confirmChangeSearchData()">搜索</button>
 		</form>
 	</div>
