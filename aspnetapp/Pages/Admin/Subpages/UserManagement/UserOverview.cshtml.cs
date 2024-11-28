@@ -166,6 +166,10 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 		public async Task<IActionResult> OnGetAsync() {
 			_logger.LogInformation("[OnGetAsync]正在获取限制为{Limit}的页面{PageIndex}的用户列表", PageIndex, Limit);
 
+			SearchPhone = "";
+			SearchName = "";
+			SearchNickname = "";
+
 			try {
 				List = await _userController.GetTablePage(Limit, PageIndex);
 
