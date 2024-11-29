@@ -12,6 +12,8 @@ using Senparc.Weixin.Helpers;
 using Senparc.Weixin.TenPayV3;
 using Senparc.CO2NET.Utilities;
 using Senparc.Weixin.TenPayV3.Apis.Entities;
+using Senparc.CO2NET.Extensions;
+using System.Text;
 
 namespace aspnetapp.Controllers.API.Miniprogram
 {
@@ -65,7 +67,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 _logger.LogError(e, "用户{UserId}查询订单{order}信息", GetUserIdInt(), orderId);
 
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             if (order == null)
                 return StatusCode(404);
@@ -87,7 +90,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 _logger.LogError(e, "用户{UserId}查询订单信息", GetUserIdInt());
 
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             List<ReturnOrderBasic> returnOrderorderList = new();
 
@@ -111,7 +115,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}查询订单{order}状态", GetUserIdInt(), orderId);
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             if (orderStatus == null)
                 return StatusCode(404);
@@ -133,7 +138,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}查询订单{order}换车状态", GetUserIdInt(), orderId);
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             return StatusCode(200, status);
         }
@@ -301,7 +307,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
 			int total = 1;
 
             // 创建请求类
-            TransactionsRequestData requestData = new TransactionsRequestData {
+            TransactionsRequestData requestData = new() {
                 appid = appid,
 
                 // 【直连商户号】 直连商户号
@@ -408,7 +414,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
 		}
 		#endregion
 
-		#region 支付回调
+		#region 接收支付回调
 		/// <summary>
 		/// 支付回调（侍测试）
 		/// </summary>
@@ -416,10 +422,11 @@ namespace aspnetapp.Controllers.API.Miniprogram
 		[AllowAnonymous]// 允许匿名访问
 		[HttpPost("notify")]
 		public async Task<IActionResult> PayNotifyUrl() {
+			NotifyReturnData returnData = new();// 应答格式
 			try {
 				//获取微信服务器异步发送的支付通知信息
-				var resHandler = new TenPayNotifyHandler(HttpContext);
-				var orderReturnJson = await resHandler.DecryptGetObjectAsync<OrderReturnJson>();
+				TenPayNotifyHandler resHandler = new TenPayNotifyHandler(HttpContext);
+				OrderReturnJson orderReturnJson = await resHandler.DecryptGetObjectAsync<OrderReturnJson>();
 
 				//记录日志
 				Senparc.Weixin.WeixinTrace.SendCustomLog("PayNotifyUrl 接收到消息", orderReturnJson.ToJson(true));
@@ -433,16 +440,33 @@ namespace aspnetapp.Controllers.API.Miniprogram
 				string trade_state = orderReturnJson.trade_state;
 
 				//验证请求是否从微信发过来（安全）
-				NotifyReturnData returnData = new();
+
 
 				//验证可靠的支付状态
 				if (orderReturnJson.VerifySignSuccess == true && trade_state == "SUCCESS") {
 					returnData.code = "SUCCESS";//正确的订单处理
 					/* 提示：
-                        * 1、直到这里，才能认为交易真正成功了，可以进行数据库操作，但是别忘了返回规定格式的消息！
-                        * 2、上述判断已经具有比较高的安全性以外，还可以对访问 IP 进行判断进一步加强安全性。
-                        * 3、下面演示的是发送支付成功的模板消息提示，非必须。
-                        */
+                    * 1、直到这里，才能认为交易真正成功了，可以进行数据库操作，但是别忘了返回规定格式的消息！
+                    * 2、上述判断已经具有比较高的安全性以外，还可以对访问 IP 进行判断进一步加强安全性。
+                    * 3、下面演示的是发送支付成功的模板消息提示，非必须。
+                    */
+
+					#region 业务逻辑处理
+
+					// 根据Id获取对应的订单
+					Order order = await _dbContext.Order.SingleAsync(o => o.Id.ToString() == orderReturnJson.out_trade_no);
+
+					order.Status = Order.EOrderStatus.待确认;// 更改订单状态
+                    order.UpdatedAt = DateTime.Now;
+
+                    Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+                    vehicle.State = Vehicle.Estates.已出租;
+
+					await _dbContext.SaveChangesAsync();
+
+					#endregion
+
+					return StatusCode(200);
 				} else {
 					returnData.code = "FAILD";//错误的订单处理
 					returnData.message = "验证失败";
@@ -472,6 +496,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
 				//return Json(returnData);
 			} catch (Exception ex) {
 				WeixinTrace.WeixinExceptionLog(new WeixinException(ex.Message, ex));
+				return StatusCode(500, returnData);
 				throw;
 			}
 		}
@@ -486,9 +511,10 @@ namespace aspnetapp.Controllers.API.Miniprogram
 			// 解密
 			var decryptStr = aspnetapp.Controllers.API.Background.AesGcm.AesGcmDecrypt(data.resource.associated_data, data.resource.nonce, data.resource.ciphertext);
 			// 解密后实体
-			var decryptModel = decryptStr.GetObject<WxPayResourceDecryptModel>();
-            _logger.LogInformation("支付回调信息：{decryptModel}", decryptModel.ToJson());
-
+			WxPayResourceDecryptModel decryptModel = decryptStr.GetObject<WxPayResourceDecryptModel>();
+            //_logger.LogInformation("支付回调信息：{decryptModel}", System.Text.Json.JsonSerializer.Serialize(decryptModel));
+            _logger.LogInformation("支付回调信息：{decryptModel}", decryptModel.ToJson(true));
+		    
 
 			string transactionId = decryptModel.transaction_id;
 
@@ -608,7 +634,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 _logger.LogError(e, "VehicleReplacementRecord：{VehicleReplacementRecordId}添加至换车表", vrr.Id);
                 await transaction.RollbackAsync();// 回滚
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             return StatusCode(200, "请求成功，请向商家确认");
         }
@@ -644,7 +671,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
             } catch (Exception e) {
                 _logger.LogCritical(e, "取消换车请求{VehicleReplacementRecordId}", vrr.Id);
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             return StatusCode(200);
         }
