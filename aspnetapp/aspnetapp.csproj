@@ -43,4 +43,11 @@
     <None Include="wwwroot\js\userUtils.js" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="wwwroot\css\overview.css">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

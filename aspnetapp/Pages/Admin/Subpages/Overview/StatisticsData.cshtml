@@ -3,38 +3,465 @@
 @{
 
 }
-
+<!DOCTYPE html>
+<html lang="zh">
 <head>
-	<meta charset="utf-8" />
-	<!-- 引用外部 jQuery -->
-	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-	<link rel="stylesheet" href="~/css/table.css" />
-	<link rel="stylesheet" href="~/css/loading.css" />
-    <link rel="stylesheet" href="~/css/card.css" />
-	<script src="~/js/loading.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="~/css/overview.css"/>
 </head>
 <body>
-    <div class="container">
-        <div class="card" onclick="flipCard()">
-            <div class="card-inner">
-                <div class="card-front">
-                    <img src="~/images/background.jpg" alt="Product Image">
-                    <h2>产品标题</h2>
-                    <p>产品的简短描述。</p>
-                </div>
-                <div class="card-back">
-                    <h2>更多信息</h2>
-                    <p>产品的详细描述，包括规格、价格以及任何其他相关信息。</p>
-                </div>
+
+  <header>
+    <h1>统计数据</h1>
+  </header>
+    <!-- 数据统计展示 -->
+    <div class="statistics">
+        <div class="stat-item">
+            <i class="fas fa-dollar-sign"></i>
+            <div>
+                <span>销售额</span>
+                <span>¥ 320,000</span>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fas fa-store"></i>
+            <div>
+                <span>门店数量</span>
+                <span>12</span>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fas fa-users"></i>
+            <div>
+                <span>用户数量</span>
+                <span>2,400</span>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fas fa-car"></i>
+            <div>
+                <span>车辆数量</span>
+                <span>150</span>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fas fa-clipboard-list"></i>
+            <div>
+                <span>订单数量</span>
+                <span>1,500</span>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fas fa-check-circle"></i>
+            <div>
+                <span>交易完成数量</span>
+                <span>1,200</span>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fas fa-times-circle"></i>
+            <div>
+                <span>订单取消数量</span>
+                <span>50</span>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fas fa-credit-card"></i>
+            <div>
+                <span>支付成功数量</span>
+                <span>1,400</span>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fas fa-clock"></i>
+            <div>
+                <span>待处理订单</span>
+                <span>100</span>
+            </div>
+        </div>
+        <div class="stat-item">
+            <i class="fas fa-users-cog"></i>
+            <div>
+                <span>活跃用户</span>
+                <span>1,000</span>
             </div>
         </div>
     </div>
-</body>
 
-<script>
-    function flipCard() {
-        const cardInner = document.querySelector('.card-inner');
-        cardInner.style.transition = "transform 0.6s";
-        cardInner.style.transform = cardInner.style.transform === "rotateY(180deg)" ? "rotateY(0deg)" : "rotateY(180deg)";
-    }
-</script>
+  <div class="loading" id="loading">
+    加载中...
+  </div>
+
+    <div class="statistics" id="content">
+        <!-- 销售统计卡片 -->
+        <div class="card">
+            <div class="card-header">销售统计</div>
+            <div class="stat-card">
+                <i class="fas fa-dollar-sign"></i>
+                <span>¥ 320,000</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 用户增长卡片 -->
+        <div class="card">
+            <div class="card-header">用户增长</div>
+            <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <span>2,400</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="userGrowthChart"></canvas>
+            </div>
+        </div>
+        <!-- 订单趋势分析 -->
+        <div class="card">
+            <div class="card-header">订单趋势分析</div>
+            <div class="stat-card">
+                <i class="fas fa-credit-card"></i>
+                <span>1500</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="orderTrendChart"></canvas>
+            </div>
+        </div>
+        <!-- 门店营业情况 -->
+        <div class="card">
+            <div class="card-header">门店营业情况</div>
+            <div class="stat-card">
+                <i class="fas fa-store"></i>
+                <span>12</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="storePerformanceChart"></canvas>
+            </div>
+        </div>
+        <!-- 商品分类比例 -->
+        <div class="card">
+            <div class="card-header">商品分类比例</div>
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 订单状态分布 -->
+        <div class="card">
+            <div class="card-header">订单状态分布</div>
+            <div class="chart-container">
+                <canvas id="orderStatusChart"></canvas>
+            </div>
+        </div>
+        <!-- 车辆状态分布 -->
+        <div class="card">
+            <div class="card-header">车辆状态分布</div>
+            <div class="chart-container">
+                <canvas id="vehicleStatusChart"></canvas>
+            </div>
+        </div>
+
+
+
+        <!-- 退款统计 -->
+        <div class="card">
+            <div class="card-header">退款统计</div>
+            <div class="chart-container">
+                <canvas id="refundChart"></canvas>
+            </div>
+        </div>
+
+
+
+    </div>
+    
+  </div>
+
+  <!-- 引入Chart.js库 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // 等待数据加载完成
+    window.onload = function() {
+      document.getElementById('loading').style.display = 'none';
+      // document.getElementById('content').style.display = 'grid';
+    };
+
+    // 销售统计折线图
+    var ctx1 = document.getElementById('salesChart').getContext('2d');
+    var salesChart = new Chart(ctx1, {
+      type: 'line',
+      data: {
+        labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+        datasets: [{
+          label: '销售额',
+          data: [120000, 150000, 130000, 170000, 160000, 190000, 220000],
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 5, // 增加点的半径
+          pointBackgroundColor: 'rgba(75, 192, 192, 1)', // 点的颜色
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 2
+          },
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        }
+      }
+    });
+
+    // 用户增长折线图
+    var ctx2 = document.getElementById('userGrowthChart').getContext('2d');
+    var userGrowthChart = new Chart(ctx2, {
+      type: 'line',
+      data: {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
+        datasets: [{
+          label: '新增用户',
+          data: [200, 400, 600, 800, 1000, 1200, 1400],
+          borderColor: 'rgba(54, 162, 235, 1)',
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 5,
+          pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 2
+          },
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        }
+      }
+    });
+
+    // 商品分类饼图
+    var ctx3 = document.getElementById('categoryChart').getContext('2d');
+    var categoryChart = new Chart(ctx3, {
+      type: 'pie',
+      data: {
+        labels: ['电子产品', '服装', '家居用品', '书籍', '食品'],
+        datasets: [{
+          data: [35, 25, 15, 10, 15],
+          backgroundColor: ['#FF5733', '#33FF57', '#3357FF', '#F3FF33', '#FF33A8'],
+          hoverBackgroundColor: ['#FF4500', '#32CD32', '#1E90FF', '#FFD700', '#FF1493']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 2
+          },
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        }
+      }
+    });
+
+    // 订单状态饼图
+    var ctx4 = document.getElementById('orderStatusChart').getContext('2d');
+    var orderStatusChart = new Chart(ctx4, {
+      type: 'doughnut',
+      data: {
+        labels: ['已完成', '待确认', '待付款', '已取消'],
+        datasets: [{
+          data: [50, 20, 15, 15],
+          backgroundColor: ['#07C160', '#FF9800', '#FF5722', '#9E9E9E'],
+          hoverBackgroundColor: ['#45a049', '#FF8C00', '#FF4500', '#808080']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 2
+          },
+          legend: {
+            display: true,
+            position: 'top'
+          }
+        }
+      }
+    });
+        // 车辆状态分布饼图
+        var ctx5 = document.getElementById('vehicleStatusChart').getContext('2d');
+        var vehicleStatusChart = new Chart(ctx5, {
+            type: 'pie',
+            data: {
+                labels: ['可租用', '维修中', '已租出'],
+                datasets: [{
+                    data: [70, 20, 10],
+                    backgroundColor: ['#33FF57', '#FF5733', '#FF33A8'],
+                    hoverBackgroundColor: ['#32CD32', '#FF4500', '#FF1493']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+
+
+        // 退款统计饼图
+        var ctx7 = document.getElementById('refundChart').getContext('2d');
+        var refundChart = new Chart(ctx7, {
+            type: 'doughnut',
+            data: {
+                labels: ['已退款', '未退款'],
+                datasets: [{
+                    data: [30, 70],
+                    backgroundColor: ['#FF5722', '#07C160'],
+                    hoverBackgroundColor: ['#FF4500', '#45a049']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+
+        // 订单趋势分析折线图
+        var ctx8 = document.getElementById('orderTrendChart').getContext('2d');
+        var orderTrendChart = new Chart(ctx8, {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
+                datasets: [{
+                    label: '订单数量',
+                    data: [150, 200, 180, 220, 250, 280, 320],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+
+        // 门店营业情况柱状图
+        var ctx10 = document.getElementById('storePerformanceChart').getContext('2d');
+        var storePerformanceChart = new Chart(ctx10, {
+            type: 'bar',
+            data: {
+                labels: ['门店A', '门店B', '门店C', '门店D', '门店E'], // 门店名称
+                datasets: [{
+                    label: '营业额 (¥)',
+                    data: [100000, 150000, 120000, 130000, 110000], // 对应门店的营业额
+                    backgroundColor: '#66BB6A', // 条形图颜色
+                    borderColor: '#388E3C', // 条形图边框颜色
+                    borderWidth: 1
+                }, {
+                    label: '订单数量',
+                    data: [200, 300, 250, 280, 220], // 对应门店的订单数量
+                    backgroundColor: '#FF7043', // 条形图颜色
+                    borderColor: '#D32F2F', // 条形图边框颜色
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true // y轴从0开始
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2
+                    },
+                    legend: {
+                        display: true, // 显示图例
+                        position: 'top'
+                    }
+                }
+            }
+        });
+
+  </script>
+
+</body>
+</html>
+
+
