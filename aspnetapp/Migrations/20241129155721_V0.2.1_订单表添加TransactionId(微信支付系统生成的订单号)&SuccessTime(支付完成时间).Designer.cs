@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace aspnetapp.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241129155721_V0.2.1_订单表添加TransactionId(微信支付系统生成的订单号)&SuccessTime(支付完成时间)")]
+    partial class V021_订单表添加TransactionId微信支付系统生成的订单号SuccessTime支付完成时间
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,7 +41,7 @@ namespace aspnetapp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("T_AdminAccount", (string)null);
+                    b.ToTable("T_AdminAccount");
                 });
 
             modelBuilder.Entity("aspnetapp.Models.HomepageAd", b =>
@@ -67,7 +69,7 @@ namespace aspnetapp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("T_HomepageAd", (string)null);
+                    b.ToTable("T_HomepageAd");
                 });
 
             modelBuilder.Entity("aspnetapp.Models.Order", b =>
@@ -166,7 +168,7 @@ namespace aspnetapp.Migrations
 
                     b.HasIndex("TheUser", "Status");
 
-                    b.ToTable("T_OrderForm", (string)null);
+                    b.ToTable("T_OrderForm");
                 });
 
             modelBuilder.Entity("aspnetapp.Models.RevenueStatistics", b =>
@@ -207,7 +209,7 @@ namespace aspnetapp.Migrations
 
                     b.HasIndex("TheStoreA", "TheStoreB");
 
-                    b.ToTable("T_RevenueStatistics", (string)null);
+                    b.ToTable("T_RevenueStatistics");
                 });
 
             modelBuilder.Entity("aspnetapp.Models.Store", b =>
@@ -266,7 +268,7 @@ namespace aspnetapp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("T_StoreSummary", (string)null);
+                    b.ToTable("T_StoreSummary");
                 });
 
             modelBuilder.Entity("aspnetapp.Models.StoreAccount", b =>
@@ -296,7 +298,7 @@ namespace aspnetapp.Migrations
                     b.HasIndex("TheStore", "Account")
                         .IsUnique();
 
-                    b.ToTable("T_StoreAccount", (string)null);
+                    b.ToTable("T_StoreAccount");
                 });
 
             modelBuilder.Entity("aspnetapp.Models.StoreMenu", b =>
@@ -331,7 +333,7 @@ namespace aspnetapp.Migrations
 
                     b.HasIndex("TheStore");
 
-                    b.ToTable("T_StoreMenu", (string)null);
+                    b.ToTable("T_StoreMenu");
                 });
 
             modelBuilder.Entity("aspnetapp.Models.User", b =>
@@ -367,10 +369,6 @@ namespace aspnetapp.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp(6)");
 
-                    b.Property<string>("Unionid")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -379,7 +377,7 @@ namespace aspnetapp.Migrations
                     b.HasIndex("Phone")
                         .IsUnique();
 
-                    b.ToTable("T_Users", (string)null);
+                    b.ToTable("T_Users");
                 });
 
             modelBuilder.Entity("aspnetapp.Models.UserFavoritesStore", b =>
@@ -406,7 +404,7 @@ namespace aspnetapp.Migrations
 
                     b.HasIndex("TheUser");
 
-                    b.ToTable("T_UserFavoritesStore", (string)null);
+                    b.ToTable("T_UserFavoritesStore");
                 });
 
             modelBuilder.Entity("aspnetapp.Models.Vehicle", b =>
@@ -478,7 +476,7 @@ namespace aspnetapp.Migrations
 
                     b.HasIndex("TheOriginalStore", "TheCurrentStore", "State");
 
-                    b.ToTable("T_VehicleSummary", (string)null);
+                    b.ToTable("T_VehicleSummary");
                 });
 
             modelBuilder.Entity("aspnetapp.Models.VehicleReplacementRecord", b =>
@@ -514,7 +512,7 @@ namespace aspnetapp.Migrations
 
                     b.HasIndex("TheOrder");
 
-                    b.ToTable("T_VehicleReplacementRecord", (string)null);
+                    b.ToTable("T_VehicleReplacementRecord");
                 });
 #pragma warning restore 612, 618
         }

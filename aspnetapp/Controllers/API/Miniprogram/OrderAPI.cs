@@ -2,6 +2,18 @@
 using Microsoft.AspNetCore.Authorization;
 using MySqlConnector;
 using System.Security.Claims;
+using Senparc.Weixin.TenPayV3.Apis;
+using Senparc.Weixin.TenPayV3.Apis.BasePay;
+using Senparc.Weixin.Exceptions;
+using Senparc.CO2NET.Helpers;
+using Senparc.Weixin.TenPayV3.Helpers;
+using Senparc.Weixin.Entities;
+using Senparc.Weixin.Helpers;
+using Senparc.Weixin.TenPayV3;
+using Senparc.CO2NET.Utilities;
+using Senparc.Weixin.TenPayV3.Apis.Entities;
+using Senparc.CO2NET.Extensions;
+using System.Text;
 
 namespace aspnetapp.Controllers.API.Miniprogram
 {
@@ -55,7 +67,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 _logger.LogError(e, "用户{UserId}查询订单{order}信息", GetUserIdInt(), orderId);
 
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             if (order == null)
                 return StatusCode(404);
@@ -77,7 +90,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 _logger.LogError(e, "用户{UserId}查询订单信息", GetUserIdInt());
 
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             List<ReturnOrderBasic> returnOrderorderList = new();
 
@@ -94,14 +108,15 @@ namespace aspnetapp.Controllers.API.Miniprogram
         /// <returns></returns>
         [HttpGet("status/i/{orderId}")]
         public async Task<IActionResult> GetOderStatusByUserId(int orderId) {
-            Order.OrderStatus? orderStatus;
+            Order.EOrderStatus? orderStatus;
             try {
                 orderStatus = await _orderController.GetOrderStatusById(GetUserIdInt(), orderId);
 
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}查询订单{order}状态", GetUserIdInt(), orderId);
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             if (orderStatus == null)
                 return StatusCode(404);
@@ -123,17 +138,19 @@ namespace aspnetapp.Controllers.API.Miniprogram
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}查询订单{order}换车状态", GetUserIdInt(), orderId);
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             return StatusCode(200, status);
         }
 
-        /// <summary>
-        /// 创建订单
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        [HttpPost("add")]
+		#region 创建订单
+		/// <summary>
+		/// 创建订单
+		/// </summary>
+		/// <param name="data"></param>
+		/// <returns></returns>
+		[HttpPost("add")]
         public async Task<IActionResult> AddOrder(GetOrder data) {
             int userId = GetUserIdInt();
             // 订单信息合法性验证
@@ -154,7 +171,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
             // 检查用户订单状态
             try {
                 if (await _dbContext.Order.Where(o => o.TheUser == userId).
-                    AnyAsync(o => o.Status == Order.OrderStatus.待付款)) {
+                    AnyAsync(o => o.Status == Order.EOrderStatus.待付款)) {
                     return StatusCode(403, "当前有待付款的订单");
                 }
             } catch (Exception e) {
@@ -217,12 +234,12 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 IdentityCard = data.IdentityCard,// 身份证号
                 Deposit = 0,// 押金
                 Rent = 0,// 租金
-                Status = Order.OrderStatus.待付款,
+                Status = Order.EOrderStatus.待付款,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
 
-            _logger.LogDebug("订单创建信息{Order}", order.ToJson());
+            _logger.LogDebug("订单创建信息{OrderId}", order.Id);
 
             try {
                 int changes = await _orderController.AddOrder(order);
@@ -241,23 +258,26 @@ namespace aspnetapp.Controllers.API.Miniprogram
             // 获取新建订单的id
             return StatusCode(201, order.Id);
         }
+		#endregion
 
-        /// <summary>
-        /// 支付接口，支付成功后更改订单状态
-        /// </summary>
-        /// <param name="orderId"></param>
-        /// <returns></returns>
-        [HttpPost("pay/{orderId}")]
-        public async Task<IActionResult> PayOrder(int orderId) {
-            //Order? order = await _dbContext.Order.SingleOrDefaultAsync(o => o.Id == orderId);
-            Order? order = await _orderController.GetById(GetUserIdInt(), orderId);
+		#region 支付
+		/// <summary>
+		/// 支付接口，支付成功后更改订单状态
+		/// </summary>
+		/// <param name="orderId"></param>
+		/// <returns></returns>
+		[HttpPost("pay")]
+        public async Task<IActionResult> PayOrder(PayData data) {
+			Order? order = await _dbContext.Order.SingleOrDefaultAsync(o => o.Id == data.orderId);
+            //Order? order = await _orderController.GetById(GetUserIdInt(), data.orderId);
 
-            if (order is null || order.Status != Order.OrderStatus.待付款) {
+
+            if (order is null || order.Status != Order.EOrderStatus.待付款) {
                 return StatusCode(403, "订单不存在或无法支付");
             }
 
             // 订单付款中
-            order.Status = Order.OrderStatus.付款中;
+            order.Status = Order.EOrderStatus.付款中;
             order.UpdatedAt = DateTime.Now;
             try {
                 _dbContext.Order.Update(order);
@@ -268,35 +288,245 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 return StatusCode(500);
             }
 
-            /* 微信支付流程 */
+            #region 微信支付小程序下单流程
+            /* 订单数据定义 */
+            string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+            string mchid = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_MchId;
+			// 商品描述
+			string description = "测试";
+			// 商户订单号
+			string outTradeNo = data.orderId.ToString();
+			outTradeNo = "TEST" + Guid.NewGuid().ToString("N").Substring(0, 32);
+			// 交易结束时间（10分钟）
+			string time_expire = order.CreatedAt.AddMinutes(10).ToString("yyyy-MM-ddTHH:mm:sszzz");
+			// 附加数据
+			string attach = "";
+			// 通知地址
+		    const string notifyUrl = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/order/notify";
+			// 订单总金额（分）
+			int total = 1;
+            // 用户Unionid
+            var user = await _dbContext.User.SingleAsync(u => u.Id == GetUserIdInt());
+            string Unionid = user.Unionid;
 
-            // 更新订单已付
-            order.Status = Order.OrderStatus.待确认;
-            order.UpdatedAt = DateTime.Now;
-            try {
-                _dbContext.Order.Update(order);
-                await _dbContext.SaveChangesAsync();
+			// 创建请求类
+			TransactionsRequestData requestData = new() {
+                appid = appid,
 
-            } catch (Exception e) {
-                _logger.LogCritical(e, "保存订单信息{OrderId}", order.Id);
+                // 【直连商户号】 直连商户号
+                mchid = mchid,
+
+                // 【商品描述】 商品描述
+                description = description,
+
+				// 【商户订单号(string(32))】 商户系统内部订单号，只能是数字、大小写字母_-*且在同一个商户号下唯一。
+				out_trade_no = outTradeNo,
+
+                /// 选填
+                /// 【交易结束时间】订单失效时间，遵循rfc3339标准格式，格式为yyyy-MM-DDTHH:mm:ss+TIMEZONE，yyyy-MM-DD表示年月日，
+                /// T出现在字符串中，表示time元素的开头，HH:mm:ss表示时分秒，TIMEZONE表示时区（+08:00表示东八区时间，领先UTC8小时，即北京时间）。
+                /// 例如：2015-05-20T13:29:35+08:00表示，北京时间2015年5月20日13点29分35秒。
+                time_expire = time_expire,
+
+                /// 选填
+                /// 【附加数据】 附加数据，在查询API和支付通知中原样返回，可作为自定义参数使用，实际情况下只有支付完成状态才会返回该字段。
+                attach = attach,
+
+                // 【通知地址】 异步接收微信支付结果通知的回调地址，通知URL必须为外网可访问的URL，不能携带参数。
+                // 公网域名必须为HTTPS，如果是走专线接入，使用专线NAT IP或者私有回调域名可使用HTTP
+                notify_url = notifyUrl,
+
+                // 【订单优惠标记】 订单优惠标记
+                goods_tag = "",
+
+                // 【订单金额】 订单金额信息
+                amount = new TransactionsRequestData.Amount {
+                    // 【总金额】 订单总金额，单位为分。
+                    total = total,
+                    // 【货币类型】 CNY：人民币，境内商户号仅支持人民币。
+                    currency = "CNY"
+                },
+
+                // 【支付者】 支付者信息。
+                payer = new TransactionsRequestData.Payer {
+                    // 【用户标识】 用户在普通商户AppID下的唯一标识。 下单前需获取到用户的OpenID，详见OpenID获取
+                    openid = Unionid
+				},
+
+                /// 选填
+                /// 【优惠功能】 优惠功能
+                detail = null,
+
+                /// 选填
+                /// 【结算信息】 结算信息
+                settle_info = null,
+
+                /// 选填
+                /// 【场景信息】 支付场景描述
+                scene_info = null,
+
+                /// 选填
+                /// 【电子发票入口开放标识】 传入true时，支付成功消息和支付详情页将出现开票入口。需要在微信支付商户平台或微信公众平台开通电子发票功能，传此字段才可生效。
+                support_fapiao = false
+            };
+
+			// 发起创建订单请求
+			BasePayApis basePayApis = new();
+			JsApiReturnJson result;
+			try {
+				result = await basePayApis.JsApiAsync(requestData);
+			} catch (Exception ex) {
+				Console.WriteLine($"下单失败：{ex.Message}");
+                _logger.LogError(ex, "下单失败");
+				return StatusCode(500);
+			}
+
+			// 【预支付交易会话标识】 预支付交易会话标识。用于后续接口调用中使用，该值有效期为2小时
+			string prepayId = result.prepay_id;
+
+            if (prepayId.IsNullOrEmpty()) {
+                _logger.LogError("[PayOrder]创建订单错误");
                 return StatusCode(500);
             }
 
-            _logger.LogInformation("用户{UserId}支付订单{OrderId}成功", GetUserIdInt(), orderId);
+			// 加密
+			//string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+			long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+			string nonceStr = Guid.NewGuid().ToString("N");
+			string pack = "prepay_id=" + prepayId;
+			string signType = "RSA";
+			String paySign = GetSign(appid, timestamp, nonceStr, pack);//签名
 
-            return StatusCode(200, "支付成功");
-        }
 
-        /// <summary>
-        /// 换车请求
-        /// </summary>
-        /// <param name="getData"></param>
-        /// <returns></returns>
-        [HttpPost("replacement")]
+			if (result.VerifySignSuccess != true) {
+                _logger.LogError("获取 prepay_id 结果校验出错！");
+				throw new WeixinException("获取 prepay_id 结果校验出错！");
+			}
+
+			////获取 UI 信息包
+			//var jsApiUiPackage = TenPaySignHelper.GetJsApiUiPackage(TenPayV3Info.AppId, result.prepay_id);
+			//ViewData["jsApiUiPackage"] = jsApiUiPackage;
+
+			////临时记录订单信息，留给退款申请接口测试使用（分布式情况下请注意数据同步）
+			//HttpContext.Session.SetString("BillNo", sp_billno);
+			//HttpContext.Session.SetString("BillFee", price.ToString());
+
+			#endregion
+
+			return StatusCode(200, new { appid, timestamp, nonceStr, pack, signType, paySign });
+		}
+		#endregion
+
+		#region 接收支付回调
+		/// <summary>
+		/// 支付回调（侍测试）
+		/// </summary>
+		/// <returns></returns>
+		[AllowAnonymous]// 允许匿名访问
+		[HttpPost("notify")]
+		public async Task<IActionResult> PayNotifyUrl() {
+			NotifyReturnData returnData = new();// 应答格式
+			try {
+				//获取微信服务器异步发送的支付通知信息
+				TenPayNotifyHandler resHandler = new TenPayNotifyHandler(HttpContext);
+				OrderReturnJson orderReturnJson = await resHandler.DecryptGetObjectAsync<OrderReturnJson>();
+
+				//记录日志
+				_logger.LogDebug("PayNotifyUrl收到微信支付回调：{data}", orderReturnJson.ToJson(true));
+				Senparc.Weixin.WeixinTrace.SendCustomLog("PayNotifyUrl 接收到消息", orderReturnJson.ToJson(true));
+
+				//演示记录 transaction_id，实际开发中需要记录到数据库，以便退款和后续跟踪
+				// transaction_id 微信支付系统生成的订单号。
+				//TradeNumberToTransactionId[orderReturnJson.out_trade_no] = orderReturnJson.transaction_id;
+
+
+				//获取支付状态
+				string trade_state = orderReturnJson.trade_state;
+
+				//验证请求是否从微信发过来（安全）
+
+
+				//验证可靠的支付状态
+				if (orderReturnJson.VerifySignSuccess == true && trade_state == "SUCCESS") {
+					//returnData.code = "SUCCESS";//正确的订单处理
+					/* 提示：
+                    * 1、直到这里，才能认为交易真正成功了，可以进行数据库操作，但是别忘了返回规定格式的消息！
+                    * 2、上述判断已经具有比较高的安全性以外，还可以对访问 IP 进行判断进一步加强安全性。
+                    * 3、下面演示的是发送支付成功的模板消息提示，非必须。
+                    */
+
+					#region 业务逻辑处理
+
+					// 根据Id获取对应的订单
+					Order order = await _dbContext.Order.SingleAsync(o => o.Id.ToString() == orderReturnJson.out_trade_no);
+
+					order.Status = Order.EOrderStatus.待确认;// 更改订单状态
+                    order.UpdatedAt = DateTime.Now;
+
+                    Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+                    vehicle.State = Vehicle.Estates.已出租;
+
+					await _dbContext.SaveChangesAsync();
+
+					#endregion
+
+					return StatusCode(200);
+				} else {
+					/*
+                     * 交易状态，枚举值：
+                     * SUCCESS：支付成功
+                     * REFUND：转入退款
+                     * NOTPAY：未支付
+                     * CLOSED：已关闭
+                     * REVOKED：已撤销（付款码支付）
+                     * USERPAYING：用户支付中（付款码支付）
+                     * PAYERROR：支付失败(其他原因，如银行返回失败)
+                     */
+					returnData.code = "FAIL";//错误的订单处理
+					returnData.message = "验证失败";
+
+					//此处可以给用户发送支付失败提示等
+				}
+
+				#region 记录日志（也可以记录到数据库审计日志中）
+
+				var logDir = ServerUtility.ContentRootMapPath(string.Format("~/App_Data/TenPayNotify/{0}", SystemTime.Now.ToString("yyyyMMdd")));
+				if (!Directory.Exists(logDir)) {
+					Directory.CreateDirectory(logDir);
+				}
+
+				var logPath = Path.Combine(logDir, string.Format("{0}-{1}-{2}.txt", SystemTime.Now.ToString("yyyyMMdd"), SystemTime.Now.ToString("HHmmss"), Guid.NewGuid().ToString("n").Substring(0, 8)));
+
+				using (var fileStream = System.IO.File.OpenWrite(logPath)) {
+					var notifyJson = orderReturnJson.ToString();
+					await fileStream.WriteAsync(Encoding.Default.GetBytes(notifyJson), 0, Encoding.Default.GetByteCount(notifyJson));
+					fileStream.Close();
+
+				}
+                #endregion
+
+                //https://pay.weixin.qq.com/wiki/doc/apiv3/apis/chapter3_1_5.shtml
+                return StatusCode(500, returnData);
+				//return Json(returnData);
+			} catch (Exception ex) {
+				WeixinTrace.WeixinExceptionLog(new WeixinException(ex.Message, ex));
+				return StatusCode(500, returnData);
+				throw;
+			}
+		}
+		#endregion
+
+		#region 换车请求
+		/// <summary>
+		/// 换车请求
+		/// </summary>
+		/// <param name="getData"></param>
+		/// <returns></returns>
+		[HttpPost("replacement")]
         public async Task<IActionResult> Replacement(GetReplacementInfo getData) {
             // 检查订单状态
             Order? order = await _orderController.GetById(GetUserIdInt(), getData.OrderId);
-            if (order is null || order.Status != Order.OrderStatus.进行中) {
+            if (order is null || order.Status != Order.EOrderStatus.进行中) {
                 _logger.LogDebug("订单{OrderId}状态非法", getData.OrderId);
                 return StatusCode(403, "订单不存在或非法");
             }
@@ -332,22 +562,24 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 _logger.LogError(e, "VehicleReplacementRecord：{VehicleReplacementRecordId}添加至换车表", vrr.Id);
                 await transaction.RollbackAsync();// 回滚
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             return StatusCode(200, "请求成功，请向商家确认");
         }
+		#endregion
 
-        /// <summary>
-        /// 取消换车请求
-        /// </summary>
-        /// <param name="getReplacementVehicle"></param>
-        /// <returns></returns>
-        [HttpPost("replacement/cancel")]
+		/// <summary>
+		/// 取消换车请求
+		/// </summary>
+		/// <param name="getReplacementVehicle"></param>
+		/// <returns></returns>
+		[HttpPost("replacement/cancel")]
         public async Task<IActionResult> CancelReplacement(GetCancelReplacementInfo getData) {
             // 检查订单状态
             Order? order = await _orderController.GetById(GetUserIdInt(), getData.OrderId);
 
-            if (order is null || order.Status != Order.OrderStatus.进行中) {
+            if (order is null || order.Status != Order.EOrderStatus.进行中) {
                 _logger.LogDebug("订单{OrderId}状态非法", getData.OrderId);
                 return StatusCode(403, "订单不存在或非法");
             }
@@ -368,13 +600,14 @@ namespace aspnetapp.Controllers.API.Miniprogram
             } catch (Exception e) {
                 _logger.LogCritical(e, "取消换车请求{VehicleReplacementRecordId}", vrr.Id);
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             return StatusCode(200);
         }
 
         /// <summary>
-        /// 检查换车请求，超时取消（暂未使用）
+        /// 检查换车请求，超时取消
         /// </summary>
         /// <returns></returns>
         public async Task CheckReplacementVehicle() {
@@ -432,7 +665,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
             List<Order> ordersToCancel = new();
             try {
                 ordersToCancel = await _dbContext.Order
-                    .Where(o => o.Status == Order.OrderStatus.待付款 && o.CreatedAt < threshold)
+                    .Where(o => o.Status == Order.EOrderStatus.待付款 && o.CreatedAt < threshold)
                     .ToListAsync();
 
             } catch (MySqlException e) {
@@ -449,7 +682,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
 
             foreach (var order in ordersToCancel) {
                 try {
-                    order.Status = Order.OrderStatus.已取消;
+                    order.Status = Order.EOrderStatus.已取消;
                     order.UpdatedAt = now;
 
                     Vehicle vehicle = await _dbContext.Vehicle
@@ -484,12 +717,60 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public int GetUserIdInt() {
             return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
-    }
 
-    /// <summary>
-    /// 获取创建订单信息
-    /// </summary>
-    public class GetOrder {
+
+		#region RSA加密用
+		/// <summary>
+		/// 获取签名
+		/// </summary>
+		/// <param name="appId"></param>
+		/// <param name="timestamp">时间戳</param>
+		/// <param name="nonceStr">随机字符串</param>
+		/// <param name="pack"></param>
+		/// <returns></returns>
+		public string GetSign(string appId, long timestamp, string nonceStr, string pack) {
+			string message = BuildMessage(appId, timestamp, nonceStr, pack);
+			string paySign = Sign(message);
+			return paySign;
+		}
+
+		// 构建消息
+		private string BuildMessage(string appId, long timestamp, string nonceStr, string pack) {
+			return $"{appId}\n{timestamp}\n{nonceStr}\n{pack}\n";
+		}
+
+		// 签名方法
+		private string Sign(string message) {
+			// 获取商户私钥明文
+			string privateKey = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_PrivateKey;
+
+            privateKey = "-----BEGIN PRIVATE KEY-----" + privateKey + "-----END PRIVATE KEY-----";
+
+			// 创建 RSA 对象并加载私钥
+			using RSA rsa = RSA.Create();
+			rsa.ImportFromPem(privateKey.ToCharArray());
+
+			// 签名
+			byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+			byte[] signedBytes = rsa.SignData(messageBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+			// Base64 编码签名
+			return Convert.ToBase64String(signedBytes);
+		}
+		#endregion
+	}
+
+	/// <summary>
+	/// 下单用
+	/// </summary>
+	public class PayData {
+        public int orderId { get; set; }
+	}
+
+	/// <summary>
+	/// 获取创建订单信息
+	/// </summary>
+	public class GetOrder {
         public int StoreMenuId { get; set; }// 套餐Id
         public bool DepositRequired { get; set; }// 需要押金
         public string UserName { get; set; }// 用户姓名
@@ -498,10 +779,156 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public int Vehicle { get; set; }// 租用车辆
     }
 
-    /// <summary>
-    /// 获取换车请求信息
-    /// </summary>
-    public class GetReplacementInfo {
+
+	/// <summary>
+	/// 微信支付结果回调通知实体
+	/// </summary>
+	public class WxPayNotifyModel {
+		/// <summary>
+		/// 通知的唯一ID
+		/// </summary>
+		public string id { set; get; }
+
+		/// <summary>
+		/// 通知创建时间,格式为YYYY-MM-DDTHH:mm:ss+TIMEZONE，YYYY-MM-DD表示年月日，T出现在字符串中，表示time元素的开头，HH:mm:ss.表示时分秒，TIMEZONE表示时区（+08:00表示东八区时间，领先UTC 8小时，即北京时间）。例如：2015-05-20T13:29:35+08:00表示北京时间2015年05月20日13点29分35秒。
+		/// </summary>
+		public string create_time { set; get; }
+
+		/// <summary>
+		/// 通知的类型，支付成功通知的类型为TRANSACTION.SUCCESS
+		/// </summary>
+		public string event_type { set; get; }
+
+		/// <summary>
+		/// 通知的资源数据类型，支付成功通知为encrypt-resource
+		/// </summary>
+		public string resource_type { set; get; }
+
+		/// <summary>
+		/// 通知资源数据,json格式
+		/// </summary>
+		public WxPayResourceModel resource { set; get; }
+
+		/// <summary>
+		/// 回调摘要
+		/// </summary>
+		public string summary { set; get; }
+	}
+
+	/// <summary>
+	/// 微信支付回调通知结果resource实体
+	/// </summary>
+	public class WxPayResourceModel {
+		/// <summary>
+		/// 对开启结果数据进行加密的加密算法，目前只支持AEAD_AES_256_GCM
+		/// </summary>
+		public string algorithm { set; get; }
+
+		/// <summary>
+		/// Base64编码后的开启/停用结果数据密文
+		/// </summary>
+		public string ciphertext { set; get; }
+
+		/// <summary>
+		/// 附加数据
+		/// </summary>
+		public string associated_data { set; get; }
+
+		/// <summary>
+		/// 原始回调类型，为transaction
+		/// </summary>
+		public string original_type { set; get; }
+
+		/// <summary>
+		/// 加密使用的随机串
+		/// </summary>
+		public string nonce { set; get; }
+	}
+
+	/// <summary>
+	/// 微信支付回调通知结果解密实体
+	/// </summary>
+	public class WxPayResourceDecryptModel {
+		/// <summary>
+		/// 直连商户申请的公众号或移动应用appid
+		/// </summary>
+		public string appid { set; get; }
+
+		/// <summary>
+		/// 商户的商户号，由微信支付生成并下发。
+		/// </summary>
+		public string mchid { set; get; }
+
+		/// <summary>
+		/// 商户系统内部订单号，只能是数字、大小写字母_-*且在同一个商户号下唯一。特殊规则：最小字符长度为6
+		/// </summary>
+		public string out_trade_no { set; get; }
+
+		/// <summary>
+		/// 微信支付系统生成的订单号。
+		/// </summary>
+		public string transaction_id { set; get; }
+
+		/// <summary>
+		/// 交易状态，枚举值：
+		/// SUCCESS：支付成功
+		/// REFUND：转入退款
+		/// NOTPAY：未支付
+		/// CLOSED：已关闭
+		/// REVOKED：已撤销（付款码支付）
+		/// USERPAYING：用户支付中（付款码支付）
+		/// PAYERROR：支付失败(其他原因，如银行返回失败)
+		/// ACCEPT：已接收，等待扣款
+		/// </summary>
+		public string trade_state { get; set; }
+
+		/// <summary>
+		/// 交易状态描述
+		/// </summary>
+		public string trade_state_desc { get; set; }
+
+		/// <summary>
+		/// 支付者信息
+		/// </summary>
+		public WxPayerResourceDecryptModel payer { set; get; }
+	}
+	/// <summary>
+	/// 支付用户信息实体
+	/// </summary>
+	public class WxPayerResourceDecryptModel {
+		/// <summary>
+		/// 用户在直连商户appid下的唯一标识。
+		/// </summary>
+		public string openid { get; set; }
+	}
+
+	/// <summary>
+	/// 返回给微信支付回调结果的实体类
+	/// </summary>
+	public class WxPayCallbackViewModel {
+		/// <summary>
+		/// 返回状态码,错误码，SUCCESS为清算机构接收成功，其他错误码为失败。
+		/// </summary>
+		public string code { set; get; } = "SUCCESS";
+
+		/// <summary>
+		/// 返回信息，如非空，为错误原因。
+		/// </summary>
+		public string message { set; get; } = string.Empty;
+	}
+
+	public class Resource {
+		public string OriginalType { get; set; }
+		public string Algorithm { get; set; }
+		public string Ciphertext { get; set; }
+		public string AssociatedData { get; set; }
+		public string Nonce { get; set; }
+	}
+
+	/// <summary>
+	/// 获取换车请求信息
+	/// </summary>
+	public class GetReplacementInfo {
         public int OrderId { get; set; }
         public int ReplacementVehicleId { get; set; }// 更改车辆Id
     }
@@ -543,7 +970,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public decimal OtherFees { get; set; }// 其他费用
         public decimal Paid { get; set; }// 已付
         public decimal DepositRefunded { get; set; }// 已退押金
-        public Order.OrderStatus Status { get; set; }// 订单状态
+        public Order.EOrderStatus Status { get; set; }// 订单状态
         public DateTime CreatedAt { get; set; }
     }
 
@@ -584,7 +1011,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public decimal OtherFees { get; set; }// 其他费用
         public decimal Paid { get; set; }// 已付
         public decimal DepositRefunded { get; set; }// 已退押金
-        public Order.OrderStatus Status { get; set; }// 订单状态
+        public Order.EOrderStatus Status { get; set; }// 订单状态
         public string? Notes { get; set; }// 备注
         public DateTime CreatedAt { get; set; }
     }

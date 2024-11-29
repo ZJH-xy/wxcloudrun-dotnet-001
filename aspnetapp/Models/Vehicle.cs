@@ -5,51 +5,112 @@
     [Table("T_VehicleSummary")]
     [Index(nameof(TheOriginalStore), nameof(TheCurrentStore), nameof(State))]
     public class Vehicle {
+        /// <summary>
+        /// 车辆编号
+        /// </summary>
         [Key]
-        public int Id { get; init; }// 车辆编号
+        public int Id { get; init; }
 
-        /* 逻辑指向门店 */
-        public int? TheOriginalStore { get; set; }// 原始门店
+		/// <summary>
+		/// 原始门店（逻辑指向门店）
+		/// </summary>
+		public int? TheOriginalStore { get; set; }
 
-        /* 逻辑指向门店 */
-        public int? TheCurrentStore { get; set; }// 当前门店
+		/// <summary>
+		/// 当前门店（逻辑指向门店）
+		/// </summary>
+		public int? TheCurrentStore { get; set; }
 
-        public Emodel Model { get; set; } = Emodel.未知;// 车辆型号
+		/// <summary>
+		/// 车辆型号
+		/// </summary>
+		public Emodel Model { get; set; } = Emodel.未知;
 
-        public string? PlateNumber { get; set; }// 车牌牌号
+		/// <summary>
+		/// 车牌牌号
+		/// </summary>
+		public string? PlateNumber { get; set; }
 
-        public string? FrameNumber { get; set; }// 车架号
+		/// <summary>
+		/// 车架号
+		/// </summary>
+		public string? FrameNumber { get; set; }
 
-        public bool? Certificate { get; set; }// 合格证
+		/// <summary>
+		/// 合格证
+		/// </summary>
+		public bool? Certificate { get; set; }
 
-        public bool? Invoice { get; set; }// 发票
+		/// <summary>
+		/// 发票
+		/// </summary>
+		public bool? Invoice { get; set; }
 
-        public bool? Drivinglicense { get; set; }// 行驶证
+		/// <summary>
+		/// 行驶证
+		/// </summary>
+		public bool? Drivinglicense { get; set; }
 
-        public DateTime? PurchaseRegistrationTime { get; set; }// 购入登记时间
+		/// <summary>
+		/// 购入登记时间
+		/// </summary>
+		public DateTime? PurchaseRegistrationTime { get; set; }
 
-        public string? Owner { get; set; }// 车主
+		/// <summary>
+		/// 车主
+		/// </summary>
+		public string? Owner { get; set; }
 
-        public string? VehicleIntroduction { get; set; }// 车辆介绍
+		/// <summary>
+		/// 车辆介绍
+		/// </summary>
+		public string? VehicleIntroduction { get; set; }
 
-        public string? Pictures { get; set; }// 车辆图片
+		/// <summary>
+		/// 车辆图片
+		/// </summary>
+		public string? Pictures { get; set; }
 
-        public Estates State { get; set; }// 车辆状态
+		/// <summary>
+		/// 车辆状态
+		/// </summary>
+		public Estates State { get; set; }
 
-        public bool IsCase { get; set; } = false; // 是否涉案
+		/// <summary>
+		/// 是否涉案
+		/// </summary>
+		public bool IsCase { get; set; } = false; 
 
-        public DateTime StateUpdatedAt { get; set; }// 状态更新时间
+		/// <summary>
+		/// 状态更新时间
+		/// </summary>
+		public DateTime StateUpdatedAt { get; set; }
 
-        public DateTime CreatedAt { get; set; }
+		/// <summary>
+		/// 创建时间
+		/// </summary>
+		public DateTime CreatedAt { get; set; }
 
-        public DateTime UpdatedAt { get; set; }
+		/// <summary>
+		/// 更新时间
+		/// </summary>
+		public DateTime UpdatedAt { get; set; }
 
-        public bool IsDelete { get; set; } = false;
+		/// <summary>
+		/// 是否删除
+		/// </summary>
+		public bool IsDelete { get; set; } = false;
 
-        [Timestamp]
-        public byte[] RowVersion { get; set; }// 用于乐观并发控制
+		/// <summary>
+		/// 用于乐观并发控制
+		/// </summary>
+		[Timestamp]
+        public byte[] RowVersion { get; set; }
 
-        public enum Estates {
+		/// <summary>
+		/// 车辆状态
+		/// </summary>
+		public enum Estates {
             空闲,
             已出租,
             充电中,
@@ -58,7 +119,9 @@
             侍确认
         }
 
-        // 车辆型号
+        /// <summary>
+		/// 车辆型号
+		/// </summary>
         public enum Emodel {
             未知,
             雅迪,

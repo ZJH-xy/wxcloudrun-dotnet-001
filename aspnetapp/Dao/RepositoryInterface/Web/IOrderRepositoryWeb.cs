@@ -12,7 +12,7 @@
         /// <param name="orderId"></param>
         /// <param name="status"></param>
         /// <returns></returns>
-        Task<int> ChangeOrderStatus(int orderId, Order.OrderStatus status);
+        Task<int> ChangeOrderStatus(int orderId, Order.EOrderStatus status);
         /// <summary>
         /// 更新订单
         /// </summary>
