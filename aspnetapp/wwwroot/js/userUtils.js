@@ -18,50 +18,49 @@ async function saveClick(event) {
 	loadHTML(); // 显示加载中
 
 	console.log("开始调用接口...");
+	const dataId = button.getAttribute('data-id');
+	const user = document.getElementById('save' + dataId);// 显示长度
 
-	if (!file) {
-		console.log("未选择文件"); // 用户没有选择文件不请求
-		return;
-	} else {
-		const response = await fetch(`${RESPONSEURL}?handler=SayHello`, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'RequestVerificationToken': TOKEN // 添加 CSRF Token
-			},
-		});
 
-		if (!response.ok) {
-			throw new Error(`HTTP 错误！状态码: ${response.status}`);
-		}
+	const response = await fetch(`${RESPONSEURL}?handler=SayHello`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'RequestVerificationToken': TOKEN // 添加 CSRF Token
+		},
+	});
 
-		const data = await response.json();  // 等待接口返回数据
-
-		if (data.success) {
-			console.log("接口返回数据:", data);
-		} else {
-			alert("文件上传失败: " + (data.message || "未知错误"));
-		}
-
-		try {
-			const formData = new FormData();
-			formData.append("key", data["filePath"]);
-			formData.append("Signature", data["authorization"]);
-			formData.append("x-cos-security-token", data["token"]);
-			formData.append("x-cos-meta-fileid", data["cos_file_id"]);
-			formData.append("file", file, file.name);
-
-			const uploadResponse = await uploadFile(data["imageUrl"], formData);  // 异步上传文件
-			console.log("Upload success:", uploadResponse);
-
-			setTimeout(function () {
-				cancelloadHTML();// 取消显示加载中
-			}, 2500)
-
-		} catch (error) {
-			console.error("Error during upload:", error);
-		}
+	if (!response.ok) {
+		throw new Error(`HTTP 错误！状态码: ${response.status}`);
 	}
+
+	const data = await response.json();  // 等待接口返回数据
+
+	if (data.success) {
+		console.log("接口返回数据:", data);
+	} else {
+		alert("文件上传失败: " + (data.message || "未知错误"));
+	}
+
+	try {
+		const formData = new FormData();
+		formData.append("key", data["filePath"]);
+		formData.append("Signature", data["authorization"]);
+		formData.append("x-cos-security-token", data["token"]);
+		formData.append("x-cos-meta-fileid", data["cos_file_id"]);
+		formData.append("file", file, file.name);
+
+		const uploadResponse = await uploadFile(data["imageUrl"], formData);  // 异步上传文件
+		console.log("Upload success:", uploadResponse);
+
+		setTimeout(function () {
+			cancelloadHTML();// 取消显示加载中
+		}, 2500)
+
+	} catch (error) {
+		console.error("Error during upload:", error);
+	}
+	
 
 }
 
@@ -116,6 +115,7 @@ async function loadImageUrl(event) {
 			console.log("接口返回数据:", data);
 			// 设置图片路径
 			const image = button.parentElement.querySelector('.thumbnail'); // 获取当前行的图片元素
+
 			image.src = data.file_list[0].download_url; // 设置图片路径
 			image.style.display = 'block'; // 显示图片
 			showMessage("message");
@@ -249,7 +249,7 @@ async function getIndexPage() {
 
 			return pageIndex;
 
-		} 
+		}
 
 	} catch (error) {
 		console.error("API 调用失败:", error);
@@ -403,11 +403,13 @@ async function getSearchData() {
 		const data = await response.json();
 
 		if (data.success) {
-			SearchPhone.value = data.searchPhone || '';
-			SearchName.value = data.searchName || '';
-			SearchNickname.value = data.searchNickname || '';
-			console.log('搜索成功')
-
+			console.log('getdata', data)
+			setTimeout(function () {
+				SearchPhone.value = data.searchPhone;
+				SearchName.value = data.searchName;
+				SearchNickname.value = data.searchNickname;
+				console.log('搜索成功!')
+			}, 500)
 		} else {
 			alert(data.message + '请刷新页面后重试');
 		}
@@ -446,7 +448,54 @@ async function confirmChangeSearchData() {
 		const data = await response.json();
 		if (data.success) {
 			getSearchData();
-			cancelloadHTML();
+		} else {
+			alert(data.message + '请刷新页面后重试');
+		}
+	} catch (error) {
+		console.error("API 调用失败:", error);
+	} finally {
+		cancelloadHTML();
+	}
+}
+
+async function getListData() {
+	loadHTML(); // 显示加载中
+
+
+	try {
+		const response = await fetch(`${RESPONSEURL}?handler=Search`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'RequestVerificationToken': TOKEN
+			},
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP 错误！状态码: ${response.status}`);
+		}
+		const data = await response.json();
+
+		if (data.success) {
+			console.log('getdata', data)
+			const list = data.list;
+			for (var i = 0; i < LENGTH; i++) {
+				var id = document.getElementById('id'+i);
+				var nickname = document.getElementById('nickname' + i);
+				var name = document.getElementById('name' + i);
+				var phone = document.getElementById('phone' + i);
+				var identityCard = document.getElementById('identityCard' + i);
+				var createdAt = document.getElementById('createdAt' + i);
+				var updatedAt = document.getElementById('updatedAt' + i);
+				id.value = list[i].id;
+				nickname.value = list[i].nickname
+				name.value = list[i].name;
+				phone.value = list[i].phone;
+				identityCard.value = list[i].identityCard;
+				createdAt.value = list[i].createdAt;
+				updatedAt.value = list[i].updatedAt;
+			}
+
 		} else {
 			alert(data.message + '请刷新页面后重试');
 		}

@@ -9,9 +9,10 @@
 	<link rel="stylesheet" href="~/css/table.css" />
 	<link rel="stylesheet" href="~/css/loading.css" />
 	<script src="~/js/loading.js" defer></script>
-	<script src="~/js/pageUtils.js" defer></script>
+	<script src="~/js/userUtils.js" defer></script>
 </head>
 <body>
+	<button onclick="getListData()">getListData</button>
 
 	<!-- 加载动画 -->
 	<div class="box" id="loadding" style="display:none;">
@@ -71,7 +72,7 @@
 				<option value="asc">升序</option>
 				<option value="desc">降序</option>
 			</select>
-			<div id="searchMessage" class="message">搜索成功</div>
+			@* <div id="searchMessage" class="message">搜索成功</div> *@
 			<button type="submit" onclick="confirmChangeSearchData()">搜索</button>
 		</form>
 	</div>
@@ -93,11 +94,11 @@
 			<tr>
 				<form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data">
 				<td>@(i + 1)</td>
-				<td>@Model.List[i].Id<input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" /></td>
-				<td><input type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="无" disabled /></td>
-				<td><input type="text" name="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="无" disabled /></td>
-				<td><input type="text" name="UpdatedUser.Phone" value="@Model.List[i].Phone" placeholder="无" disabled /></td>
-				<td><input type="text" name="UpdatedUser.IdentityCard" value="@Model.List[i].IdentityCard" placeholder="无" disabled /></td>
+				<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" /></td>
+				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="无" disabled /></td>
+				<td><input id="@("name" + i)" type="text" name="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="无" disabled /></td>
+				<td><input id="@("phone" + i)" type="text" name="UpdatedUser.Phone" value="@Model.List[i].Phone" placeholder="无" disabled /></td>
+				<td><input id="@("identityCard" + i)" type="text" name="UpdatedUser.IdentityCard" value="@Model.List[i].IdentityCard" placeholder="无" disabled /></td>
 				<td>
 					<div class="imageContainer" data-id="@Model.List[i].Id">
 						<!-- 常驻显示的图片 -->
@@ -114,7 +115,7 @@
 						<!-- 查看图片 -->
 							@if (!@Model.List[i].IdentityCardPictures.IsNullOrEmpty()) {
 							<a href="#" id="@("getImageUrl" + i)" data-id="@Model.List[i].IdentityCardPictures" onclick="loadImageUrl(event)">点击加载图片</a>
-							<div id="message" class="message">加载成功</div>
+							<div id="message" class="message" >加载成功</div>
 
 							} else {
 								<text>无图片</text>
@@ -137,12 +138,11 @@
 						</div>
 					</div>
 				</td>
-				<td>@Model.List[i].CreatedAt</td>
-				<td>@Model.List[i].UpdatedAt</td>
-
+				<td><text id="@("createdAt" + i)">@Model.List[i].CreatedAt</text></td>
+				<td><text id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</text></td>
 				<td>
 					<button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
-					<button type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;" onclick="saveClick(event)">保存</button>
+					<button id="@("save" + i)" type="submit" class="saveBtn" data-id="@i" style="display: none;" onclick="saveClick(event)">保存</button>
 				</td>
 
 				<input type="hidden" name="UpdatedUser.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
@@ -178,6 +178,7 @@
 				<button onclick="changeEndPage()" class="editBtn">尾页</button>
 				<button onclick="changePage(0)">上一页</button>
 				<button onclick="changePage(1)">下一页</button>
+
 			</form>
 		</div>
 	</div>
@@ -185,6 +186,7 @@
 	<script>
 		// 页面加载完成后执行函数
 		window.onload = function () {
+			getSearchData();// 获取搜索框数据
 			loadIndexPage();// 加载页码
 			loadButton();// 加载按钮
 		};

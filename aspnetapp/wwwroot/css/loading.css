@@ -72,7 +72,7 @@
 /* 通用的提示消息样式 */
 .message, .failMessage {
     position: fixed;
-    top: 10px; /* 初始位置在视图上方 */
+    top: -200px; /* 初始位置在视图上方 */
     left: 50%;
     color: #07C160;
     background-color: #e9fceb;
@@ -82,7 +82,7 @@
     transform: translateX(-50%);
     padding: 15px 30px;
     opacity: 0;
-    transition: opacity 1s ease, transform 1s ease;
+    transition: opacity 1s ease, transform 2s ease;
     justify-content: center;
     align-items: center;
     display: flex;
@@ -98,12 +98,12 @@
 /* 显示提示消息时的状态 */
     .message.visible, .failMessage.visible {
         opacity: 1;
-        transform: translate(-50%, 50px); /* 向下滑动 */
+        transform: translate(-50%, 250px); /* 向下滑动 */
     }
 
     /* 消失时回到初始状态 */
     .message.hidden, .failMessage.hidden{
         opacity: 0;
-        transform: translate(-50%, -50px); /* 向上滑动 */
+        transform: translate(-50%, -150px); /* 向上滑动 */
     }
 
