@@ -285,6 +285,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
 			string description = "测试";
 			// 商户订单号
 			string outTradeNo = data.orderId.ToString();
+			outTradeNo = "WX" + Guid.NewGuid().ToString("N").Substring(0, 20);
 			// 交易结束时间
 			string time_expire = DateTime.Now.AddMinutes(120).ToString("yyyy-MM-ddTHH:mm:sszzz");
 			// 附加数据
@@ -353,9 +354,15 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 /// 【电子发票入口开放标识】 传入true时，支付成功消息和支付详情页将出现开票入口。需要在微信支付商户平台或微信公众平台开通电子发票功能，传此字段才可生效。
                 support_fapiao = false
             };
-            
+
             // 创建订单
-			JsApiReturnJson result = await basePayApis.JsApiAsync(requestData);
+            JsApiReturnJson result;
+			try {
+				result = await basePayApis.JsApiAsync(requestData);
+			} catch (Exception ex) {
+				Console.WriteLine($"下单失败：{ex.Message}");
+				throw;
+			}
 
 			// 【预支付交易会话标识】 预支付交易会话标识。用于后续接口调用中使用，该值有效期为2小时
 			string prepayId = result.prepay_id;
@@ -705,6 +712,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
 		private string Sign(string message) {
 			// 获取商户私钥明文
 			string privateKey = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_PrivateKey;
+
+            privateKey = "-----BEGIN PRIVATE KEY-----" + privateKey + "-----END PRIVATE KEY-----";
 
 			// 创建 RSA 对象并加载私钥
 			using RSA rsa = RSA.Create();
