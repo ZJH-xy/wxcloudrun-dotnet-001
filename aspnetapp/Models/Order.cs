@@ -1,34 +1,40 @@
 ﻿namespace aspnetapp.Models {
-    /// <summary>
-    /// 订单表
-    /// </summary>
-    [Table("T_OrderForm")]
-    [Index(nameof(TheUser), nameof(Status))]
-    public class Order {
+	/// <summary>
+	/// 订单表
+	/// </summary>
+	[Table("T_OrderForm")]
+	[Index(nameof(TransactionId), IsUnique = true)]// 唯一索引
+	[Index(nameof(TheUser), nameof(Status))]
+	public class Order {
 		/// <summary>
 		/// 订单编号
 		/// </summary>
 		[Key]
 		public int Id { get; init; }
 
-        /// <summary>
-        /// 逻辑指向用户
-        /// </summary>
-        public int TheUser { get; set; }
-
-        /// <summary>
-        /// 逻辑指向套餐
-        /// </summary>
-        public int TheStoreMenu { get; set; }
+		/// <summary>
+		/// 微信支付系统生成的订单号
+		/// </summary>
+		public string? TransactionId { get; set; }
 
 		/// <summary>
-        /// 实际起始时间
-        /// </summary>
+		/// 逻辑指向用户
+		/// </summary>
+		public int TheUser { get; set; }
+
+		/// <summary>
+		/// 逻辑指向套餐
+		/// </summary>
+		public int TheStoreMenu { get; set; }
+
+		/// <summary>
+		/// 实际起始时间
+		/// </summary>
 		public DateTime? ActualStartingTime { get; set; }
 
 		/// <summary>
-        /// 实际归还时间
-        /// </summary>
+		/// 实际归还时间
+		/// </summary>
 		public DateTime? ActualReturnTime { get; set; }
 
 		/// <summary>
@@ -65,43 +71,43 @@
 		/// 押金
 		/// </summary>
 		[Precision(10, 2)]
-        public decimal Deposit { get; set; }
+		public decimal Deposit { get; set; }
 
 		/// <summary>
 		/// 租金
 		/// </summary>
 		[Precision(10, 2)]
-        public decimal Rent { get; set; }
+		public decimal Rent { get; set; }
 
 		/// <summary>
 		/// 调度费
 		/// </summary>
 		[Precision(10, 2)]
-        public decimal DispatchFee { get; set; } = 0;
+		public decimal DispatchFee { get; set; } = 0;
 
 		/// <summary>
 		/// 超时费
 		/// </summary>
 		[Precision(10, 2)]
-        public decimal OvertimeFee { get; set; } = 0;
+		public decimal OvertimeFee { get; set; } = 0;
 
 		/// <summary>
 		/// 其他费用
 		/// </summary>
 		[Precision(10, 2)]
-        public decimal OtherFees { get; set; } = 0;
+		public decimal OtherFees { get; set; } = 0;
 
 		/// <summary>
 		/// 已付
 		/// </summary>
 		[Precision(10, 2)]
-        public decimal Paid { get; set; } = 0;
+		public decimal Paid { get; set; } = 0;
 
 		/// <summary>
 		/// 已退押金
 		/// </summary>
 		[Precision(10, 2)]
-        public decimal DepositRefunded { get; set; } = 0;
+		public decimal DepositRefunded { get; set; } = 0;
 
 		/// <summary>
 		/// 订单状态
@@ -114,9 +120,14 @@
 		public string? Notes { get; set; }
 
 		/// <summary>
+		/// 支付完成时间
+		/// </summary>
+		public DateTime? SuccessTime { get; set; }
+
+		/// <summary>
 		/// 创建时间
 		/// </summary>
-        public DateTime CreatedAt { get; set; }
+		public DateTime CreatedAt { get; set; }
 
 		/// <summary>
 		/// 更新时间
@@ -127,28 +138,28 @@
 		/// 用于乐观并发控制
 		/// </summary>
 		[Timestamp]
-        public byte[] RowVersion { get; set; }
+		public byte[] RowVersion { get; set; }
 
 		/// <summary>
 		/// 订单状态枚举
 		/// </summary>
-        public enum EOrderStatus {
-            已取消,
-            待付款,
-            已退款,
-            待确认,
-            进行中,
-            已完成,
-            付款中
-        }
+		public enum EOrderStatus {
+			已取消,
+			待付款,
+			已退款,
+			待确认,
+			进行中,
+			已完成,
+			付款中
+		}
 
-        /// <summary>
-        /// 获取订单总金额
-        /// </summary>
-        /// <returns></returns>
-        public decimal GetTotalPrice() {
-            return Deposit + Rent + DispatchFee + OvertimeFee + OtherFees;
-        }
+		/// <summary>
+		/// 获取订单总金额
+		/// </summary>
+		/// <returns></returns>
+		public decimal GetTotalPrice() {
+			return Deposit + Rent + DispatchFee + OvertimeFee + OtherFees;
+		}
 
 		/// <summary>
 		/// 转换为以分为单位的金额
