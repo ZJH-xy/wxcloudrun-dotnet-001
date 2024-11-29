@@ -31,7 +31,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 _logger.LogError(e, "获取门店{StoreId}所有车辆", storeId);
 
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             List<VehicleBasic> vehiclesBasicsList = new();
 
@@ -57,7 +58,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 _logger.LogError(e, "获取车辆{VehicleId}信息", id);
 
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             if (vehicle is null)
                 return StatusCode(404);
@@ -80,7 +82,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 _logger.LogError(e, "查询车辆{VehicleId}", id);
 
                 return StatusCode(500);
-            }
+				throw;
+			}
 
             if (vehicle is null)
                 return StatusCode(404);
