@@ -104,7 +104,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         /// <returns></returns>
         [HttpGet("status/i/{orderId}")]
         public async Task<IActionResult> GetOderStatusByUserId(int orderId) {
-            Order.OrderStatus? orderStatus;
+            Order.EOrderStatus? orderStatus;
             try {
                 orderStatus = await _orderController.GetOrderStatusById(GetUserIdInt(), orderId);
 
@@ -165,7 +165,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
             // 检查用户订单状态
             try {
                 if (await _dbContext.Order.Where(o => o.TheUser == userId).
-                    AnyAsync(o => o.Status == Order.OrderStatus.待付款)) {
+                    AnyAsync(o => o.Status == Order.EOrderStatus.待付款)) {
                     return StatusCode(403, "当前有待付款的订单");
                 }
             } catch (Exception e) {
@@ -228,7 +228,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 IdentityCard = data.IdentityCard,// 身份证号
                 Deposit = 0,// 押金
                 Rent = 0,// 租金
-                Status = Order.OrderStatus.待付款,
+                Status = Order.EOrderStatus.待付款,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
@@ -266,12 +266,12 @@ namespace aspnetapp.Controllers.API.Miniprogram
             //Order? order = await _orderController.GetById(GetUserIdInt(), data.orderId);
 
 
-            if (order is null || order.Status != Order.OrderStatus.待付款) {
+            if (order is null || order.Status != Order.EOrderStatus.待付款) {
                 return StatusCode(403, "订单不存在或无法支付");
             }
 
             // 订单付款中
-            order.Status = Order.OrderStatus.付款中;
+            order.Status = Order.EOrderStatus.付款中;
             order.UpdatedAt = DateTime.Now;
             try {
                 _dbContext.Order.Update(order);
@@ -572,7 +572,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public async Task<IActionResult> Replacement(GetReplacementInfo getData) {
             // 检查订单状态
             Order? order = await _orderController.GetById(GetUserIdInt(), getData.OrderId);
-            if (order is null || order.Status != Order.OrderStatus.进行中) {
+            if (order is null || order.Status != Order.EOrderStatus.进行中) {
                 _logger.LogDebug("订单{OrderId}状态非法", getData.OrderId);
                 return StatusCode(403, "订单不存在或非法");
             }
@@ -623,7 +623,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
             // 检查订单状态
             Order? order = await _orderController.GetById(GetUserIdInt(), getData.OrderId);
 
-            if (order is null || order.Status != Order.OrderStatus.进行中) {
+            if (order is null || order.Status != Order.EOrderStatus.进行中) {
                 _logger.LogDebug("订单{OrderId}状态非法", getData.OrderId);
                 return StatusCode(403, "订单不存在或非法");
             }
@@ -708,7 +708,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
             List<Order> ordersToCancel = new();
             try {
                 ordersToCancel = await _dbContext.Order
-                    .Where(o => o.Status == Order.OrderStatus.待付款 && o.CreatedAt < threshold)
+                    .Where(o => o.Status == Order.EOrderStatus.待付款 && o.CreatedAt < threshold)
                     .ToListAsync();
 
             } catch (MySqlException e) {
@@ -725,7 +725,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
 
             foreach (var order in ordersToCancel) {
                 try {
-                    order.Status = Order.OrderStatus.已取消;
+                    order.Status = Order.EOrderStatus.已取消;
                     order.UpdatedAt = now;
 
                     Vehicle vehicle = await _dbContext.Vehicle
@@ -1015,7 +1015,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public decimal OtherFees { get; set; }// 其他费用
         public decimal Paid { get; set; }// 已付
         public decimal DepositRefunded { get; set; }// 已退押金
-        public Order.OrderStatus Status { get; set; }// 订单状态
+        public Order.EOrderStatus Status { get; set; }// 订单状态
         public DateTime CreatedAt { get; set; }
     }
 
@@ -1056,7 +1056,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public decimal OtherFees { get; set; }// 其他费用
         public decimal Paid { get; set; }// 已付
         public decimal DepositRefunded { get; set; }// 已退押金
-        public Order.OrderStatus Status { get; set; }// 订单状态
+        public Order.EOrderStatus Status { get; set; }// 订单状态
         public string? Notes { get; set; }// 备注
         public DateTime CreatedAt { get; set; }
     }

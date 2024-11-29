@@ -5,29 +5,53 @@
     [Table("T_RevenueStatistics")]
     [Index(nameof(TheStoreA), nameof(TheStoreB))]
     public class RevenueStatistics {
+        /// <summary>
+        /// 
+        /// </summary>
         [Key]
         public int Id { get; set; }
 
-        /* 逻辑指向门店 */
-        public int TheStoreA { get; set; }// 租车点
+		/// <summary>
+		/// 租车点（逻辑指向门店）
+		/// </summary>
+		public int TheStoreA { get; set; }
 
-        /* 逻辑指向门店 */
-        public int TheStoreB { get; set; }// 还车点
+		/// <summary>
+		/// 还车点（逻辑指向门店）
+		/// </summary>
+		public int TheStoreB { get; set; }
 
-        /* 逻辑指向订单 */
-        public int TheOrder { get; set; }
+		/// <summary>
+		/// 逻辑指向订单
+		/// </summary>
+		public int TheOrder { get; set; }
 
-        [Precision(10, 2)]
-        public decimal? MoneyStoreA { get; set; }// 门店A 金额
+		/// <summary>
+		/// 门店A 金额
+		/// </summary>
+		[Precision(10, 2)]
+        public decimal? MoneyStoreA { get; set; }
 
-        [Precision(10, 2)]
-        public decimal? MoneyStoreB { get; set; }// 门店B 金额
+		/// <summary>
+		/// 门店B 金额
+		/// </summary>
+		[Precision(10, 2)]
+        public decimal? MoneyStoreB { get; set; }
 
-        public DateTime CreatedAt { get; set; }
+		/// <summary>
+		/// 创建时间
+		/// </summary>
+		public DateTime CreatedAt { get; set; }
 
-        public DateTime UpdatedAt { get; set; }
+		/// <summary>
+		/// 更新时间
+		/// </summary>
+		public DateTime UpdatedAt { get; set; }
 
-        [Timestamp]
-        public byte[] RowVersion { get; set; }// 用于乐观并发控制
+		/// <summary>
+		/// 用于乐观并发控制
+		/// </summary>
+		[Timestamp]
+        public byte[] RowVersion { get; set; }
     }
 }

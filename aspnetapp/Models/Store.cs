@@ -4,46 +4,98 @@
     /// </summary>
     [Table("T_StoreSummary")]
     public class Store {
+        /// <summary>
+        /// 门店编号
+        /// </summary>
         [Key]
-        public int Id { get; init; }// 门店编号
+        public int Id { get; init; }// 
 
-        [Required(ErrorMessage = "门店名称不可为空")]
-        public string Name { get; set; } = string.Empty;// 门店名称
+		/// <summary>
+		/// 门店名称
+		/// </summary>
+		[Required(ErrorMessage = "门店名称不可为空")]
+        public string Name { get; set; } = string.Empty;
 
-        [DataType(DataType.Time)]// HH:MM:SS
+		/// <summary>
+		/// 营业开始时间
+		/// </summary>
+		[DataType(DataType.Time)]//HH:MM:SS
         [Required(ErrorMessage = "营业开始时间不可为空")]
-        public TimeSpan BusinessHoursStart { get; set; }// 营业开始时间
+        public TimeSpan BusinessHoursStart { get; set; }
 
-        [DataType(DataType.Time)]// HH:MM:SS
+		/// <summary>
+		/// 营业结束时间
+		/// </summary>
+		[DataType(DataType.Time)]//HH:MM:SS
         [Required(ErrorMessage = "营业结束时间不可为空")]
-        public TimeSpan BusinessHoursEnd { get; set; }// 营业结束时间
+        public TimeSpan BusinessHoursEnd { get; set; }
 
-        public bool BusinessStatus { get; set; } = true;// 营业状态
+		/// <summary>
+		/// 营业状态
+		/// </summary>
+		public bool BusinessStatus { get; set; } = true;
 
-        public string? Telephone { get; set; }// 联系电话
+		/// <summary>
+		/// 联系电话
+		/// </summary>
+		public string? Telephone { get; set; }
 
-        public string? WeChat { get; set;}// 微信
+		/// <summary>
+		/// 微信
+		/// </summary>
+		public string? WeChat { get; set;}
 
-        public string? Address { get; set; }// 门店地址
+		/// <summary>
+		/// 门店地址
+		/// </summary>
+		public string? Address { get; set; }
 
-        public double GpsLongitude { get; init; }// Longitude 经度，范围 [-180, 180]
+		/// <summary>
+		/// Longitude 经度，范围 [-180, 180]
+		/// </summary>
+		public double GpsLongitude { get; init; }
 
-        public double GpsLatitude { get; init; }// Latitude 纬度，范围 [-90, 90]
+		/// <summary>
+		/// Latitude 纬度，范围 [-90, 90]
+		/// </summary>
+		public double GpsLatitude { get; init; }
 
-        public string? Pictures { get; set; }// 门店图片
+		/// <summary>
+		/// 门店图片
+		/// </summary>
+		public string? Pictures { get; set; }
 
-        public string? Introduce { get; set; }// 介绍
+		/// <summary>
+		/// 介绍
+		/// </summary>
+		public string? Introduce { get; set; }
 
-        public DateTime CreatedAt { get; set; }
+		/// <summary>
+		/// 创建时间
+		/// </summary>
+		public DateTime CreatedAt { get; set; }
 
-        public DateTime UpdatedAt { get; set; }
-        
-        public bool IsDelete { get; set; } = false;
+		/// <summary>
+		/// 更新时间
+		/// </summary>
+		public DateTime UpdatedAt { get; set; }
 
-        [Timestamp]
-        public byte[] RowVersion { get; set; }// 用于乐观并发控制
+		/// <summary>
+		/// 是否删除
+		/// </summary>
+		public bool IsDelete { get; set; } = false;
 
-        public bool IsOpen() {
+		/// <summary>
+		/// 用于乐观并发控制
+		/// </summary>
+		[Timestamp]
+        public byte[] RowVersion { get; set; }
+
+		/// <summary>
+		/// 判断门店是否在营业时间内
+		/// </summary>
+		/// <returns>真=>开门，反之关门</returns>
+		public bool IsOpen() {
             var now = DateTime.Now.TimeOfDay; // 获取当前时间的时间部分
             return now >= BusinessHoursStart && now <= BusinessHoursEnd; // 判断是否在营业时间内
         }

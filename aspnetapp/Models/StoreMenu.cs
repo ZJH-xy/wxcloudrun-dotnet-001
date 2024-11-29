@@ -5,23 +5,42 @@
     [Table("T_StoreMenu")]
     [Index(nameof(TheStore))]
     public class StoreMenu {
-        [Key]
+		/// <summary>
+		/// 门店套餐Id
+		/// </summary>
+		[Key]
         public int Id { get; set; }
-
-        /* 逻辑指向门店 */
+        /// <summary>
+        /// 逻辑指向门店
+        /// </summary>
         public int TheStore { get; set; }
 
-        public int Duration { get; set; }// 小时时长
+		/// <summary>
+		/// 小时时长
+		/// </summary>
+		public int Duration { get; set; }
 
-        [Precision(10, 2)]
-        public decimal Rent { get; set; }// 租金
+		/// <summary>
+		/// 租金
+		/// </summary>
+		[Precision(10, 2)]
+        public decimal Rent { get; set; }
 
-        [Precision(10, 2)]
-        public decimal Deposit { get; set; }// 押金
+		/// <summary>
+		/// 押金
+		/// </summary>
+		[Precision(10, 2)]
+        public decimal Deposit { get; set; }
 
-        public bool IsDelete { get; set; } = false;
+		/// <summary>
+		/// 
+		/// </summary>
+		public bool IsDelete { get; set; } = false;
 
-        [Timestamp]
-        public byte[] RowVersion { get; set; }// 用于乐观并发控制
+		/// <summary>
+		/// 用于乐观并发控制
+		/// </summary>
+		[Timestamp]
+        public byte[] RowVersion { get; set; }
     }
 }

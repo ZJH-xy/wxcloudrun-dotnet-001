@@ -77,7 +77,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (order is null)
                 return StatusCode(404);// 订单不存在
 
-            if (order.Status != Order.OrderStatus.待确认)
+            if (order.Status != Order.EOrderStatus.待确认)
                 return StatusCode(403, "订单状态异常");
 
             return StatusCode(200, new ReturnConfirmOrder(order));
@@ -103,7 +103,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (order is null)
                 return StatusCode(403, "订单不存在");
 
-            if (order.Status != Order.OrderStatus.待确认)
+            if (order.Status != Order.EOrderStatus.待确认)
                 return StatusCode(403, "订单状态异常");
 
             /* 检查车辆状态 */
@@ -139,7 +139,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             DateTime now = DateTime.Now;
 
             /* 确认订单 */
-            order.Status = Order.OrderStatus.进行中;
+            order.Status = Order.EOrderStatus.进行中;
             order.ActualStartingTime = now;
             vehicle.State = Vehicle.Estates.已出租;
             try {
@@ -217,7 +217,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (order is null)
                 return StatusCode(403, "订单不存在");
 
-            if (order.Status != Order.OrderStatus.进行中)
+            if (order.Status != Order.EOrderStatus.进行中)
                 return StatusCode(403, "订单状态异常");
 
             /* 检查换车记录 */
@@ -338,7 +338,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (order is null)
                 return StatusCode(403, "订单不存在");
 
-            if (order.Status != Order.OrderStatus.进行中)
+            if (order.Status != Order.EOrderStatus.进行中)
                 return StatusCode(403, "订单状态异常");
 
             // 检查是否有未完成的换车请求
@@ -415,7 +415,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             vehicle.StateUpdatedAt = now;
 
             /* 订单表Order 状态更新 */
-            order.Status = OrderStatus.已完成;
+            order.Status = EOrderStatus.已完成;
             order.UpdatedAt = now;
             order.TheReturnThePoint = storeId;// 当前商家Id
 
@@ -543,7 +543,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
         public decimal Deposit { get; set; }// 押金
         public decimal Rent { get; set; }// 租金
         public decimal Paid { get; set; }// 已付
-        public Order.OrderStatus Status { get; set; }// 订单状态
+        public Order.EOrderStatus Status { get; set; }// 订单状态
         public DateTime CreatedAt { get; set; }
         public string? Notes { get; set; }// 备注
         //public DateTime UpdatedAt { get; set; }

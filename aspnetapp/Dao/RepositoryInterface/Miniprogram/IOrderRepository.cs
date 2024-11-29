@@ -24,7 +24,7 @@
         /// </summary>
         /// <param name="orderid"></param>
         /// <returns></returns>
-        Task<Order.OrderStatus?> GetOrderStatusById(int userId, int orderid);
+        Task<Order.EOrderStatus?> GetOrderStatusById(int userId, int orderid);
         /// <summary>
         /// 获取订单换车状态
         /// </summary>
