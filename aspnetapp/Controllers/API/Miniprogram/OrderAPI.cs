@@ -305,9 +305,12 @@ namespace aspnetapp.Controllers.API.Miniprogram
 		    const string notifyUrl = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/order/notify";
 			// 订单总金额（分）
 			int total = 1;
+            // 用户Unionid
+            var user = await _dbContext.User.SingleAsync(u => u.Id == GetUserIdInt());
+            string Unionid = user.Unionid;
 
-            // 创建请求类
-            TransactionsRequestData requestData = new() {
+			// 创建请求类
+			TransactionsRequestData requestData = new() {
                 appid = appid,
 
                 // 【直连商户号】 直连商户号
@@ -347,8 +350,8 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 // 【支付者】 支付者信息。
                 payer = new TransactionsRequestData.Payer {
                     // 【用户标识】 用户在普通商户AppID下的唯一标识。 下单前需获取到用户的OpenID，详见OpenID获取
-                    openid = data.openid
-                },
+                    openid = Unionid
+				},
 
                 /// 选填
                 /// 【优惠功能】 优惠功能
@@ -429,6 +432,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
 				OrderReturnJson orderReturnJson = await resHandler.DecryptGetObjectAsync<OrderReturnJson>();
 
 				//记录日志
+				_logger.LogDebug("PayNotifyUrl收到微信支付回调：{data}", orderReturnJson.ToJson(true));
 				Senparc.Weixin.WeixinTrace.SendCustomLog("PayNotifyUrl 接收到消息", orderReturnJson.ToJson(true));
 
 				//演示记录 transaction_id，实际开发中需要记录到数据库，以便退款和后续跟踪
@@ -444,7 +448,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
 
 				//验证可靠的支付状态
 				if (orderReturnJson.VerifySignSuccess == true && trade_state == "SUCCESS") {
-					returnData.code = "SUCCESS";//正确的订单处理
+					//returnData.code = "SUCCESS";//正确的订单处理
 					/* 提示：
                     * 1、直到这里，才能认为交易真正成功了，可以进行数据库操作，但是别忘了返回规定格式的消息！
                     * 2、上述判断已经具有比较高的安全性以外，还可以对访问 IP 进行判断进一步加强安全性。
@@ -468,7 +472,17 @@ namespace aspnetapp.Controllers.API.Miniprogram
 
 					return StatusCode(200);
 				} else {
-					returnData.code = "FAILD";//错误的订单处理
+					/*
+                     * 交易状态，枚举值：
+                     * SUCCESS：支付成功
+                     * REFUND：转入退款
+                     * NOTPAY：未支付
+                     * CLOSED：已关闭
+                     * REVOKED：已撤销（付款码支付）
+                     * USERPAYING：用户支付中（付款码支付）
+                     * PAYERROR：支付失败(其他原因，如银行返回失败)
+                     */
+					returnData.code = "FAIL";//错误的订单处理
 					returnData.message = "验证失败";
 
 					//此处可以给用户发送支付失败提示等
@@ -500,95 +514,9 @@ namespace aspnetapp.Controllers.API.Miniprogram
 				throw;
 			}
 		}
-
-
-		public async Task<IActionResult> WxPayCallback(WxPayNotifyModel data) {
-            //Senparc.Weixin.TenPayV3.Apis.BasePay.Entities.RefundNotifyJson//本类型为微信支付回调通知退款信息
-#if DEBUG
-            _logger.LogDebug("收到微信支付回调：{data}", data.resource);
-#endif
-
-			// 解密
-			var decryptStr = aspnetapp.Controllers.API.Background.AesGcm.AesGcmDecrypt(data.resource.associated_data, data.resource.nonce, data.resource.ciphertext);
-			// 解密后实体
-			WxPayResourceDecryptModel decryptModel = decryptStr.GetObject<WxPayResourceDecryptModel>();
-            //_logger.LogInformation("支付回调信息：{decryptModel}", System.Text.Json.JsonSerializer.Serialize(decryptModel));
-            _logger.LogInformation("支付回调信息：{decryptModel}", decryptModel.ToJson(true));
-		    
-
-			string transactionId = decryptModel.transaction_id;
-
-			BasePayApis basePayApis = new();
-
-			string mchid = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_MchId;
-			// 微信支付订单号查询
-			OrderReturnJson queryByTransaction = await basePayApis.OrderQueryByTransactionIdAsync(new QueryRequestData(mchid, transactionId));
-
-
-
-			if (decryptModel.trade_state != "SUCCESS") {
-                // 订单支付未成功
-                _logger.LogInformation("订单支付状态{trade_state}", decryptModel.trade_state);
-
-            }
-
-			/*
-             * 交易状态，枚举值：
-             * SUCCESS：支付成功
-             * REFUND：转入退款
-             * NOTPAY：未支付
-             * CLOSED：已关闭
-             * REVOKED：已撤销（付款码支付）
-             * USERPAYING：用户支付中（付款码支付）
-             * PAYERROR：支付失败(其他原因，如银行返回失败)
-             */
-			switch (queryByTransaction.trade_state) {
-                case "SUCCESS":
-                    
-
-                    break;
-                case "REFUND":
-
-                    break;
-				case "NOTPAY":
-
-					break;
-				case "CLOSED":
-
-					break;
-				case "PAYERROR":
-
-					break;
-				default:
-                    _logger.LogError("未知错误：{trade_state}", decryptModel.trade_state);
-					// 接收失败： HTTP应答状态码需返回5XX或4XX，同时需返回应答报文
-					WxPayCallbackViewModel wxPayCallbackViewModel = new WxPayCallbackViewModel {
-						code = "FAIL",
-						message = "失败"
-					};
-
-					return StatusCode(500, wxPayCallbackViewModel);
-			}
-
-            // 更新订单已付
-            //order.Status = Order.OrderStatus.待确认;
-            //order.UpdatedAt = DateTime.Now;
-            //try {
-            //	_dbContext.Order.Update(order);
-            //	await _dbContext.SaveChangesAsync();
-
-            //} catch (Exception e) {
-            //	_logger.LogCritical(e, "保存订单信息{OrderId}", order.Id);
-            //	return StatusCode(500);
-            //}
-
-            //_logger.LogInformation("用户{UserId}支付订单{OrderId}成功", GetUserIdInt(), data.orderId);
-
-			// 处理完成
-			return StatusCode(200);
-		}
 		#endregion
 
+		#region 换车请求
 		/// <summary>
 		/// 换车请求
 		/// </summary>
@@ -639,13 +567,14 @@ namespace aspnetapp.Controllers.API.Miniprogram
 
             return StatusCode(200, "请求成功，请向商家确认");
         }
+		#endregion
 
-        /// <summary>
-        /// 取消换车请求
-        /// </summary>
-        /// <param name="getReplacementVehicle"></param>
-        /// <returns></returns>
-        [HttpPost("replacement/cancel")]
+		/// <summary>
+		/// 取消换车请求
+		/// </summary>
+		/// <param name="getReplacementVehicle"></param>
+		/// <returns></returns>
+		[HttpPost("replacement/cancel")]
         public async Task<IActionResult> CancelReplacement(GetCancelReplacementInfo getData) {
             // 检查订单状态
             Order? order = await _orderController.GetById(GetUserIdInt(), getData.OrderId);
@@ -835,8 +764,6 @@ namespace aspnetapp.Controllers.API.Miniprogram
 	/// 下单用
 	/// </summary>
 	public class PayData {
-		public string openid { get; set; }
-
         public int orderId { get; set; }
 	}
 
