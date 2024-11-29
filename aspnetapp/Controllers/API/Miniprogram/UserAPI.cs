@@ -227,12 +227,13 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             return StatusCode(200);
         }
 
-        /// <summary>
-        /// 登录
-        /// </summary>
-        /// <param name="phone"></param>
-        /// <param name="password"></param>
-        /// <returns></returns>
+		#region 登录
+		/// <summary>
+		/// 登录
+		/// </summary>
+		/// <param name="phone"></param>
+		/// <param name="password"></param>
+		/// <returns></returns>
         [HttpGet("login/phone/{phone}/{password}")]
         public async Task<IActionResult> GetUserproByPhone(string phone, string password) {
             if (password is null)
@@ -262,17 +263,26 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
             return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));
         }
+		#endregion
 
-        /// <summary>
-        /// 快速登录
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        [HttpPost("ql")]
+		#region 快速登录
+		/// <summary>
+		/// 快速登录
+		/// </summary>
+		/// <param name="data"></param>
+		/// <returns></returns>
+		[HttpPost("ql")]
         public async Task<IActionResult> QuickLogin(GetQl data) {
+            // 获取手机号
             var result = await BusinessApi.GetUserPhoneNumberAsync(BaseContainer<AccessTokenBag>.GetFirstOrDefaultAppId(PlatformType.WxOpen), data.Code);
 
-            switch (result.errcode) {
+			// code 换取 session_key，支付时使用
+			string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+			string secret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+            //string sessionKey = await Senparc.Weixin.WxOpen.AdvancedAPIs.Sns.SnsApi.JsCode2JsonAsync(appid, secret, data.Code);
+
+
+			switch (result.errcode) {
                 case ReturnCode.请求成功:
                     break;
 
@@ -328,13 +338,14 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
             // 已注册
             return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));
-        }
+		}
+		#endregion
 
-        /// <summary>
-        /// 获取收藏门店
-        /// </summary>
-        /// <returns></returns>
-        [Authorize]
+		/// <summary>
+		/// 获取收藏门店
+		/// </summary>
+		/// <returns></returns>
+		[Authorize]
         [HttpGet("favorites/store")]
         public async Task<IActionResult> GetFavoriteStores() {
             return StatusCode(200, await _favoritesStoreController.GetByUserId(GetUserIdInt()));
@@ -448,8 +459,11 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         }
     }
 
-    public class GetQl {
-        public string Code { get; set; }// 姓名
+	/// <summary>
+	/// 快速登录
+	/// </summary>
+	public class GetQl {
+        public string Code { get; set; }// 
     }
 
     public class RealNameAuthentication {

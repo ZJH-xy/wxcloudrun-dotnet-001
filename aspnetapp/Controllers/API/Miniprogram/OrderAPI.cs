@@ -2,19 +2,11 @@
 using Microsoft.AspNetCore.Authorization;
 using MySqlConnector;
 using System.Security.Claims;
-using Senparc.Weixin.TenPayV3;
-using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
-using Senparc.Weixin.MP;
-using System.Xml.Linq;
 using Senparc.Weixin.TenPayV3.Apis;
 using Senparc.Weixin.TenPayV3.Apis.BasePay;
-using Polly.Caching;
 using Senparc.Weixin.Exceptions;
-using Senparc.Weixin.WxOpen.Entities;
-using Senparc.Weixin.TenPayV3.Helpers;
-using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 using Senparc.CO2NET.Helpers;
+using Senparc.CO2NET.Extensions;
 
 namespace aspnetapp.Controllers.API.Miniprogram
 {
@@ -141,12 +133,13 @@ namespace aspnetapp.Controllers.API.Miniprogram
             return StatusCode(200, status);
         }
 
-        /// <summary>
-        /// 创建订单
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        [HttpPost("add")]
+		#region 创建订单
+		/// <summary>
+		/// 创建订单
+		/// </summary>
+		/// <param name="data"></param>
+		/// <returns></returns>
+		[HttpPost("add")]
         public async Task<IActionResult> AddOrder(GetOrder data) {
             int userId = GetUserIdInt();
             // 订单信息合法性验证
@@ -235,7 +228,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 UpdatedAt = DateTime.Now
             };
 
-            _logger.LogDebug("订单创建信息{Order}", order.ToJson());
+            _logger.LogDebug("订单创建信息{OrderId}", order.Id);
 
             try {
                 int changes = await _orderController.AddOrder(order);
@@ -254,13 +247,15 @@ namespace aspnetapp.Controllers.API.Miniprogram
             // 获取新建订单的id
             return StatusCode(201, order.Id);
         }
+		#endregion
 
-        /// <summary>
-        /// 支付接口，支付成功后更改订单状态
-        /// </summary>
-        /// <param name="orderId"></param>
-        /// <returns></returns>
-        [HttpPost("pay")]
+		#region 支付
+		/// <summary>
+		/// 支付接口，支付成功后更改订单状态
+		/// </summary>
+		/// <param name="orderId"></param>
+		/// <returns></returns>
+		[HttpPost("pay")]
         public async Task<IActionResult> PayOrder(PayData data) {
 			Order? order = await _dbContext.Order.SingleOrDefaultAsync(o => o.Id == data.orderId);
             //Order? order = await _orderController.GetById(GetUserIdInt(), data.orderId);
@@ -271,18 +266,21 @@ namespace aspnetapp.Controllers.API.Miniprogram
             }
 
             // 订单付款中
-            order.Status = Order.OrderStatus.付款中;
-            order.UpdatedAt = DateTime.Now;
-            try {
-                _dbContext.Order.Update(order);
-                await _dbContext.SaveChangesAsync();
+            //order.Status = Order.OrderStatus.付款中;
+            //order.UpdatedAt = DateTime.Now;
+            //try {
+            //    _dbContext.Order.Update(order);
+            //    await _dbContext.SaveChangesAsync();
 
-            } catch (Exception e) {
-                _logger.LogError(e, "更改订单{OrderId}状态为付款中", order.Id);
-                return StatusCode(500);
-            }
+            //} catch (Exception e) {
+            //    _logger.LogError(e, "更改订单{OrderId}状态为付款中", order.Id);
+            //    return StatusCode(500);
+            //}
 
-			#region 微信支付小程序下单流程
+            #region 微信支付小程序下单流程
+            //
+            string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+            string mchid = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_MchId;
 			// 商品描述
 			string description = "测试";
 			// 商户订单号
@@ -292,18 +290,15 @@ namespace aspnetapp.Controllers.API.Miniprogram
 			// 附加数据
 			string attach = "";
 			// 订单总金额
-			int total = 1;
-
-			//TenPayV3_PrivateKey
-			
+			int total = 1;			
 
 			BasePayApis basePayApis = new BasePayApis();
 
             TransactionsRequestData requestData = new TransactionsRequestData {
-                appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId,
+                appid = appid,
 
                 // 【直连商户号】 直连商户号
-                mchid = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_MchId,
+                mchid = mchid,
 
                 // 【商品描述】 商品描述
                 description = description,
@@ -331,7 +326,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 // 【订单金额】 订单金额信息
                 amount = new TransactionsRequestData.Amount {
                     // 【总金额】 订单总金额，单位为分。
-                    total = 1,
+                    total = total,
                     // 【货币类型】 CNY：人民币，境内商户号仅支持人民币。
                     currency = "CNY"
                 },
@@ -358,11 +353,26 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 /// 【电子发票入口开放标识】 传入true时，支付成功消息和支付详情页将出现开票入口。需要在微信支付商户平台或微信公众平台开通电子发票功能，传此字段才可生效。
                 support_fapiao = false
             };
-
-			
+            
+            // 创建订单
 			JsApiReturnJson result = await basePayApis.JsApiAsync(requestData);
 
-            
+			// 【预支付交易会话标识】 预支付交易会话标识。用于后续接口调用中使用，该值有效期为2小时
+			string prepayId = result.prepay_id;
+
+            if (prepayId.IsNullOrEmpty()) {
+                _logger.LogError("[PayOrder]创建订单错误");
+                return StatusCode(500);
+            }
+
+			// 加密
+			//string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+			long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+			string nonceStr = Guid.NewGuid().ToString("N");
+			string pack = "prepay_id=" + prepayId;
+			string signType = "RSA";
+			String paySign = GetSign(appid, timestamp, nonceStr, pack);//签名
+
 
 			if (result.VerifySignSuccess != true) {
                 _logger.LogError("获取 prepay_id 结果校验出错！");
@@ -377,14 +387,10 @@ namespace aspnetapp.Controllers.API.Miniprogram
 			//HttpContext.Session.SetString("BillNo", sp_billno);
 			//HttpContext.Session.SetString("BillFee", price.ToString());
 
-
-			// 【预支付交易会话标识】 预支付交易会话标识。用于后续接口调用中使用，该值有效期为2小时
-			string prepayId = result.prepay_id;
-
 			#endregion
 
-            return StatusCode(200, prepayId);
-        }
+			return StatusCode(200, new { appid, timestamp, nonceStr, pack, signType, paySign });
+		}
 
 		// https://www.cnblogs.com/dawenyang/p/14458773.html
 		public async Task<WxPayCallbackViewModel> WxPayCallback1() {
@@ -417,7 +423,9 @@ namespace aspnetapp.Controllers.API.Miniprogram
 			//viewModel.message = "数据解密失败";
 			return new WxPayCallbackViewModel();
 		}
+		#endregion
 
+		#region 支付回调
 		/// <summary>
 		/// 支付回调
 		/// </summary>
@@ -427,7 +435,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
 		public async Task<IActionResult> WxPayCallback(WxPayNotifyModel data) {
             //Senparc.Weixin.TenPayV3.Apis.BasePay.Entities.RefundNotifyJson//本类型为微信支付回调通知退款信息
 #if DEBUG
-            _logger.LogDebug("收到微信支付回调：{data}", data.ToJson());
+            _logger.LogDebug("收到微信支付回调：{data}", data.resource);
 #endif
 
             // 解密
@@ -472,6 +480,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
 			// 处理完成
 			return StatusCode(200);
 		}
+		#endregion
 
 		/// <summary>
 		/// 换车请求
@@ -670,11 +679,50 @@ namespace aspnetapp.Controllers.API.Miniprogram
         public int GetUserIdInt() {
             return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
-    }
 
-    /// <summary>
-    /// 下单用
-    /// </summary>
+
+		#region RSA加密用
+		/// <summary>
+		/// 获取签名
+		/// </summary>
+		/// <param name="appId"></param>
+		/// <param name="timestamp">时间戳</param>
+		/// <param name="nonceStr">随机字符串</param>
+		/// <param name="pack"></param>
+		/// <returns></returns>
+		public string GetSign(string appId, long timestamp, string nonceStr, string pack) {
+			string message = BuildMessage(appId, timestamp, nonceStr, pack);
+			string paySign = Sign(message);
+			return paySign;
+		}
+
+		// 构建消息
+		private string BuildMessage(string appId, long timestamp, string nonceStr, string pack) {
+			return $"{appId}\n{timestamp}\n{nonceStr}\n{pack}\n";
+		}
+
+		// 签名方法
+		private string Sign(string message) {
+			// 获取商户私钥明文
+			string privateKey = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_PrivateKey;
+
+			// 创建 RSA 对象并加载私钥
+			using RSA rsa = RSA.Create();
+			rsa.ImportFromPem(privateKey.ToCharArray());
+
+			// 签名
+			byte[] messageBytes = Encoding.UTF8.GetBytes(message);
+			byte[] signedBytes = rsa.SignData(messageBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+
+			// Base64 编码签名
+			return Convert.ToBase64String(signedBytes);
+		}
+		#endregion
+	}
+
+	/// <summary>
+	/// 下单用
+	/// </summary>
 	public class PayData {
 		public string openid { get; set; }
 
