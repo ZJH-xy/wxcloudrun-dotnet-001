@@ -13,6 +13,8 @@ using Polly.Caching;
 using Senparc.Weixin.Exceptions;
 using Senparc.Weixin.WxOpen.Entities;
 using Senparc.Weixin.TenPayV3.Helpers;
+using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
+using Senparc.CO2NET.Helpers;
 
 namespace aspnetapp.Controllers.API.Miniprogram
 {
@@ -280,12 +282,20 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 return StatusCode(500);
             }
 
-
+			#region 微信支付小程序下单流程
+			// 商品描述
+			string description = "测试";
+			// 商户订单号
+			string outTradeNo = data.orderId.ToString();
 			// 交易结束时间
-			string time_expire = DateTime.Now.AddMinutes(10).ToString("yyyy-MM-ddTHH:mm:sszzz");
+			string time_expire = DateTime.Now.AddMinutes(120).ToString("yyyy-MM-ddTHH:mm:sszzz");
+			// 附加数据
+			string attach = "";
+			// 订单总金额
+			int total = 1;
 
-			/* 微信支付流程 */
-			#region 微信支付流程
+			//TenPayV3_PrivateKey
+			
 
 			BasePayApis basePayApis = new BasePayApis();
 
@@ -296,10 +306,10 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 mchid = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_MchId,
 
                 // 【商品描述】 商品描述
-                description = "测试",
+                description = description,
 
                 // 【商户订单号】 商户系统内部订单号，只能是数字、大小写字母_-*且在同一个商户号下唯一。
-                out_trade_no = "1217752501201407033233368018",
+                out_trade_no = outTradeNo,
 
                 /// 选填
                 /// 【交易结束时间】订单失效时间，遵循rfc3339标准格式，格式为yyyy-MM-DDTHH:mm:ss+TIMEZONE，yyyy-MM-DD表示年月日，
@@ -309,7 +319,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
 
                 /// 选填
                 /// 【附加数据】 附加数据，在查询API和支付通知中原样返回，可作为自定义参数使用，实际情况下只有支付完成状态才会返回该字段。
-                attach = "",
+                attach = attach,
 
                 // 【通知地址】 异步接收微信支付结果通知的回调地址，通知URL必须为外网可访问的URL，不能携带参数。
                 // 公网域名必须为HTTPS，如果是走专线接入，使用专线NAT IP或者私有回调域名可使用HTTP
@@ -373,35 +383,91 @@ namespace aspnetapp.Controllers.API.Miniprogram
 
 			#endregion
 
-
-			// 更新订单已付
-			//order.Status = Order.OrderStatus.待确认;
-            order.UpdatedAt = DateTime.Now;
-            try {
-                _dbContext.Order.Update(order);
-                await _dbContext.SaveChangesAsync();
-
-            } catch (Exception e) {
-                _logger.LogCritical(e, "保存订单信息{OrderId}", order.Id);
-                return StatusCode(500);
-            }
-
-            _logger.LogInformation("用户{UserId}支付订单{OrderId}成功", GetUserIdInt(), data.orderId);
-
             return StatusCode(200, prepayId);
         }
 
+		// https://www.cnblogs.com/dawenyang/p/14458773.html
+		public async Task<WxPayCallbackViewModel> WxPayCallback1() {
+			var buffer = new MemoryStream();
+			Request.Body.CopyTo(buffer);
+			var str = Encoding.UTF8.GetString(buffer.GetBuffer());
+
+
+			var wxPayNotifyModel = str.GetObject<WxPayNotifyModel>();
+
+
+			var resource = wxPayNotifyModel?.resource ?? new WxPayResourceModel();
+			var decryptStr = aspnetapp.Controllers.API.Background.AesGcm.AesGcmDecrypt(resource.associated_data, resource.nonce, resource.ciphertext);
+			var decryptModel = decryptStr.GetObject<WxPayResourceDecryptModel>();
+
+			//var viewModel = new WxPayCallbackViewModel();
+
+            // 发起查询订单请求
+			//if (decryptModel is not null) {
+			//	var url = $"https://api.mch.weixin.qq.com/v3/pay/transactions/out-trade-no/{decryptModel.out_trade_no}?mchid={WxPayConst.mchid}";
+			//	var client = new HttpClient(new WxPayHelper());
+			//	var resp = await client.GetAsync(url);
+			//	var respStr = await resp.Content.ReadAsStringAsync();
+			//	var payModel = respStr.GetObject<WxPayStatusRespModel>();
+
+			//	return viewModel;
+			//}
+
+			//viewModel.code = "FAIL";
+			//viewModel.message = "数据解密失败";
+			return new WxPayCallbackViewModel();
+		}
+
 		/// <summary>
-        /// 支付回调
-        /// </summary>
-        /// <returns></returns>
+		/// 支付回调
+		/// </summary>
+		/// <returns></returns>
 		[AllowAnonymous]// 允许匿名访问
 		[HttpPost("notify")]
-		public async Task<IActionResult> Notify(ResourceData data) {
+		public async Task<IActionResult> WxPayCallback(WxPayNotifyModel data) {
+            //Senparc.Weixin.TenPayV3.Apis.BasePay.Entities.RefundNotifyJson//本类型为微信支付回调通知退款信息
+#if DEBUG
+            _logger.LogDebug("收到微信支付回调：{data}", data.ToJson());
+#endif
 
-			//Senparc.Weixin.TenPayV3.Apis.BasePay.Entities.RefundNotifyJson//本类型为微信支付回调通知退款信息
+            // 解密
+            var decryptStr = aspnetapp.Controllers.API.Background.AesGcm.AesGcmDecrypt(data.resource.associated_data, data.resource.nonce, data.resource.ciphertext);
+			var decryptModel = decryptStr.GetObject<WxPayResourceDecryptModel>();
 
-            // 模拟
+
+            if (decryptModel.trade_state != "SUCCESS") {
+                // 订单支付未成功
+                _logger.LogInformation("订单支付状态{trade_state}", decryptModel.trade_state);
+
+            }
+
+			// 更新订单已付
+			//order.Status = Order.OrderStatus.待确认;
+			//order.UpdatedAt = DateTime.Now;
+			//try {
+			//	_dbContext.Order.Update(order);
+			//	await _dbContext.SaveChangesAsync();
+
+			//} catch (Exception e) {
+			//	_logger.LogCritical(e, "保存订单信息{OrderId}", order.Id);
+			//	return StatusCode(500);
+			//}
+
+			//_logger.LogInformation("用户{UserId}支付订单{OrderId}成功", GetUserIdInt(), data.orderId);
+
+
+
+			// 模拟
+
+			if (false) {
+				// 接收失败： HTTP应答状态码需返回5XX或4XX，同时需返回应答报文
+				WxPayCallbackViewModel wxPayCallbackViewModel = new WxPayCallbackViewModel {
+					code = "FAIL",
+					message = "失败"
+				};
+
+				return StatusCode(500, wxPayCallbackViewModel);
+			}
 
 			// 处理完成
 			return StatusCode(200);
@@ -494,7 +560,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
         }
 
         /// <summary>
-        /// 检查换车请求，超时取消（暂未使用）
+        /// 检查换车请求，超时取消
         /// </summary>
         /// <returns></returns>
         public async Task CheckReplacementVehicle() {
@@ -628,14 +694,141 @@ namespace aspnetapp.Controllers.API.Miniprogram
     }
 
 
-    // 支付回调格式
-	public class ResourceData {
-		public string Id { get; set; }
-		public DateTime CreateTime { get; set; }
-		public string ResourceType { get; set; }
-		public string EventType { get; set; }
-		public string Summary { get; set; }
-		public Resource Resource { get; set; }
+	/// <summary>
+	/// 微信支付结果回调通知实体
+	/// </summary>
+	public class WxPayNotifyModel {
+		/// <summary>
+		/// 通知的唯一ID
+		/// </summary>
+		public string id { set; get; }
+
+		/// <summary>
+		/// 通知创建时间,格式为YYYY-MM-DDTHH:mm:ss+TIMEZONE，YYYY-MM-DD表示年月日，T出现在字符串中，表示time元素的开头，HH:mm:ss.表示时分秒，TIMEZONE表示时区（+08:00表示东八区时间，领先UTC 8小时，即北京时间）。例如：2015-05-20T13:29:35+08:00表示北京时间2015年05月20日13点29分35秒。
+		/// </summary>
+		public string create_time { set; get; }
+
+		/// <summary>
+		/// 通知的类型，支付成功通知的类型为TRANSACTION.SUCCESS
+		/// </summary>
+		public string event_type { set; get; }
+
+		/// <summary>
+		/// 通知的资源数据类型，支付成功通知为encrypt-resource
+		/// </summary>
+		public string resource_type { set; get; }
+
+		/// <summary>
+		/// 通知资源数据,json格式
+		/// </summary>
+		public WxPayResourceModel resource { set; get; }
+
+		/// <summary>
+		/// 回调摘要
+		/// </summary>
+		public string summary { set; get; }
+	}
+
+	/// <summary>
+	/// 微信支付回调通知结果resource实体
+	/// </summary>
+	public class WxPayResourceModel {
+		/// <summary>
+		/// 对开启结果数据进行加密的加密算法，目前只支持AEAD_AES_256_GCM
+		/// </summary>
+		public string algorithm { set; get; }
+
+		/// <summary>
+		/// Base64编码后的开启/停用结果数据密文
+		/// </summary>
+		public string ciphertext { set; get; }
+
+		/// <summary>
+		/// 附加数据
+		/// </summary>
+		public string associated_data { set; get; }
+
+		/// <summary>
+		/// 原始回调类型，为transaction
+		/// </summary>
+		public string original_type { set; get; }
+
+		/// <summary>
+		/// 加密使用的随机串
+		/// </summary>
+		public string nonce { set; get; }
+	}
+
+	/// <summary>
+	/// 微信支付回调通知结果解密实体
+	/// </summary>
+	public class WxPayResourceDecryptModel {
+		/// <summary>
+		/// 直连商户申请的公众号或移动应用appid
+		/// </summary>
+		public string appid { set; get; }
+
+		/// <summary>
+		/// 商户的商户号，由微信支付生成并下发。
+		/// </summary>
+		public string mchid { set; get; }
+
+		/// <summary>
+		/// 商户系统内部订单号，只能是数字、大小写字母_-*且在同一个商户号下唯一。特殊规则：最小字符长度为6
+		/// </summary>
+		public string out_trade_no { set; get; }
+
+		/// <summary>
+		/// 微信支付系统生成的订单号。
+		/// </summary>
+		public string transaction_id { set; get; }
+
+		/// <summary>
+		/// 交易状态，枚举值：
+		/// SUCCESS：支付成功
+		/// REFUND：转入退款
+		/// NOTPAY：未支付
+		/// CLOSED：已关闭
+		/// REVOKED：已撤销（付款码支付）
+		/// USERPAYING：用户支付中（付款码支付）
+		/// PAYERROR：支付失败(其他原因，如银行返回失败)
+		/// ACCEPT：已接收，等待扣款
+		/// </summary>
+		public string trade_state { get; set; }
+
+		/// <summary>
+		/// 交易状态描述
+		/// </summary>
+		public string trade_state_desc { get; set; }
+
+		/// <summary>
+		/// 支付者信息
+		/// </summary>
+		public WxPayerResourceDecryptModel payer { set; get; }
+	}
+	/// <summary>
+	/// 支付用户信息实体
+	/// </summary>
+	public class WxPayerResourceDecryptModel {
+		/// <summary>
+		/// 用户在直连商户appid下的唯一标识。
+		/// </summary>
+		public string openid { get; set; }
+	}
+
+	/// <summary>
+	/// 返回给微信支付回调结果的实体类
+	/// </summary>
+	public class WxPayCallbackViewModel {
+		/// <summary>
+		/// 返回状态码,错误码，SUCCESS为清算机构接收成功，其他错误码为失败。
+		/// </summary>
+		public string code { set; get; } = "SUCCESS";
+
+		/// <summary>
+		/// 返回信息，如非空，为错误原因。
+		/// </summary>
+		public string message { set; get; } = string.Empty;
 	}
 
 	public class Resource {
