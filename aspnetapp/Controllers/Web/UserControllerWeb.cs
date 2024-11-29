@@ -1,21 +1,39 @@
-﻿using aspnetapp.Dao.RepositoryInterface.Web;
+﻿using aspnetapp.Controllers.API.Miniprogram;
+using aspnetapp.Dao.RepositoryInterface.Web;
+using Microsoft.DotNet.Scaffolding.Shared.CodeModifier.CodeChange;
+using Microsoft.IdentityModel.Tokens;
+using Senparc.CO2NET.HttpUtility;
+using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
+using Senparc.Weixin.WxOpen.Entities;
+using System.Net.Http.Headers;
+using System.Security.Policy;
 
 namespace aspnetapp.Controllers.Web {
     public class UserControllerWeb : Controller, IUserRepositoryWeb {
 
         private readonly MyDbContext _context;
         private readonly ILogger<UserControllerWeb> _logger;
+        private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;
 
-        public UserControllerWeb(MyDbContext context, ILogger<UserControllerWeb> logger) {
+        public UserControllerWeb(MyDbContext context, ILogger<UserControllerWeb> logger, IOptionsSnapshot<WeixinSetting> wxSetting) {
             _context = context;
             _logger = logger;
+            _wxSetting = wxSetting;
+        }
+
+        public async Task<List<User>> GetAllList() {
+            return await _context.User.ToListAsync();
         }
 
         public async Task<User?> GetById(int id) {
             return await _context.User.FindAsync(id);
         }
 
-        public async Task<List<User>> GetTablePage(int limit, int pageIndex) {
+		public async Task<int> GetPageSum() {
+			return await _context.User.CountAsync();
+		}
+
+		public async Task<List<User>> GetTablePage(int limit, int pageIndex) {
             return await _context.User
                 .OrderBy(u => u.Id) // 根据主键排序，确保分页顺序一致
                 .Skip((pageIndex - 1) * limit) // 跳过前面页的数据
@@ -35,7 +53,10 @@ namespace aspnetapp.Controllers.Web {
         /// <param name="updatedUser"></param>
         /// <returns></returns>
         public async Task<IActionResult> UpdateUser(User updatedUser) {
-            _logger.LogInformation("Starting update process for user with ID {UserId}", updatedUser.Id);
+            _logger.LogInformation("正在启动ID为{UserId}的用户的更新过程", updatedUser.Id);
+
+            if (await _context.User.Where(u => u.Id != updatedUser.Id && u.Phone == updatedUser.Phone).AnyAsync())
+                return StatusCode(403, "与其它用户手机号重复！");
 
             var user = await _context.User.FindAsync(updatedUser.Id);
             if (user == null) {
@@ -48,7 +69,6 @@ namespace aspnetapp.Controllers.Web {
             //user.Password = updatedUser.Password;
             user.Name = updatedUser.Name;
             user.IdentityCard = updatedUser.IdentityCard;
-            user.IdentityCardPictures = updatedUser.IdentityCardPictures;
             user.Nickname = updatedUser.Nickname;
             user.UpdatedAt = DateTime.Now;
 
@@ -76,37 +96,16 @@ namespace aspnetapp.Controllers.Web {
         }
 
         /// <summary>
-        /// 查询用户
+        /// 查询
         /// </summary>
         /// <param name="phone"></param>
         /// <param name="name"></param>
         /// <param name="nickname"></param>
+        /// <param name="sortField"></param>
+        /// <param name="sortOrder"></param>
         /// <returns></returns>
-        public async Task<List<User>> SearchUsers(string? phone = null, string? name = null, string? nickname = null) {
-            _logger.LogInformation("Starting search with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}", phone, name, nickname);
-
-            // 构建查询的基础对象
-            var query = _context.User.AsQueryable();
-
-            // 根据传入的参数动态添加条件
-            if (!string.IsNullOrEmpty(phone)) {
-                query = query.Where(u => u.Phone.Contains(phone));
-            }
-            if (!string.IsNullOrEmpty(name)) {
-                query = query.Where(u => u.Name.Contains(name));
-            }
-            if (!string.IsNullOrEmpty(nickname)) {
-                query = query.Where(u => u.Nickname.Contains(nickname));
-            }
-
-            var results = await query.ToListAsync();
-            _logger.LogInformation("Found {Count} users with given filters", results.Count);
-
-            return results;
-        }
-
         public async Task<List<User>> SearchUsers(string? phone = null, string? name = null, string? nickname = null, string sortField = "Id", string sortOrder = "asc") {
-            _logger.LogInformation("Starting search with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
+            _logger.LogInformation("[SearchUsers]Starting search with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
                                    phone, name, nickname, sortField, sortOrder);
 
             var query = _context.User.AsQueryable();
@@ -127,14 +126,57 @@ namespace aspnetapp.Controllers.Web {
                 "phone" => sortOrder == "asc" ? query.OrderBy(u => u.Phone) : query.OrderByDescending(u => u.Phone),
                 "name" => sortOrder == "asc" ? query.OrderBy(u => u.Name) : query.OrderByDescending(u => u.Name),
                 "createdat" => sortOrder == "asc" ? query.OrderBy(u => u.CreatedAt) : query.OrderByDescending(u => u.CreatedAt),
-                _ => sortOrder == "asc" ? query.OrderBy(u => u.Id) : query.OrderByDescending(u => u.Id),
+				"updatedat" => sortOrder == "asc" ? query.OrderBy(u => u.UpdatedAt) : query.OrderByDescending(u => u.UpdatedAt),
+				_ => sortOrder == "asc" ? query.OrderBy(u => u.Id) : query.OrderByDescending(u => u.Id),
             };
 
-            var results = await query.ToListAsync();
+			List<User> results = await query.ToListAsync();
             _logger.LogInformation("Found {Count} users with given filters and sorting", results.Count);
 
             return results;
         }
 
+        /// <summary>
+        /// 更新用户图片信息
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="fileId"></param>
+        /// <returns>返回更改行数，负数错误</returns>
+        public async Task<int> PutImagePath(int userId, string fileId) {
+            var user = await _context.User.SingleOrDefaultAsync(u => u.Id == userId);
+
+            if (user is null)
+                return -1;
+
+            if (!user.IdentityCardPictures.IsNullOrEmpty()) {
+                var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+                var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+                var envId = _wxSetting.Value.Env;
+
+                List<string> fileid_list = new() {
+                    user.IdentityCardPictures!
+                };
+
+                // 删除原图片
+                var re = await TcbApi.BatchDeleteFileAsync(appId, envId, fileid_list);
+                if (re.errcode != ReturnCode.请求成功) {
+                    _logger.LogError("删除用户{UserId}原图片{ImageId}", (object)user.Id, (object)user.IdentityCardPictures!);
+                }
+            }
+
+            // 更新图片路径
+            user.IdentityCardPictures = fileId;
+            user.UpdatedAt = DateTime.Now;
+            try {
+                _context.User.Update((User)user);
+                await _context.SaveChangesAsync();
+
+            } catch (Exception e) {
+                _logger.LogError(e, "保存用户{UserId}身份证图片路径", user);
+                return -2;
+            }
+
+            return 0;
+        }
     }
 }

@@ -1,11 +1,16 @@
 ﻿namespace aspnetapp.Dao.RepositoryInterface.Web {
     public interface IUserRepositoryWeb : IRepositoryWeb {
         /// <summary>
-        /// 根据ID 查询
+        /// 获取表总数
         /// </summary>
-        /// <param name="id"></param>
         /// <returns></returns>
-        Task<User?> GetById(int id);
+        Task<int> GetPageSum();
+		/// <summary>
+		/// 根据ID 查询
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		Task<User?> GetById(int id);
         /// <summary>
         /// 分页查询
         /// </summary>

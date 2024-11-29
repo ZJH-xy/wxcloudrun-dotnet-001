@@ -2,6 +2,9 @@ using aspnetapp.Controllers.API.Miniprogram;
 using aspnetapp.Controllers.API.StoreAccount;
 using aspnetapp.Controllers.Miniprogram;
 using Senparc.Weixin.TenPayV3;
+using aspnetapp.Controllers.Web;
+using aspnetapp.Dao.RepositoryInterface.Web;
+using Senparc.Weixin.AspNet;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +36,10 @@ builder.Services.AddScoped<IOrderRepository, OrderController>();
 builder.Services.AddScoped<IStoreAccountRepository, StoreAccountController>();
 builder.Services.AddScoped<IFavoritesStoreRepository, FavoritesStoreController>();
 
+// Web��̨���
+builder.Services.AddScoped<UserControllerWeb>();
+builder.Services.AddScoped<VehicleControllerWeb>(); 
+builder.Services.AddScoped<StatisticsControllerWeb>();
 
 builder.Services.AddScoped<OrderAPI>(); // ע�� OrderAPI����ʱȡ������
 builder.Services.AddHostedService<TimedHostedService>();
@@ -56,6 +63,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 
 //Senparc.Weixin ע�ᣨ���룩
 builder.Services.AddSenparcWeixin(builder.Configuration);
+// ������� Senparc.Weixin ��ע�ᡣ
+builder.Services.Configure<WeixinSetting>(builder.Configuration.GetSection("SenparcWeixinSetting"));// ����WeixinSetting
+
+
 // ������� Senparc.Weixin ��ע�ᡣ
 //builder.Services.AddSenparcWeixinServices(builder.Configuration);
 

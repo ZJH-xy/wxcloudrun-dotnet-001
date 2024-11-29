@@ -1,0 +1,148 @@
+﻿body {
+    overflow: hidden;
+}
+iframe {
+    width: 100%;
+    height: 100%;
+}
+/* 页面基础样式 */
+body {
+    background-color: #eee;
+    font-family: Arial, sans-serif; /* 设置字体 */
+    margin: 0; /* 移除默认边距 */
+    padding: 0; /* 移除默认内边距 */
+    display: flex; /* 使用弹性盒子布局 */
+}
+
+/* 侧边栏样式 */
+.sidebar {
+    width: 29vh; /* 侧边栏宽度 */
+    background-color: #ffffff; /* 背景颜色 */
+    height: 100vh; /* 侧边栏高度全屏 */
+    color: #000000; /* 字体颜色 */
+    padding-top: 20px; /* 顶部内边距 */
+    overflow-y: auto; /* 支持垂直滚动 */
+}
+
+    /* 侧边栏内链接样式 */
+    .sidebar a {
+        padding: 10px 15px; /* 内边距 */
+        text-decoration: none; /* 移除下划线 */
+        color: #000000; /* 字体颜色 */
+        display: block; /* 块级元素 */
+        font-size: 16px; /* 字体大小 */
+        gap: 20px;
+        transition: background-color 0.3s ease, color 0.3s ease; /* 背景色和字体颜色的过渡 */
+        position: relative;
+        border-radius: 5px;
+
+    }
+
+        /* 链接的悬停效果 */  
+        .sidebar a {  
+            transition: padding-left 0.3s ease, background-color 0.3s ease, color 0.3s ease; /* 添加对 padding-left 的过渡 */  
+        }  
+        .sidebar a:hover {  
+            padding-left: 10px; /* 悬停时的左内边距 */  
+            background-color: #f0f0f0; /* 可选：背景色变化 */  
+        }  
+        .sidebar a.selected  {  
+            padding-left: 30px; 
+            background-color: #f0f0f0; /* 可选：背景色变化 */  
+        }  
+
+
+/* 主内容区域样式 */
+.main-content {
+    height: 100vh; /* 确保主内容区域填满视口 */
+    margin-left: 10px; /* 留出侧边栏宽度的空间 */
+    flex: 1; /* 自动填充剩余空间 */
+}
+
+/* 顶层菜单样式 */
+.menu {
+    padding: 5px 15px; /* 内边距 */
+    margin: 10px; /* 外边距 */
+}
+
+    /* 顶层菜单项样式 */
+    .menu > li {
+        list-style-type: none; /* 移除列表样式 */
+        position: relative; /* 相对定位 */
+        padding: 10px 0; /* 内边距 */
+    }
+
+        /* 子菜单样式 */
+        .menu > li > ul {
+            max-height: 0; /* 默认隐藏 */
+            opacity: 0; /* 默认不透明 */
+            overflow: hidden; /* 超出隐藏 */
+            transition: max-height 0.3s ease, opacity 0.3s ease; /* 过渡效果 */
+            background-color: #ffffff; /* 子菜单背景颜色 */
+            padding: 0; 
+            margin: 0; 
+            width: 100%; 
+            height:100%;
+            box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+            z-index: 1; /* 层级 */
+            border-radius: 5px;
+        }
+
+            /* 子菜单项样式 */
+            .menu > li > ul > li {
+                color: #fff; /* 字体颜色 */
+                font-size: 14px; /* 字体大小 */
+                list-style-type: none; /* 移除列表样式 */
+                transition: max-height 0.3s ease, opacity 0.3s ease; /* 过渡效果 */
+                
+            }
+
+                /* 子菜单项悬停效果 */
+                .menu > li > ul > li:hover {
+                    background-color: #E6F9EF; /* 子菜单项悬停背景颜色 */
+                    transition: background-color 0.3s ease, color 0.3s ease; /* 背景色和字体颜色的过渡 */
+                }
+
+            /* 子菜单展开时的状态 */
+            .menu > li > ul.show {
+                max-height: 500px; /* 展开时设置一个足够大的高度 */
+                color: #07c160 !important; /* 子菜单项被选中时的字体颜色 */  
+                opacity: 1; /* 变为完全不透明 */
+                transition: max-height 0.3s ease, opacity 0.3s ease; /* 过渡效果 */
+            }            
+            
+
+/* 选中状态的背景颜色 */
+.selected {
+    background-color: #E6F9EF !important; /* 被选中时的背景颜色 */
+    color: #07c160 !important; /* 被选中时字体颜色 */  
+
+}
+
+.submenuSelected {
+    background-color: #E6F9EF !important; /* 被选中时的背景颜色 */
+    border-radius: 5px;
+    padding-left: 30px !important;
+    transition: padding-left 0.3s ease; /* 过渡效果 */
+    color: #07C160 !important;
+}
+
+.arrow{
+    position: absolute;
+    top: 14.5px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    background-color: gray;
+    border-radius: 2.5px;
+    clip-path: polygon(0 75%, 0 100%, 100% 100%, 100% 0, 75% 0, 75% 75%);
+    transform: rotate(45deg);
+    transform-origin: calc(75% - 2px) calc(75% - 2px);
+    transition: all .3s;
+    pointer-events: none;
+}
+    .arrow.active {
+        transform: rotate(-135deg); /* 活动状态旋转 */
+        background-color: #07C160;
+
+    }  
