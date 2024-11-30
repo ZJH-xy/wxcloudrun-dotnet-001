@@ -190,6 +190,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 				.Take(Limit).ToList(); // 获取当前页的数据
 
 			SearchSum = SearchList.Count;
+
 			return Page();
 		}
 

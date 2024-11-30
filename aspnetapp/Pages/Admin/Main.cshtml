@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components.Server
 @{
-	ViewData["Title"] = "后台管理";
+	ViewData["Title"] = "租赁后台管理";
 	Layout = "_Layout";
 }
 <!-- navbar.html -->
@@ -31,6 +31,11 @@
 		<div class="sidebar">
 			<div class="header">
 				<h3>租赁系统后台</h3>
+				<!-- 显示登录的管理员信息 -->
+				<div class="admin-info">
+					<span>管理员：</span> <!-- 显示管理员名称 -->
+					<a href="/admin/logout" class="logout-link">退出登录</a> <!-- 提供退出登录的链接 -->
+				</div>
 			</div>
 			<ul class="menu">
 				<li>

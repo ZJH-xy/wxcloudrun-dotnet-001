@@ -15,7 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\js\orderUtils.js" />
     <Content Remove="wwwroot\js\UserUtils.js" />
+    <Content Remove="wwwroot\js\utils\store.js" />
+    <Content Remove="wwwroot\js\vehicleUtils.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,11 +43,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\js\userUtils.js" />
+    <None Include="wwwroot\js\utils\store.js" />
+    <None Include="wwwroot\js\utils\order.js" />
+    <None Include="wwwroot\js\utils\vehicle.js" />
+    <None Include="wwwroot\js\utils\user.js" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="wwwroot\css\overview.css">
+    <Content Update="wwwroot\css\statisticsData.css">
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>

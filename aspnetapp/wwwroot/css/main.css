@@ -1,6 +1,4 @@
-﻿body {
-    overflow: hidden;
-}
+﻿
 iframe {
     width: 100%;
     height: 100%;
@@ -8,11 +6,13 @@ iframe {
 
 /* 页面基础样式 */
 body {
+    overflow: hidden;
     background-color: #eee;
     font-family: Arial, sans-serif; /* 设置字体 */
     margin: 0; /* 移除默认边距 */
     padding: 0; /* 移除默认内边距 */
     display: flex; /* 使用弹性盒子布局 */
+
 }
 
 /* 侧边栏样式 */
@@ -190,6 +190,10 @@ body {
         transition: transform 0.3s ease,width 0.3s ease;
     }
 
+    /* 侧边栏收起/展开按钮 */
+    .sidebar-toggle {
+        display: none;
+    }
     .main-content {
         height: 100vh; /* 确保主内容区域填满视口 */
         flex: 1; /* 自动填充剩余空间 */
@@ -222,6 +226,15 @@ body {
         height: 15px;
         transition: width 0.3s ease,height 0.3s ease;
     }
+
+}
+
+@media (max-width: 968px) and (min-width: 768px) and (max-height: 768px) {
+    .sidebar {
+        width: 20vw;
+        transition: transform 0.3s ease,width 0.3s ease;
+    }
+
     /* 侧边栏收起/展开按钮 */
     .sidebar-toggle {
         display: none;
@@ -231,7 +244,6 @@ body {
 @media (max-width: 767px) {
     .sidebar {
         width: 0vw;
-        overflow: hidden; /* 防止内容溢出 */
         transition: overflow 0.3s ease,width 0.3s ease;
     }
 
@@ -240,6 +252,7 @@ body {
         width: 30vw; /* 展开时宽度 */
         transition: width 0.3s ease;
     }
+
     .arrow {
         display: none;
         transition: display 0.3s ease;
@@ -268,8 +281,9 @@ body {
         }
 
     .header > h3 {
+        padding-top: 40px;
         font-size: medium;
-        transition: font-size 0.3s ease;
+        transition: font-size 0.3s ease,padding-top 0.3s ease;
     }
 
     .menu {
@@ -291,3 +305,4 @@ body {
 
 
 }
+
