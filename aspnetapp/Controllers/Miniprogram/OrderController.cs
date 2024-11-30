@@ -35,5 +35,12 @@
             _context.Order.Update(order);
             return await _context.SaveChangesAsync();
         }
-    }
+
+		public async Task<int> UpdateOrderState(Order order, Order.EOrderStatus status) {
+            order.Status = status;
+            order.UpdatedAt = DateTime.Now;
+			_context.Order.Update(order);
+			return await _context.SaveChangesAsync();
+		}
+	}
 }
