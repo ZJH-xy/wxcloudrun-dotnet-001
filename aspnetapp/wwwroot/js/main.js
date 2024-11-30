@@ -91,4 +91,9 @@ function toggleSubMenu(event) {
 }
 
 
+function toggleSidebar() {
+	var sidebar = document.querySelector('.sidebar');  // 获取侧边栏元素
+	sidebar.classList.toggle('open');  // 切换 open 类，控制展开/收起
+
+}
 

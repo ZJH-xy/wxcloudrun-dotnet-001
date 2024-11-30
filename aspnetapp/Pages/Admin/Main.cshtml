@@ -15,6 +15,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="~/css/main.css" />
 	<script src="~/js/main.js"></script>
+	<!-- 引入 FontAwesome 图标库 -->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
 </head>
 
@@ -22,8 +24,12 @@
 
 	<!-- 侧边栏区域 -->
 	<nav>
-		<div class="sidebar" style="width:29vh;">
-			<div style="text-align: center;">
+		<!-- 侧边栏收起/展开按钮 -->
+		<div class="sidebar-toggle" onclick="toggleSidebar()">
+			<i class="fas fa-bars"></i> <!-- 你可以使用图标库如 FontAwesome -->
+		</div>
+		<div class="sidebar">
+			<div class="header">
 				<h3>租赁系统后台</h3>
 			</div>
 			<ul class="menu">

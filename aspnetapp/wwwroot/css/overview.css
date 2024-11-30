@@ -8,7 +8,7 @@
 header {
     background-color: #07C160;
     color: white;
-    padding: 20px;
+    padding: 10px;
     text-align: center;
 }
 
@@ -124,47 +124,56 @@ header {
 @media (min-width: 1500px) {
     .statistics, .container {
         padding: 20px 150px; /* 增加两侧的间距 */
+        transition: padding 0.3s ease;
     }
 
     .card {
         width: calc(25% - 20px); /* 每个卡片占容器的四分之一宽度 */
+        transition: width 0.3s ease;
     }
 
     .stat-item {
         width: 200px; /* 统计项宽度设为 200px */
+        transition: width 0.3s ease;
     }
 }
 
 
 
 /* 对中屏设备（平板）进行优化 */
-@media (max-width: 1499px) and (min-width: 1199px) {
+@media (max-width: 1499px) and (min-width: 1198px) {
     .statistics, .container {
         padding: 20px 50px; /* 减少两侧的间距 */
         justify-content: space-evenly; /* 在容器内平均分布 */
+        transition: padding 0.3s ease, justify-content 0.3s ease;
     }
 
     .card {
         width: calc(33.333% - 20px); /* 每个卡片占容器的三分之一宽度 */
+        transition: width 0.3s ease;
     }
 
     .stat-item {
         width: 150px; /* 统计项宽度设为 150px */
+        transition: width 0.3s ease;
     }
 }
 /* 对中小屏设备（小型平板/大屏手机）进行优化 */
-@media (max-width: 1199px) and (min-width: 767px) {
+@media (max-width: 1197px) and (min-width: 768px) {
     .statistics, .container {
         padding: 20px 50px; /* 减少两侧的间距 */
         justify-content: space-evenly; /* 在容器内平均分布 */
+        transition: padding 0.3s ease, justify-content 0.3s ease;
     }
 
     .card {
         width: calc(50% - 20px); /* 每个卡片占容器的一半宽度 */
+        transition: width 0.3s ease;
     }
 
     .stat-item {
         width: 150px; /* 统计项宽度设为 150px */
+        transition: width 0.3s ease;
     }
 }
 
@@ -174,27 +183,33 @@ header {
     .statistics, .container {
         padding: 10px; /* 更小的间距 */
         justify-content: center; /* 居中排列 */
+        transition: padding 0.3s ease,justify-content 0.3s ease;
     }
 
     .card {
         width: 100%; /* 每个卡片占容器的全部宽度 */
         margin-bottom: 20px; /* 每个卡片下方增加间距 */
+        transition: margin-bottom 0.3s ease, width 0.3s ease;
     }
 
     .stat-item {
         width: 100%; /* 统计项占容器的全部宽度 */
         margin-bottom: 15px; /* 每个统计项下方增加间距 */
+        transition: margin-bottom 0.3s ease, width 0.3s ease;
     }
 
     .card-header {
         font-size: 18px; /* 卡片标题字体更小 */
+        transition: font-size 0.3s ease;
     }
 
     .stat-card span {
         font-size: 18px; /* 数值字体更小 */
+        transition: font-size 0.3s ease;
     }
 
     .stat-card i {
         font-size: 28px; /* 图标更小 */
+        transition: font-size 0.3s ease;
     }
 }
