@@ -540,8 +540,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 						default:
 							_logger.LogInformation("支付发生其他状态{trade_state}", trade_state);
-							order.Status = order.CreatedAt > now.AddMinutes(10) ? Order.EOrderStatus.已取消 : Order.EOrderStatus.待付款;
-							order.UpdatedAt = now;
+							//order.Status = order.CreatedAt > now.AddMinutes(10) ? Order.EOrderStatus.已取消 : Order.EOrderStatus.待付款;
+							//order.UpdatedAt = now;
 
 							break;
 					}
@@ -926,45 +926,47 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		public DateTime CreatedAt { get; set; }
 	}
 
-	/// 详细返回订单格式
-	public struct ReturnOrder {
-		public ReturnOrder(Order order) {
-			OrderId = order.Id;
-			ActualStartingTime = order.ActualStartingTime;
-			ActualReturnTime = order.ActualReturnTime;
-			TheStoreMenu = order.TheStoreMenu;
-			TheVehicle = order.TheVehicle;
-			TheRentalLocation = order.TheRentalLocation;
-			TheReturnThePoint = order.TheReturnThePoint;
-			UserName = order.UserName;
-			UserPhone = order.UserPhone;
-			Deposit = order.Deposit;
-			Rent = order.Rent;
-			DispatchFee = order.DispatchFee;
-			OtherFees = order.OtherFees;
-			Paid = order.Paid;
-			DepositRefunded = order.DepositRefunded;
-			Status = order.Status;
+    /// 详细返回订单格式
+    public struct ReturnOrder {
+        public ReturnOrder(Order order) {
+            OrderId = order.Id;
+            ActualStartingTime = order.ActualStartingTime;
+            ActualReturnTime = order.ActualReturnTime;
+            TheStoreMenu = order.TheStoreMenu;
+            TheVehicle = order.TheVehicle;
+            TheRentalLocation = order.TheRentalLocation;
+            TheReturnThePoint = order.TheReturnThePoint;
+            UserName = order.UserName;
+            UserPhone = order.UserPhone;
+            Deposit = order.Deposit;
+            Rent = order.Rent;
+            DispatchFee = order.DispatchFee;
+            OtherFees = order.OtherFees;
+            Paid = order.Paid;
+            DepositRefunded = order.DepositRefunded;
+            Status = order.Status;
+			SuccessTime = order.SuccessTime;
 			Notes = order.Notes;
-			CreatedAt = order.CreatedAt;
-		}
-		public int OrderId { get; init; }// 订单编号
-		public DateTime? ActualStartingTime { get; set; }// 实际起始时间
-		public DateTime? ActualReturnTime { get; set; }// 实际归还时间
-		public int TheStoreMenu { get; set; }// 套餐
-		public int TheVehicle { get; set; }// 租用车辆
-		public int TheRentalLocation { get; set; }// 租车点（StoreId）
-		public int? TheReturnThePoint { get; set; }// 还车点（StoreId）
-		public string UserName { get; set; }// 用户姓名
-		public string UserPhone { get; set; }// 用户手机号
-		public decimal Deposit { get; set; }// 押金
-		public decimal Rent { get; set; }// 租金
-		public decimal DispatchFee { get; set; }// 调度费
-		public decimal OtherFees { get; set; }// 其他费用
-		public decimal Paid { get; set; }// 已付
-		public decimal DepositRefunded { get; set; }// 已退押金
-		public Order.EOrderStatus Status { get; set; }// 订单状态
+            CreatedAt = order.CreatedAt;
+        }
+        public int OrderId { get; init; }// 订单编号
+        public DateTime? ActualStartingTime { get; set; }// 实际起始时间
+        public DateTime? ActualReturnTime { get; set; }// 实际归还时间
+        public int TheStoreMenu { get; set; }// 套餐
+        public int TheVehicle { get; set; }// 租用车辆
+        public int TheRentalLocation { get; set; }// 租车点（StoreId）
+        public int? TheReturnThePoint { get; set; }// 还车点（StoreId）
+        public string UserName { get; set; }// 用户姓名
+        public string UserPhone { get; set; }// 用户手机号
+        public decimal Deposit { get; set; }// 押金
+        public decimal Rent { get; set; }// 租金
+        public decimal DispatchFee { get; set; }// 调度费
+        public decimal OtherFees { get; set; }// 其他费用
+        public decimal Paid { get; set; }// 已付
+        public decimal DepositRefunded { get; set; }// 已退押金
+        public Order.EOrderStatus Status { get; set; }// 订单状态
+		public DateTime? SuccessTime { get; set; }// 支付完成时间
 		public string? Notes { get; set; }// 备注
-		public DateTime CreatedAt { get; set; }
-	}
+        public DateTime CreatedAt { get; set; }
+    }
 }
