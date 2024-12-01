@@ -133,7 +133,16 @@ Authorization: Bearer {{authorization}}
 content-type: application/json
 
 {
-    "openid": "ozTXs68Ss1ukp0fMt69se80gaT4c",
+    "orderId": 18
+}
+
+
+###
+Post {{localhost}}/order/refund HTTP/1.1
+Authorization: Bearer {{authorization}}
+content-type: application/json
+
+{
     "orderId": 13
 }
 
