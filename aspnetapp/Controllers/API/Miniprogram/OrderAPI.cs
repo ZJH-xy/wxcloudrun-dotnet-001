@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis;
 using System.Collections;
 using static aspnetapp.Models.RefundOrder;
 using Senparc.Weixin.WxOpen.Entities;
+using Senparc.Weixin.TenPayV3.Apis.BasePay.Entities;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
@@ -450,7 +451,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				//演示记录 transaction_id，实际开发中需要记录到数据库，以便退款和后续跟踪
 				// transaction_id 微信支付系统生成的订单号。
 				Order? order = await _orderController.GetById(GetUserIdInt(), int.Parse(orderReturnJson.out_trade_no));// 根据Id获取对应的订单
-				//Order order = await _dbContext.Order.SingleAsync(o => o.Id.ToString() == orderReturnJson.out_trade_no);
+																													   //Order order = await _dbContext.Order.SingleAsync(o => o.Id.ToString() == orderReturnJson.out_trade_no);
 
 				if (order is null) {
 					_logger.LogError("订单获取错误transaction_id：{transaction_id}", orderReturnJson.out_trade_no);
@@ -694,24 +695,13 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 			RefundReturnJson refundReturnJson = await basePayApis.RefundAsync(refundRequestData);// 调用退款
 
-			if (refundReturnJson.ResultCode.Success != true ) {
+			if (refundReturnJson.ResultCode.Success != true) {
 				_logger.LogError("退款请求失败{ResultCode}", refundReturnJson.ResultCode.ToJson(true));
 				return StatusCode(403, "退款请求失败，请稍后再试");
 			}
 
 			refundOrder.RefundId = refundReturnJson.refund_id;
-			/*【退款状态】退款到银行发现用户的卡作废或者冻结了，导致原路退款银行卡失败，可前往商户平台（pay.weixin.qq.com）-交易中心，手动处理此笔退款。
-			 * SUCCESS: 退款成功
-			 * CLOSED: 退款关闭
-			 * PROCESSING: 退款处理中
-			 * ABNORMAL: 退款异常
-			 */
-			Hashtable RefundOrderEstatusHashtable = new () {
-				{ "SUCCESS", RefundOrder.Estatus.退款成功 },
-				{ "CLOSED", RefundOrder.Estatus.退款关闭 },
-				{ "PROCESSING", RefundOrder.Estatus.退款处理中 },
-				{ "ABNORMAL", RefundOrder.Estatus.退款异常 }
-			};
+
 			now = DateTime.Now;
 			refundOrder.Status = (RefundOrder.Estatus)RefundOrderEstatusHashtable[refundReturnJson.status]!;// 获取对应枚举值
 			refundOrder.SuccessTime = refundReturnJson.success_time;
@@ -729,9 +719,19 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				throw;
 			}
 
+			_logger.LogInformation("退款已成功refundReturnJson：{refundReturnJson}", refundReturnJson.ToJson(true));
+
 			// 更改订单信息
-			//order.Status = Order.EOrderStatus.退款中;
-			//order.UpdatedAt = now;
+			order.Status = Order.EOrderStatus.退款中;
+			order.UpdatedAt = now;
+			try {
+				await _dbContext.SaveChangesAsync();
+
+			} catch (Exception e) {
+				_logger.LogError(e, "订单退款更新失败order：{OrderId}", order.Id);
+				return StatusCode(500);
+				throw;
+			}
 
 			return StatusCode(200);
 		}
@@ -741,8 +741,74 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		[AllowAnonymous]// 允许匿名访问
 		[HttpPost("callback/refund")]
 		public async Task<IActionResult> RefundNotify(GetCancelReplacementInfo getData) {
+			WeixinTrace.SendCustomLog("RefundNotifyUrl被访问", "IP" + HttpContext.UserHostAddress()?.ToString());
 
-			//
+			WxPayCallbackViewModel returnData = new();
+			try {
+				var resHandler = new TenPayNotifyHandler(HttpContext);
+				var refundNotifyJson = await resHandler.DecryptGetObjectAsync<RefundNotifyJson>();
+
+				
+				
+
+				WeixinTrace.SendCustomLog("跟踪RefundNotifyUrl信息", refundNotifyJson.ToJson(true));
+
+				string refund_status = refundNotifyJson.refund_status;
+				//if (refundNotifyJson.VerifySignSuccess != true)
+				if (/*refundNotifyJson.VerifySignSuccess == true &*/ refund_status == "SUCCESS") {
+					//returnData.code = "SUCCESS";
+					//returnData.message = "OK";
+
+					//填写逻辑
+					WeixinTrace.SendCustomLog("RefundNotifyUrl被访问", "验证通过");
+					_logger.LogInformation("RefundNotifyUrl被访问，验证通过");
+
+					//获取接口中需要用到的信息 例
+					//string transaction_id = refundNotifyJson.transaction_id;
+					//string out_trade_no = refundNotifyJson.out_trade_no;
+					//string refund_id = refundNotifyJson.refund_id;
+					//string out_refund_no = refundNotifyJson.out_refund_no;
+					//int total_fee = refundNotifyJson.amount.payer_total;
+					//int refund_fee = refundNotifyJson.amount.refund;
+
+					var refundOrder = await _dbContext.RefundOrder.SingleAsync(ro => ro.Id == int.Parse(refundNotifyJson.out_refund_no));
+					refundOrder.Status = (RefundOrder.Estatus)RefundOrderEstatusHashtable[refundNotifyJson.refund_status]!;
+					refundOrder.SuccessTime = DateTimeOffset.Parse(refundNotifyJson.success_time).UtcDateTime;// 退款成功时间
+					refundOrder.UpdatedAt = DateTime.Now;
+
+					try {
+						await _dbContext.SaveChangesAsync();
+
+					} catch (Exception e) {
+						_logger.LogError(e, "更新退款refundOrder：{refundOrder}", System.Text.Json.JsonSerializer.Serialize(refundOrder));
+						returnData.code = "FAILD";
+						returnData.message = "数据库更新错误";
+						return StatusCode(500, returnData);
+						throw;
+					}
+
+					_logger.LogInformation("refundOrder更新{refundOrderId}", refundOrder.Id);
+
+					return StatusCode(200);
+				} else {
+					returnData.code = "FAILD";
+					returnData.message = "验证失败";
+					WeixinTrace.SendCustomLog("RefundNotifyUrl被访问", "验证失败");
+					_logger.LogInformation("RefundNotifyUrl被访问，验证失败");
+
+					return StatusCode(400, returnData);
+				}
+
+				//进行后续业务处理
+
+			} catch (Exception ex) {
+				returnData.code = "FAILD";
+				returnData.message = ex.Message;
+				WeixinTrace.WeixinExceptionLog(new WeixinException(ex.Message, ex));
+			}
+
+			//https://pay.weixin.qq.com/wiki/doc/apiv3/wechatpay/wechatpay3_3.shtml
+			//return Json(returnData);
 
 			return StatusCode(200);
 		}
@@ -1021,6 +1087,22 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			return Convert.ToBase64String(signedBytes);
 		}
 		#endregion
+
+		/*【退款状态】退款到银行发现用户的卡作废或者冻结了，导致原路退款银行卡失败，可前往商户平台（pay.weixin.qq.com）-交易中心，手动处理此笔退款。
+		* SUCCESS: 退款成功
+		* CLOSED: 退款关闭
+		* PROCESSING: 退款处理中
+		* ABNORMAL: 退款异常
+		*/
+		/// <summary>
+		/// 退款状态Hashtable，与回调共用！！！
+		/// </summary>
+		public Hashtable RefundOrderEstatusHashtable = new() {
+			{ "SUCCESS", RefundOrder.Estatus.退款成功 },
+			{ "CLOSED", RefundOrder.Estatus.退款关闭 },
+			{ "PROCESSING", RefundOrder.Estatus.退款处理中 },
+			{ "ABNORMAL", RefundOrder.Estatus.退款异常 }
+		};
 	}
 
 	/// <summary>
