@@ -133,7 +133,6 @@ Authorization: Bearer {{authorization}}
 content-type: application/json
 
 {
-    "openid": "ozTXs68Ss1ukp0fMt69se80gaT4c",
-    "orderId": 13
+    "orderId": 18
 }
 

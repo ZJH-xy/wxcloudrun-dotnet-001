@@ -263,11 +263,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		/// <summary>
 		/// 支付接口，支付成功后更改订单状态
 		/// </summary>
-		/// <param name="orderId"></param>
 		/// <returns></returns>
 		[HttpPost("pay")]
 		public async Task<IActionResult> PayOrder(PayData data) {
-			Order? order = await _dbContext.Order.SingleOrDefaultAsync(o => o.Id == data.orderId);
+			Order? order = await _dbContext.Order.SingleOrDefaultAsync(o => o.TheUser == GetUserIdInt() && o.Id == data.OrderId);
 			//Order? order = await _orderController.GetById(GetUserIdInt(), data.orderId);
 
 
@@ -299,9 +298,9 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			// 商品描述
 			string description = "测试";
 			// 商户订单号
-			string outTradeNo = data.orderId.ToString();
+			string outTradeNo = data.OrderId.ToString();
 #if DEBUG
-			outTradeNo = string.Concat("TEST_", data.orderId.ToString());
+			outTradeNo = string.Concat("TEST_", data.OrderId.ToString());
 #endif
 			//outTradeNo = string.Concat("TEST", Guid.NewGuid().ToString("N").AsSpan(0, 20));
 			// 交易结束时间（10分钟）
@@ -317,7 +316,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 #endif
 			// 用户Unionid
 			var user = await _dbContext.User.SingleAsync(u => u.Id == GetUserIdInt());
-			string Unionid = user.Unionid;
+			string unionid = user.Unionid;
 
 			// 创建请求类
 			TransactionsRequestData requestData = new() {
@@ -360,7 +359,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				// 【支付者】 支付者信息。
 				payer = new TransactionsRequestData.Payer {
 					// 【用户标识】 用户在普通商户AppID下的唯一标识。 下单前需获取到用户的OpenID，详见OpenID获取
-					openid = Unionid
+					openid = unionid
 				},
 
 				/// 选填
@@ -395,7 +394,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			string prepayId = result.prepay_id;
 
 			if (prepayId.IsNullOrEmpty()) {
-				_logger.LogError("[PayOrder]创建订单错误");
+				_logger.LogError("[PayOrder]创建订单错误result:{result}", System.Text.Json.JsonSerializer.Serialize(result));
 				return StatusCode(500);
 			}
 
@@ -432,7 +431,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		[AllowAnonymous]// 允许匿名访问
 		[HttpPost("notify")]
 		public async Task<IActionResult> PayNotifyUrl() {
-			WxPayCallbackViewModel returnData = new();// 应答格式
+			WxPayCallbackViewModel returnData = new();// 创建应答格式
 			try {
 				//获取微信服务器异步发送的支付通知信息
 				TenPayNotifyHandler resHandler = new TenPayNotifyHandler(HttpContext);
@@ -478,7 +477,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 							// 微信支付订单号查询订单，二次验证
 							BasePayApis basePayApis = new();
 							string mchid = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_MchId;
-						    var trade = await basePayApis.OrderQueryByTransactionIdAsync(new QueryRequestData(mchid, order.TransactionId));
+							var trade = await basePayApis.OrderQueryByTransactionIdAsync(new QueryRequestData(mchid, order.TransactionId));
 
 							if (trade.trade_state != "SUCCESS") {
 								returnData.code = "FAIL";//错误的订单处理
@@ -591,6 +590,31 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				return StatusCode(500, returnData);
 				throw;
 			}
+		}
+		#endregion
+
+
+
+
+		#region 取消订单
+		[HttpPost("replacement/cancel")]
+		public async Task<IActionResult> CancellationOrder(GetCancelOrder getData) {
+			Order? order = await _dbContext.Order.SingleOrDefaultAsync(o => o.TheUser == GetUserIdInt() && o.Id == getData.OrderId);
+
+			if (order is null || order.Status != Order.EOrderStatus.待付款)
+				return StatusCode(403, "非法请求");
+
+			order.Status = Order.EOrderStatus.已取消;
+
+			try {
+				await _dbContext.SaveChangesAsync();
+
+			} catch (Exception e) {
+				_logger.LogError("取消订单{OrderId}", getData.OrderId);
+				throw;
+			}
+
+			return StatusCode(200);
 		}
 		#endregion
 
@@ -846,7 +870,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 	/// 下单用
 	/// </summary>
 	public class PayData {
-		public int orderId { get; set; }
+		public int OrderId { get; set; }
 	}
 
 	/// <summary>
@@ -900,6 +924,13 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 	}
 
 	/// <summary>
+	/// 获取取消订单请求信息
+	/// </summary>
+	public class GetCancelOrder {
+		public int OrderId { get; set; }
+	}
+
+	/// <summary>
 	/// 基础返回订单
 	/// </summary>
 	public struct ReturnOrderBasic {
@@ -933,47 +964,47 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		public DateTime CreatedAt { get; set; }
 	}
 
-    /// 详细返回订单格式
-    public struct ReturnOrder {
-        public ReturnOrder(Order order) {
-            OrderId = order.Id;
-            ActualStartingTime = order.ActualStartingTime;
-            ActualReturnTime = order.ActualReturnTime;
-            TheStoreMenu = order.TheStoreMenu;
-            TheVehicle = order.TheVehicle;
-            TheRentalLocation = order.TheRentalLocation;
-            TheReturnThePoint = order.TheReturnThePoint;
-            UserName = order.UserName;
-            UserPhone = order.UserPhone;
-            Deposit = order.Deposit;
-            Rent = order.Rent;
-            DispatchFee = order.DispatchFee;
-            OtherFees = order.OtherFees;
-            Paid = order.Paid;
-            DepositRefunded = order.DepositRefunded;
-            Status = order.Status;
+	/// 详细返回订单格式
+	public struct ReturnOrder {
+		public ReturnOrder(Order order) {
+			OrderId = order.Id;
+			ActualStartingTime = order.ActualStartingTime;
+			ActualReturnTime = order.ActualReturnTime;
+			TheStoreMenu = order.TheStoreMenu;
+			TheVehicle = order.TheVehicle;
+			TheRentalLocation = order.TheRentalLocation;
+			TheReturnThePoint = order.TheReturnThePoint;
+			UserName = order.UserName;
+			UserPhone = order.UserPhone;
+			Deposit = order.Deposit;
+			Rent = order.Rent;
+			DispatchFee = order.DispatchFee;
+			OtherFees = order.OtherFees;
+			Paid = order.Paid;
+			DepositRefunded = order.DepositRefunded;
+			Status = order.Status;
 			SuccessTime = order.SuccessTime;
 			Notes = order.Notes;
-            CreatedAt = order.CreatedAt;
-        }
-        public int OrderId { get; init; }// 订单编号
-        public DateTime? ActualStartingTime { get; set; }// 实际起始时间
-        public DateTime? ActualReturnTime { get; set; }// 实际归还时间
-        public int TheStoreMenu { get; set; }// 套餐
-        public int TheVehicle { get; set; }// 租用车辆
-        public int TheRentalLocation { get; set; }// 租车点（StoreId）
-        public int? TheReturnThePoint { get; set; }// 还车点（StoreId）
-        public string UserName { get; set; }// 用户姓名
-        public string UserPhone { get; set; }// 用户手机号
-        public decimal Deposit { get; set; }// 押金
-        public decimal Rent { get; set; }// 租金
-        public decimal DispatchFee { get; set; }// 调度费
-        public decimal OtherFees { get; set; }// 其他费用
-        public decimal Paid { get; set; }// 已付
-        public decimal DepositRefunded { get; set; }// 已退押金
-        public Order.EOrderStatus Status { get; set; }// 订单状态
+			CreatedAt = order.CreatedAt;
+		}
+		public int OrderId { get; init; }// 订单编号
+		public DateTime? ActualStartingTime { get; set; }// 实际起始时间
+		public DateTime? ActualReturnTime { get; set; }// 实际归还时间
+		public int TheStoreMenu { get; set; }// 套餐
+		public int TheVehicle { get; set; }// 租用车辆
+		public int TheRentalLocation { get; set; }// 租车点（StoreId）
+		public int? TheReturnThePoint { get; set; }// 还车点（StoreId）
+		public string UserName { get; set; }// 用户姓名
+		public string UserPhone { get; set; }// 用户手机号
+		public decimal Deposit { get; set; }// 押金
+		public decimal Rent { get; set; }// 租金
+		public decimal DispatchFee { get; set; }// 调度费
+		public decimal OtherFees { get; set; }// 其他费用
+		public decimal Paid { get; set; }// 已付
+		public decimal DepositRefunded { get; set; }// 已退押金
+		public Order.EOrderStatus Status { get; set; }// 订单状态
 		public DateTime? SuccessTime { get; set; }// 支付完成时间
 		public string? Notes { get; set; }// 备注
-        public DateTime CreatedAt { get; set; }
-    }
+		public DateTime CreatedAt { get; set; }
+	}
 }
