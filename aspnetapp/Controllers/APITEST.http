@@ -136,3 +136,13 @@ content-type: application/json
     "orderId": 18
 }
 
+
+###
+Post {{localhost}}/order/refund HTTP/1.1
+Authorization: Bearer {{authorization}}
+content-type: application/json
+
+{
+    "orderId": 13
+}
+

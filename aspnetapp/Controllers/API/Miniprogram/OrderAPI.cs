@@ -14,6 +14,11 @@ using Senparc.CO2NET.Utilities;
 using Senparc.Weixin.TenPayV3.Apis.Entities;
 using Senparc.CO2NET.Extensions;
 using System.Text;
+using Polly.Caching;
+using Microsoft.CodeAnalysis;
+using System.Collections;
+using static aspnetapp.Models.RefundOrder;
+using Senparc.Weixin.WxOpen.Entities;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
@@ -308,7 +313,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			// 附加数据
 			string attach = "";
 			// 通知地址
-			const string notifyUrl = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/order/notify";
+			const string notifyUrl = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/order/callback/notify";
 			// 订单总金额（分）
 			int total = Order.GetTotal(order.GetTotalPrice());
 #if DEBUG
@@ -395,6 +400,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 			if (prepayId.IsNullOrEmpty()) {
 				_logger.LogError("[PayOrder]创建订单错误result:{result}", System.Text.Json.JsonSerializer.Serialize(result));
+				_logger.LogError("[PayOrder]订单信息requestData:{requestData}", requestData);
 				return StatusCode(500);
 			}
 
@@ -429,7 +435,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		/// </summary>
 		/// <returns></returns>
 		[AllowAnonymous]// 允许匿名访问
-		[HttpPost("notify")]
+		[HttpPost("callback/notify")]
 		public async Task<IActionResult> PayNotifyUrl() {
 			WxPayCallbackViewModel returnData = new();// 创建应答格式
 			try {
@@ -443,9 +449,15 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 				//演示记录 transaction_id，实际开发中需要记录到数据库，以便退款和后续跟踪
 				// transaction_id 微信支付系统生成的订单号。
-				Order order = await _dbContext.Order.SingleAsync(o => o.Id.ToString() == orderReturnJson.out_trade_no);// 根据Id获取对应的订单
+				Order? order = await _orderController.GetById(GetUserIdInt(), int.Parse(orderReturnJson.out_trade_no));// 根据Id获取对应的订单
+				//Order order = await _dbContext.Order.SingleAsync(o => o.Id.ToString() == orderReturnJson.out_trade_no);
+
+				if (order is null) {
+					_logger.LogError("订单获取错误transaction_id：{transaction_id}", orderReturnJson.out_trade_no);
+					throw new Exception("订单获取错误transaction_id");
+				}
 				var now = DateTime.Now;
-				order.TransactionId = orderReturnJson.transaction_id;
+				order.TransactionId = orderReturnJson.transaction_id;// 赋值微信传入的id
 				order.UpdatedAt = now;
 
 				//获取支付状态
@@ -528,7 +540,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 									await transaction.CommitAsync();
 
 								} catch (Exception e) {
-									_logger.LogCritical(e, "支付回调{orderReturnJson}", orderReturnJson.ToJson(true));
+									_logger.LogError(e, "支付回调{orderReturnJson}", orderReturnJson.ToJson(true));
 									await transaction.RollbackAsync();
 
 									returnData.code = "FAIL";//错误的订单处理
@@ -593,13 +605,158 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		}
 		#endregion
 
+		#region 订单退款请求
+		/// <summary>
+		/// 订单退款
+		/// </summary>
+		/// <param name="getData"></param>
+		/// <returns></returns>
+		[HttpPost("refund")]
+		public async Task<IActionResult> OrderRefund(GetCancelReplacementInfo getData) {
+			Order? order = await _orderController.GetById(GetUserIdInt(), getData.OrderId);
 
+			// 待确认直接退款
+			if (order is null || order.Status != Order.EOrderStatus.待确认)
+				return StatusCode(403, "非法请求");
 
+			if (await _dbContext.RefundOrder.AnyAsync(ro => ro.TheOrder == order.Id))
+				return StatusCode(403, "请勿重复请求");
+
+			/* 退款流程 */
+			var now = DateTime.Now;
+
+			// 新建退款表数据
+			RefundOrder refundOrder = new() {
+				TheOrder = order.Id,
+				RefundId = "",//等待
+				Reason = "直接退款",
+				Status = RefundOrder.Estatus.已创建,//等待
+				Total = Order.GetTotal(order.Paid),
+				Refund = Order.GetTotal(order.Paid),
+				SuccessTime = null,//等待
+				CreateTime = now,//等待
+				UpdatedAt = now,
+			};
+
+			// 生成退款表数据
+			_dbContext.RefundOrder.Add(refundOrder);
+
+			try {
+				await _dbContext.SaveChangesAsync();
+
+			} catch (Exception e) {
+				_logger.LogError(e, "新建退款表数据");
+				return StatusCode(500);
+				throw;
+			}
+
+			BasePayApis basePayApis = new();
+
+			//【微信支付订单号】原支付交易对应的微信订单号，与out_trade_no二选一
+			string transaction_id = order.TransactionId;
+			//【商户订单号】原支付交易对应的商户订单号，与transaction_id二选一
+			string out_trade_no = refundOrder.TheOrder.ToString();
+#if DEBUG
+			out_trade_no = "TEST" + out_trade_no;
+			out_trade_no = "WX10abe0fa32d64283b14e";
+#endif
+			//【商户退款单号】商户系统内部的退款单号，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一退款单号多次请求只退一笔。
+			string out_refund_no = refundOrder.Id.ToString();
+#if DEBUG
+			out_refund_no = "TEST" + out_refund_no;
+#endif
+			//【退款原因】若商户传入，会在下发给用户的退款消息中体现退款原因
+			string reason = refundOrder.Reason;
+			//【退款币种】符合ISO 4217标准的三位字母代码，目前只支持人民币：CNY。
+			string currency = "CNY";
+			//【退款结果回调url】异步接收微信支付退款结果通知的回调地址，通知url必须为外网可访问的url，不能携带参数。 如果参数中传了notify_url，则商户平台上配置的回调地址将不会生效，优先回调当前传的这个地址。
+			const string notify_url = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/order/callback/refund";
+
+			RefundRequestData refundRequestData = new() {
+				transaction_id = transaction_id,
+				out_trade_no = out_trade_no,
+				out_refund_no = out_refund_no,
+				reason = reason,
+				notify_url = notify_url,
+				funds_account = null,
+				amount = new RefundRequestData.Amount {
+					//【退款金额】退款金额，单位为分，只能为整数，不能超过原订单支付金额。
+					refund = refundOrder.Refund,
+					/// 选填【退款出资账户及金额】退款需要从指定账户出资时，传递此参数指定出资金额（币种的最小单位，只能为整数）。
+					from = null,
+					//【原订单金额】原支付交易的订单总金额，单位为分，只能为整数。
+					total = refundOrder.Total,
+					currency = "CNY"
+				},
+				/// 选填【退款商品】指定商品退款需要传此参数，其他场景无需传递
+				goods_detail = null
+			};
+
+			RefundReturnJson refundReturnJson = await basePayApis.RefundAsync(refundRequestData);// 调用退款
+
+			if (refundReturnJson.ResultCode.Success != true ) {
+				_logger.LogError("退款请求失败{ResultCode}", refundReturnJson.ResultCode.ToJson(true));
+				return StatusCode(403, "退款请求失败，请稍后再试");
+			}
+
+			refundOrder.RefundId = refundReturnJson.refund_id;
+			/*【退款状态】退款到银行发现用户的卡作废或者冻结了，导致原路退款银行卡失败，可前往商户平台（pay.weixin.qq.com）-交易中心，手动处理此笔退款。
+			 * SUCCESS: 退款成功
+			 * CLOSED: 退款关闭
+			 * PROCESSING: 退款处理中
+			 * ABNORMAL: 退款异常
+			 */
+			Hashtable RefundOrderEstatusHashtable = new () {
+				{ "SUCCESS", RefundOrder.Estatus.退款成功 },
+				{ "CLOSED", RefundOrder.Estatus.退款关闭 },
+				{ "PROCESSING", RefundOrder.Estatus.退款处理中 },
+				{ "ABNORMAL", RefundOrder.Estatus.退款异常 }
+			};
+			now = DateTime.Now;
+			refundOrder.Status = (RefundOrder.Estatus)RefundOrderEstatusHashtable[refundReturnJson.status]!;// 获取对应枚举值
+			refundOrder.SuccessTime = refundReturnJson.success_time;
+			refundOrder.CreateTime = DateTimeOffset.Parse(refundReturnJson.create_time).UtcDateTime;//【退款创建时间】退款受理时间
+			refundOrder.UpdatedAt = now;
+
+			_dbContext.RefundOrder.Update(refundOrder);
+
+			try {
+				await _dbContext.SaveChangesAsync();
+
+			} catch (Exception e) {
+				_logger.LogError(e, "退款表更新失败refundOrder：{refundOrder}", System.Text.Json.JsonSerializer.Serialize(refundOrder));
+				return StatusCode(500);
+				throw;
+			}
+
+			// 更改订单信息
+			//order.Status = Order.EOrderStatus.退款中;
+			//order.UpdatedAt = now;
+
+			return StatusCode(200);
+		}
+		#endregion
+
+		#region 退款回调
+		[AllowAnonymous]// 允许匿名访问
+		[HttpPost("callback/refund")]
+		public async Task<IActionResult> RefundNotify(GetCancelReplacementInfo getData) {
+
+			//
+
+			return StatusCode(200);
+		}
+		#endregion
 
 		#region 取消订单
-		[HttpPost("replacement/cancel")]
+		/// <summary>
+		/// 取消订单
+		/// </summary>
+		/// <param name="getData"></param>
+		/// <returns></returns>
+		[HttpPost("cancel")]
 		public async Task<IActionResult> CancellationOrder(GetCancelOrder getData) {
-			Order? order = await _dbContext.Order.SingleOrDefaultAsync(o => o.TheUser == GetUserIdInt() && o.Id == getData.OrderId);
+			Order? order = await _orderController.GetById(GetUserIdInt(), getData.OrderId);
 
 			if (order is null || order.Status != Order.EOrderStatus.待付款)
 				return StatusCode(403, "非法请求");
@@ -929,6 +1086,202 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 	public class GetCancelOrder {
 		public int OrderId { get; set; }
 	}
+
+	#region 回调相关
+	/// <summary>
+	/// 微信支付结果回调通知实体
+	/// </summary>
+	public class WxPayNotifyModel {
+		/// <summary>
+		/// 通知的唯一ID
+		/// </summary>
+		public string id { set; get; }
+
+		/// <summary>
+		/// 通知创建时间,格式为YYYY-MM-DDTHH:mm:ss+TIMEZONE，YYYY-MM-DD表示年月日，T出现在字符串中，表示time元素的开头，HH:mm:ss.表示时分秒，TIMEZONE表示时区（+08:00表示东八区时间，领先UTC 8小时，即北京时间）。例如：2015-05-20T13:29:35+08:00表示北京时间2015年05月20日13点29分35秒。
+		/// </summary>
+		public string create_time { set; get; }
+
+		/// <summary>
+		/// 通知的类型，支付成功通知的类型为TRANSACTION.SUCCESS
+		/// </summary>
+		public string event_type { set; get; }
+
+		/// <summary>
+		/// 通知的资源数据类型，支付成功通知为encrypt-resource
+		/// </summary>
+		public string resource_type { set; get; }
+
+		/// <summary>
+		/// 通知资源数据,json格式
+		/// </summary>
+		public WxPayResourceModel resource { set; get; }
+
+		/// <summary>
+		/// 回调摘要
+		/// </summary>
+		public string summary { set; get; }
+	}
+
+	/// <summary>
+	/// 微信支付回调通知结果resource实体
+	/// </summary>
+	public class WxPayResourceModel {
+		/// <summary>
+		/// 对开启结果数据进行加密的加密算法，目前只支持AEAD_AES_256_GCM
+		/// </summary>
+		public string algorithm { set; get; }
+
+		/// <summary>
+		/// Base64编码后的开启/停用结果数据密文
+		/// </summary>
+		public string ciphertext { set; get; }
+
+		/// <summary>
+		/// 附加数据
+		/// </summary>
+		public string associated_data { set; get; }
+
+		/// <summary>
+		/// 原始回调类型，为transaction
+		/// </summary>
+		public string original_type { set; get; }
+
+		/// <summary>
+		/// 加密使用的随机串
+		/// </summary>
+		public string nonce { set; get; }
+	}
+
+	/// <summary>
+	/// 微信支付回调通知结果resource解密实体
+	/// </summary>
+	public class WxPayResourceDecryptModel {
+		/// <summary>
+		/// 直连商户申请的公众号或移动应用appid
+		/// </summary>
+		public string appid { set; get; }
+
+		/// <summary>
+		/// 商户的商户号，由微信支付生成并下发。
+		/// </summary>
+		public string mchid { set; get; }
+
+		/// <summary>
+		/// 商户系统内部订单号，只能是数字、大小写字母_-*且在同一个商户号下唯一。特殊规则：最小字符长度为6
+		/// </summary>
+		public string out_trade_no { set; get; }
+
+		/// <summary>
+		/// 微信支付系统生成的订单号。
+		/// </summary>
+		public string transaction_id { set; get; }
+
+		/// <summary>
+		/// 交易类型，枚举值：
+		/// JSAPI：公众号支付
+		/// NATIVE：扫码支付
+		/// App：App支付
+		/// MICROPAY：付款码支付
+		/// MWEB：H5支付
+		/// FACEPAY：刷脸支付
+		/// </summary>
+		public string trade_type { set; get; }
+
+		/// <summary>
+		/// 交易状态，枚举值：
+		/// SUCCESS：支付成功
+		/// REFUND：转入退款
+		/// NOTPAY：未支付
+		/// CLOSED：已关闭
+		/// REVOKED：已撤销（付款码支付）
+		/// USERPAYING：用户支付中（付款码支付）
+		/// PAYERROR：支付失败(其他原因，如银行返回失败)
+		/// ACCEPT：已接收，等待扣款
+		/// </summary>
+		public string trade_state { get; set; }
+
+		/// <summary>
+		/// 交易状态描述
+		/// </summary>
+		public string trade_state_desc { get; set; }
+
+		/// <summary>
+		/// 银行类型，采用字符串类型的银行标识。银行标识请参考《银行类型对照表》。
+		/// </summary>
+		public string bank_type { set; get; }
+
+		/// <summary>
+		/// 附加数据，在查询API和支付通知中原样返回，可作为自定义参数使用，实际情况下只有支付完成状态才会返回该字段。
+		/// </summary>
+		public string? attach { set; get; }
+
+		/// <summary>
+		/// 支付完成时间，遵循rfc3339标准格式，格式为yyyy-MM-DDTHH:mm:ss+TIMEZONE
+		/// </summary>
+		public string success_time { set; get; }
+
+		/// <summary>
+		/// 支付者信息
+		/// </summary>
+		public WxPayer payer { set; get; }
+
+		/// <summary>
+		/// 订单金额信息
+		/// </summary>
+		public WxAmount amount { set; get; }
+
+		/// <summary>
+		/// 支付场景信息描述
+		/// </summary>
+		public WxSceneInfo scene_info { set; get; }
+
+		//public Promotion_Detail[] promotion_detail { get; set; }
+	}
+	/// <summary>
+	/// 支付用户信息实体
+	/// </summary>
+	public class WxPayer {
+		/// <summary>
+		/// 用户在直连商户appid下的唯一标识。
+		/// </summary>
+		public string openid { get; set; }
+	}
+
+	/// <summary>
+	/// 订单金额信息实体
+	/// </summary>
+	public class WxAmount {
+		/// <summary>
+		/// 订单总金额，单位为分。
+		/// </summary>
+		public int total { set; get; }
+
+		/// <summary>
+		/// 用户支付金额，单位为分。
+		/// </summary>
+		public int payer_total { set; get; }
+
+		/// <summary>
+		/// CNY：人民币，境内商户号仅支持人民币。
+		/// </summary>
+		public string currency { set; get; }
+
+		/// <summary>
+		/// 用户支付币种。
+		/// </summary>
+		public string payer_currency { set; get; }
+	}
+
+	/// <summary>
+	/// 支付场景信息实体
+	/// </summary>
+	public class WxSceneInfo {
+		public string device_id { set; get; }
+	}
+
+
+	#endregion
 
 	/// <summary>
 	/// 基础返回订单
