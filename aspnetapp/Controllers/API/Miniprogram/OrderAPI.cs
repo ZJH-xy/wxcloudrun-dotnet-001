@@ -282,16 +282,16 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			}
 
 			// 订单付款中
-			order.Status = Order.EOrderStatus.付款中;
-			order.UpdatedAt = now;
-			try {
-				_dbContext.Order.Update(order);
-				await _dbContext.SaveChangesAsync();
+			//order.Status = Order.EOrderStatus.付款中;
+			//order.UpdatedAt = now;
+			//try {
+			//	_dbContext.Order.Update(order);
+			//	await _dbContext.SaveChangesAsync();
 
-			} catch (Exception e) {
-				_logger.LogError(e, "更改订单{OrderId}状态为付款中", order.Id);
-				return StatusCode(500);
-			}
+			//} catch (Exception e) {
+			//	_logger.LogError(e, "更改订单{OrderId}状态为付款中", order.Id);
+			//	return StatusCode(500);
+			//}
 
 			/* 订单数据定义 */
 			string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
@@ -456,18 +456,25 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 				//验证可靠的支付状态
 				if (orderReturnJson.VerifySignSuccess == true) {
+					/* 交易状态，枚举值：
+					 * SUCCESS：支付成功
+					 * REFUND：转入退款
+					 * NOTPAY：未支付
+					 * CLOSED：已关闭
+					 * REVOKED：已撤销（付款码支付）
+					 * USERPAYING：用户支付中（付款码支付）
+					 * PAYERROR：支付失败(其他原因，如银行返回失败)
+					 */
 					switch (trade_state) {
-						/*
-						 * 交易状态，枚举值：
-						 * SUCCESS：支付成功
-						 * REFUND：转入退款
-						 * NOTPAY：未支付
-						 * CLOSED：已关闭
-						 * REVOKED：已撤销（付款码支付）
-						 * USERPAYING：用户支付中（付款码支付）
-						 * PAYERROR：支付失败(其他原因，如银行返回失败)
-						 */
 						case "SUCCESS":
+							/* 推荐的做法是，当商户系统收到通知进行处理时，先检查对应业务数据的状态，并判断该通知是否已经处理。
+							 * 如果未处理，则再进行处理；如果已处理，则直接返回结果成功。
+							 * 在对业务数据进行状态检查和处理之前，要采用数据锁进行并发控制，以避免函数重入造成的数据混乱。
+							*/
+							if (order.Status == Order.EOrderStatus.待确认) {
+								return StatusCode(200);
+							}
+
 							// 微信支付订单号查询订单，二次验证
 							BasePayApis basePayApis = new();
 							string mchid = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_MchId;
