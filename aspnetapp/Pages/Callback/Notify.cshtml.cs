@@ -117,7 +117,7 @@ namespace aspnetapp.Pages.Callback {
 									returnData.code = "FAIL";//错误的订单处理
 									returnData.message = "服务器错误";
 									return StatusCode(403, returnData);
-									throw;
+									
 								}
 							}
 							break;
@@ -143,7 +143,7 @@ namespace aspnetapp.Pages.Callback {
 									returnData.code = "FAIL";//错误的订单处理
 									returnData.message = "服务器错误";
 									return StatusCode(500, returnData);
-									throw;
+									
 								}
 							}
 							break;
@@ -197,7 +197,7 @@ namespace aspnetapp.Pages.Callback {
 				returnData.code = "FAIL";
 				returnData.message = "服用器错误";
 				return StatusCode(500, returnData);
-				throw;
+				
 			}
 		}
 		#endregion

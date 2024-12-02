@@ -33,7 +33,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             } catch (Exception e) {
                 _logger.LogError(e, "获取门店{StoreId}名称", id);
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (store is null)
@@ -56,7 +56,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "获取所有门店");
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             List<StoreBasic> storeBasicList = new();
