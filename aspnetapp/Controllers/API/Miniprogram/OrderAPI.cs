@@ -306,7 +306,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			// 商户订单号
 			string outTradeNo = data.OrderId.ToString();
 #if DEBUG
-			outTradeNo = string.Concat("TEST_", data.OrderId.ToString());
+			outTradeNo = string.Concat("TEST", data.OrderId.ToString());
 #endif
 			//outTradeNo = string.Concat("TEST", Guid.NewGuid().ToString("N").AsSpan(0, 20));
 			// 交易结束时间（10分钟）
@@ -435,7 +435,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		/// 支付回调（侍测试）
 		/// </summary>
 		/// <returns></returns>
-		[AllowAnonymous]// 允许匿名访问
 		[HttpPost("callback/notify")]
 		public async Task<IActionResult> PayNotifyUrl() {
 			WxPayCallbackViewModel returnData = new();// 创建应答格式

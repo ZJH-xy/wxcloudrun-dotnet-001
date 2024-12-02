@@ -146,3 +146,12 @@ content-type: application/json
     "orderId": 13
 }
 
+###
+GET https://localhost:63295/callback/notify
+
+
+
+###
+GET https://localhost:63295/callback/Refund
+
+
