@@ -38,7 +38,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "Id获取用户{UserId}基础信息", id);
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (user is null)
@@ -62,7 +62,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "手机号获取用户{Phone}基础信息", phone);
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (user is null)
@@ -86,7 +86,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "获取用户{UserId}所有信息", GetUserIdInt());
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (user is null)
@@ -111,7 +111,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "获取用户{UserId}", GetUserIdInt());
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (user is null)
@@ -140,7 +140,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "用户{UserId}实名认证，更新数据", GetUserIdInt());
 
                 return StatusCode(500);
-				throw;
+				
 			}
             _logger.LogInformation("用户{UserId}实名认证成功，已修改行数{ChangSum}", GetUserIdInt(), changSum);
 
@@ -163,7 +163,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "获取用户{UserId}", GetUserIdInt());
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (user is null)
@@ -185,7 +185,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "用户{UserId}修改昵称、手机号", GetUserIdInt());
 
                 return StatusCode(500);
-                throw;
+                
             }
             _logger.LogInformation("用户{UserId}修改昵称、手机号成功，已修改行数{ChangSum}", GetUserIdInt(), changSum);
 
@@ -209,7 +209,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "获取用户{UserId}", GetUserIdInt());
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (user is null)
@@ -230,7 +230,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "用户{UserId}修改密码", GetUserIdInt());
 
                 return StatusCode(500);
-				throw;
+				
 			}
             _logger.LogInformation("用户{UserId}修改密码成功，已修改行数{ChangSum}", GetUserIdInt(), changSum);
 
@@ -261,7 +261,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "用户{UserId}登录", GetUserIdInt());
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (user is null)
@@ -317,7 +317,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "手机号获取用户{Phone}", result.phone_info.purePhoneNumber);
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             List<Claim> claims;
@@ -346,7 +346,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                     _logger.LogError(e, "新用户注册");
 
                     return StatusCode(403, "注册失败，请联系管理员");
-					throw;
+					
 				}
 
                 return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));

@@ -120,7 +120,7 @@
 		public string? Notes { get; set; }
 
 		/// <summary>
-		/// 支付完成时间
+		/// 支付完成时间（微信获取）
 		/// </summary>
 		public DateTime? SuccessTime { get; set; }
 

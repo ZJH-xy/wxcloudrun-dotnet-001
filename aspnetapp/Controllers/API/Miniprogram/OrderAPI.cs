@@ -20,6 +20,8 @@ using System.Collections;
 using static aspnetapp.Models.RefundOrder;
 using Senparc.Weixin.WxOpen.Entities;
 using Senparc.Weixin.TenPayV3.Apis.BasePay.Entities;
+using aspnetapp.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
@@ -72,7 +74,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				_logger.LogError(e, "用户{UserId}查询订单{order}信息", GetUserIdInt(), orderId);
 
 				return StatusCode(500);
-				throw;
+				
 			}
 
 			if (order == null)
@@ -95,7 +97,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				_logger.LogError(e, "用户{UserId}查询订单信息", GetUserIdInt());
 
 				return StatusCode(500);
-				throw;
+				
 			}
 
 			List<ReturnOrderBasic> returnOrderorderList = new();
@@ -120,7 +122,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogError(e, "用户{UserId}查询订单{order}状态", GetUserIdInt(), orderId);
 				return StatusCode(500);
-				throw;
+				
 			}
 
 			if (orderStatus == null)
@@ -143,7 +145,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogError(e, "用户{UserId}查询订单{order}换车状态", GetUserIdInt(), orderId);
 				return StatusCode(500);
-				throw;
+				
 			}
 
 			return StatusCode(200, status);
@@ -314,7 +316,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			// 附加数据
 			string attach = "";
 			// 通知地址
-			const string notifyUrl = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/order/callback/notify";
+			const string notifyUrl = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/callback/notify";
 			// 订单总金额（分）
 			int total = Order.GetTotal(order.GetTotalPrice());
 #if DEBUG
@@ -521,7 +523,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 									returnData.code = "FAIL";//错误的订单处理
 									returnData.message = "服务器错误";
 									return StatusCode(403, returnData);
-									throw;
+									
 								}
 							}
 							break;
@@ -547,7 +549,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 									returnData.code = "FAIL";//错误的订单处理
 									returnData.message = "服务器错误";
 									return StatusCode(500, returnData);
-									throw;
+									
 								}
 							}
 							break;
@@ -601,7 +603,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				returnData.code = "FAIL";
 				returnData.message = "服用器错误";
 				return StatusCode(500, returnData);
-				throw;
+				
 			}
 		}
 		#endregion
@@ -623,6 +625,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			if (await _dbContext.RefundOrder.AnyAsync(ro => ro.TheOrder == order.Id))
 				return StatusCode(403, "请勿重复请求");
 
+			#region 退款
 			/* 退款流程 */
 			var now = DateTime.Now;
 
@@ -648,52 +651,11 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogError(e, "新建退款表数据");
 				return StatusCode(500);
-				throw;
+				
 			}
 
-			BasePayApis basePayApis = new();
-
-			//【微信支付订单号】原支付交易对应的微信订单号，与out_trade_no二选一
-			string transaction_id = order.TransactionId;
-			//【商户订单号】原支付交易对应的商户订单号，与transaction_id二选一
-			string out_trade_no = refundOrder.TheOrder.ToString();
-#if DEBUG
-			out_trade_no = "TEST" + out_trade_no;
-			out_trade_no = "WX10abe0fa32d64283b14e";
-#endif
-			//【商户退款单号】商户系统内部的退款单号，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一退款单号多次请求只退一笔。
-			string out_refund_no = refundOrder.Id.ToString();
-#if DEBUG
-			out_refund_no = "TEST" + out_refund_no;
-#endif
-			//【退款原因】若商户传入，会在下发给用户的退款消息中体现退款原因
-			string reason = refundOrder.Reason;
-			//【退款币种】符合ISO 4217标准的三位字母代码，目前只支持人民币：CNY。
-			string currency = "CNY";
-			//【退款结果回调url】异步接收微信支付退款结果通知的回调地址，通知url必须为外网可访问的url，不能携带参数。 如果参数中传了notify_url，则商户平台上配置的回调地址将不会生效，优先回调当前传的这个地址。
-			const string notify_url = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/order/callback/refund";
-
-			RefundRequestData refundRequestData = new() {
-				transaction_id = transaction_id,
-				out_trade_no = out_trade_no,
-				out_refund_no = out_refund_no,
-				reason = reason,
-				notify_url = notify_url,
-				funds_account = null,
-				amount = new RefundRequestData.Amount {
-					//【退款金额】退款金额，单位为分，只能为整数，不能超过原订单支付金额。
-					refund = refundOrder.Refund,
-					/// 选填【退款出资账户及金额】退款需要从指定账户出资时，传递此参数指定出资金额（币种的最小单位，只能为整数）。
-					from = null,
-					//【原订单金额】原支付交易的订单总金额，单位为分，只能为整数。
-					total = refundOrder.Total,
-					currency = "CNY"
-				},
-				/// 选填【退款商品】指定商品退款需要传此参数，其他场景无需传递
-				goods_detail = null
-			};
-
-			RefundReturnJson refundReturnJson = await basePayApis.RefundAsync(refundRequestData);// 调用退款
+			RefundReturnJson refundReturnJson = await RefundAsync(order, refundOrder);// 调用退款
+			#endregion
 
 			if (refundReturnJson.ResultCode.Success != true) {
 				_logger.LogError("退款请求失败{ResultCode}", refundReturnJson.ResultCode.ToJson(true));
@@ -716,7 +678,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogError(e, "退款表更新失败refundOrder：{refundOrder}", System.Text.Json.JsonSerializer.Serialize(refundOrder));
 				return StatusCode(500);
-				throw;
+				
 			}
 
 			_logger.LogInformation("退款已成功refundReturnJson：{refundReturnJson}", refundReturnJson.ToJson(true));
@@ -730,7 +692,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogError(e, "订单退款更新失败order：{OrderId}", order.Id);
 				return StatusCode(500);
-				throw;
+				
 			}
 
 			return StatusCode(200);
@@ -748,8 +710,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				var resHandler = new TenPayNotifyHandler(HttpContext);
 				var refundNotifyJson = await resHandler.DecryptGetObjectAsync<RefundNotifyJson>();
 
-				
-				
+
+
 
 				WeixinTrace.SendCustomLog("跟踪RefundNotifyUrl信息", refundNotifyJson.ToJson(true));
 
@@ -784,7 +746,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 						returnData.code = "FAILD";
 						returnData.message = "数据库更新错误";
 						return StatusCode(500, returnData);
-						throw;
+						
 					}
 
 					_logger.LogInformation("refundOrder更新{refundOrderId}", refundOrder.Id);
@@ -834,7 +796,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 			} catch (Exception e) {
 				_logger.LogError("取消订单{OrderId}", getData.OrderId);
-				throw;
+				return StatusCode(500);
+				
 			}
 
 			return StatusCode(200);
@@ -887,13 +850,14 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				_logger.LogError(e, "VehicleReplacementRecord：{VehicleReplacementRecordId}添加至换车表", vrr.Id);
 				await transaction.RollbackAsync();// 回滚
 				return StatusCode(500);
-				throw;
+				
 			}
 
 			return StatusCode(200, "请求成功，请向商家确认");
 		}
 		#endregion
 
+		#region 取消换车请求
 		/// <summary>
 		/// 取消换车请求
 		/// </summary>
@@ -925,11 +889,126 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogCritical(e, "取消换车请求{VehicleReplacementRecordId}", vrr.Id);
 				return StatusCode(500);
-				throw;
+				
 			}
 
 			return StatusCode(200);
 		}
+		#endregion
+
+		#region 还车
+		[HttpPost("Return")]
+		public async Task<IActionResult> ReturnVehicle(GetReturnInfo getData) {
+			// 检查订单状态
+			Order? order = await _orderController.GetById(GetUserIdInt(), getData.OrderId);
+			if (order is null || order.Status != Order.EOrderStatus.进行中) {
+				_logger.LogDebug("订单{OrderId}状态非法", getData.OrderId);
+				return StatusCode(403, "订单不存在或非法");
+			}
+
+			// 检查是否存在换车请求
+			if (await _orderController.GetOderReplacementByUserId(GetUserIdInt(), getData.OrderId))
+				return StatusCode(403, "当前有侍确认的换车请求");
+
+			// 检查还车点
+			Store? store = await _dbContext.Store.SingleOrDefaultAsync(s => s.Id == getData.StoreId);
+
+			if (store is null || !(store.IsOpen())) {
+				return StatusCode(403, "请检查还车点");
+			}
+
+			// 调度
+			if (order.TheRentalLocation != getData.StoreId) {
+				order.DispatchFee += 10;
+			}
+
+
+			// 超时费率 (每小时10元)
+			decimal overtimeRate = 10;
+
+			// 当前时间
+			var now = DateTime.Now;
+			order.ActualReturnTime = now;// 归还时间
+
+			// 订单开始时间
+			DateTime actualStartingTime = (DateTime)order.ActualStartingTime!;
+
+			// 免费时间长度 (1小时)
+			TimeSpan freeDuration = TimeSpan.FromHours(1);
+
+			// 计算订单已经持续的时间
+			TimeSpan elapsedTime = now - actualStartingTime;
+
+			// 如果超时，计算超时费用
+			if (elapsedTime > freeDuration) {
+				// 超出免费时间的部分
+				TimeSpan overtime = elapsedTime - freeDuration;
+
+				// 按小时计算超时费用（向上取整到整小时）
+				int overtimeHours = (int)Math.Ceiling(overtime.TotalHours);
+
+				// 计算总超时费用
+				order.OvertimeFee += overtimeHours * overtimeRate;
+			}
+
+			#region 退款
+			// 退押金
+			var sum = order.Paid - order.GetTotalPrice();
+
+			// 新建退款表数据
+			RefundOrder refundOrder = new() {
+				TheOrder = order.Id,
+				RefundId = "",//等待
+				Reason = "自动退款",
+				Status = RefundOrder.Estatus.已创建,//等待
+				Total = Order.GetTotal(order.Paid),
+				Refund = Order.GetTotal(sum),//归还多余费用
+				SuccessTime = null,//等待
+				CreateTime = now,//等待
+				UpdatedAt = now,
+			};
+
+			// 生成退款表数据
+			_dbContext.RefundOrder.Add(refundOrder);
+
+			try {
+				await _dbContext.SaveChangesAsync();
+
+			} catch (Exception e) {
+				_logger.LogError(e, "自动新建退款表数据");
+				return StatusCode(500);
+				
+			}
+
+
+			using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
+			try {
+				Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+				vehicle.State = Vehicle.Estates.侍确认;
+
+				order.DepositRefunded += refundOrder.Refund;
+				order.Status = Order.EOrderStatus.退款中;
+				order.UpdatedAt = now;
+
+				await _dbContext.SaveChangesAsync();
+
+				// 调用退款服务
+				RefundReturnJson refundReturnJson = await RefundAsync(order, refundOrder);
+
+				// 如果退款成功，提交事务
+				await transaction.CommitAsync();
+			} catch (Exception ex) {
+				_logger.LogError(ex, "订单处理失败。订单ID: {OrderId}, 车辆ID: {VehicleId}, 退款金额: {RefundAmount}",
+					order.Id, order.TheVehicle, refundOrder.Refund);
+				await transaction.RollbackAsync();
+				return StatusCode(500);
+			}
+			#endregion
+
+			return StatusCode(200);
+		}
+		#endregion
 
 		#region 检查换车请求，超时取消
 		/// <summary>
@@ -963,6 +1042,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 					// 尝试保存更改
 					await _dbContext.SaveChangesAsync();
+
+					await transaction.CommitAsync();
 				} catch (DbUpdateConcurrencyException ex) {
 					_logger.LogWarning(ex, "并发冲突，无法更新订单{OrderId}或车辆{VehicleId}状态", v.Id, v.TheNewVehicles);
 
@@ -971,11 +1052,9 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 					_logger.LogCritical(ex, "更新订单{OrderId}或车辆{VehicleId}状态失败", v.Id, v.TheNewVehicles);
 
 					await transaction.RollbackAsync();
-					throw;
+					
 				}
 			}
-
-			await transaction.CommitAsync();
 		}
 		#endregion
 
@@ -1022,6 +1101,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 					_logger.LogInformation("订单{OrderId}取消, 车辆{VehicleId}状态更新为空闲", order.Id, vehicle.Id);
 
 					await _dbContext.SaveChangesAsync();
+					await transaction.CommitAsync();
+
 				} catch (DbUpdateConcurrencyException ex) {
 					_logger.LogWarning("并发冲突，订单或车辆记录已被更新：{OrderId}, {Exception}", order.Id, ex);
 
@@ -1033,11 +1114,91 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 					throw;
 				}
 			}
-
-			await transaction.CommitAsync();
 			return;
 		}
 		#endregion
+
+
+		/// <summary>
+		/// 退款
+		/// </summary>
+		/// <param name="order"></param>
+		/// <param name="refundOrder"></param>
+		/// <returns></returns>
+		private async Task<RefundReturnJson> RefundAsync(Order order, RefundOrder refundOrder) {
+			/* 退款流程 */
+			var now = DateTime.Now;
+
+			//// 新建退款表数据
+			//RefundOrder refundOrder = new() {
+			//	TheOrder = order.Id,
+			//	RefundId = "",//等待
+			//	Reason = "直接退款",
+			//	Status = RefundOrder.Estatus.已创建,//等待
+			//	Total = Order.GetTotal(order.Paid),
+			//	Refund = Order.GetTotal(order.Paid),
+			//	SuccessTime = null,//等待
+			//	CreateTime = now,//等待
+			//	UpdatedAt = now,
+			//};
+
+			//// 生成退款表数据
+			//_dbContext.RefundOrder.Add(refundOrder);
+
+			//try {
+			//	await _dbContext.SaveChangesAsync();
+
+			//} catch (Exception e) {
+			//	_logger.LogError(e, "新建退款表数据");
+			//	return StatusCode(500);
+			//	
+			//}
+
+			BasePayApis basePayApis = new();
+
+			//【微信支付订单号】原支付交易对应的微信订单号，与out_trade_no二选一
+			string transaction_id = order.TransactionId;
+			//【商户订单号】原支付交易对应的商户订单号，与transaction_id二选一
+			string out_trade_no = refundOrder.TheOrder.ToString();
+#if DEBUG
+			out_trade_no = "TEST" + out_trade_no;
+			out_trade_no = "WX10abe0fa32d64283b14e";
+#endif
+			//【商户退款单号】商户系统内部的退款单号，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一退款单号多次请求只退一笔。
+			string out_refund_no = refundOrder.Id.ToString();
+#if DEBUG
+			out_refund_no = "TEST" + out_refund_no;
+#endif
+			//【退款原因】若商户传入，会在下发给用户的退款消息中体现退款原因
+			string reason = refundOrder.Reason;
+			//【退款币种】符合ISO 4217标准的三位字母代码，目前只支持人民币：CNY。
+			string currency = "CNY";
+			//【退款结果回调url】异步接收微信支付退款结果通知的回调地址，通知url必须为外网可访问的url，不能携带参数。 如果参数中传了notify_url，则商户平台上配置的回调地址将不会生效，优先回调当前传的这个地址。
+			const string notify_url = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/callback/notify";
+
+			RefundRequestData refundRequestData = new() {
+				transaction_id = transaction_id,
+				out_trade_no = out_trade_no,
+				out_refund_no = out_refund_no,
+				reason = reason,
+				notify_url = notify_url,
+				funds_account = null,
+				amount = new RefundRequestData.Amount {
+					//【退款金额】退款金额，单位为分，只能为整数，不能超过原订单支付金额。
+					refund = refundOrder.Refund,
+					/// 选填【退款出资账户及金额】退款需要从指定账户出资时，传递此参数指定出资金额（币种的最小单位，只能为整数）。
+					from = null,
+					//【原订单金额】原支付交易的订单总金额，单位为分，只能为整数。
+					total = refundOrder.Total,
+					currency = "CNY"
+				},
+				/// 选填【退款商品】指定商品退款需要传此参数，其他场景无需传递
+				goods_detail = null
+			};
+
+			return await basePayApis.RefundAsync(refundRequestData);// 调用退款
+		}
+
 
 		/// <summary>
 		/// JWT 获取用户id
@@ -1103,6 +1264,14 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			{ "PROCESSING", RefundOrder.Estatus.退款处理中 },
 			{ "ABNORMAL", RefundOrder.Estatus.退款异常 }
 		};
+	}
+
+	public class GetReturnInfo {
+		/// <summary>
+		/// 还车点
+		/// </summary>
+		public int StoreId { get; set; }
+		public int OrderId { get; internal set; }
 	}
 
 	/// <summary>

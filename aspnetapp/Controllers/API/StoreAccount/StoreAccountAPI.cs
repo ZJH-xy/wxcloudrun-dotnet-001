@@ -46,7 +46,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "查询商家帐号");
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (storeAccount is null)
@@ -73,7 +73,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "查询订单{OrderId}", orderId);
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (order is null)
@@ -100,7 +100,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "获取订单{OderId}", getData.OderId);
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (order is null)
@@ -117,7 +117,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "查询车辆{VehicleId}", getData.TheVehicle);
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (vehicle is null)
@@ -131,7 +131,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "获取商家{VehicleId}的门店Id", GetUserIdInt());
                 return StatusCode(500);
-				throw;
+				
 			}
             if (vehicle.TheCurrentStore != storeId)// 车辆当前所在门店
                 return StatusCode(403, "车辆不在当前门店");
@@ -155,7 +155,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 _logger.LogError(e, "确认订单事务失败，订单{OrderId}，车辆{VehicleId}状态更改", order.Id, vehicle.Id);
                 await transaction.RollbackAsync();// 回滚事务
                 return StatusCode(500);
-				throw;
+				
 			}
 
             return StatusCode(200);
@@ -189,7 +189,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "获取订单{OrderId}", orderId);
                 return StatusCode(500);
-				throw;
+				
 			}
 
             // 获取套餐
@@ -200,7 +200,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "获取套餐{StoreMenuId}", order.TheStoreMenu);
                 return StatusCode(500);
-				throw;
+				
 			}
 
             return StatusCode(200, new Returnreplacement(vrr, order, storeMenu));
@@ -220,7 +220,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "订单{OrderId}查询", getData.OderId);
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (order is null)
@@ -238,7 +238,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "换车记录表OrderId=={OrderId}查询", getData.OderId);
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (vrr is null)
@@ -256,7 +256,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "查询车辆{VehicleId}", getData.TheVehicle);
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (newVehicle is null)
@@ -270,7 +270,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "根据商家帐号Id{VehicleReplacementRecordId}获取门店", GetUserIdInt());
                 return StatusCode(500);
-				throw;
+				
 			}
             if (newVehicle.TheCurrentStore != storeId)// 车辆当前所在门店
                 return StatusCode(403, "车辆不在当前门店");
@@ -286,7 +286,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "获取车辆{VehicleId}", GetUserIdInt());
                 return StatusCode(500);
-				throw;
+				
 			}
 
             using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
@@ -315,7 +315,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 _logger.LogError(e, "更换车辆事务失败，订单表{OrderId}，换车记录表{换车记录表VehicleReplacementRecordId}", order.Id, vrr.Id);
                 await transaction.RollbackAsync();// 回滚事务
                 return StatusCode(500);
-				throw;
+				
 			}
 
             return StatusCode(200);
@@ -347,7 +347,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "订单{OrderId}查询", getData.OderId);
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (order is null)
@@ -368,7 +368,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "套餐{StoreMenuId}查询", order.TheStoreMenu);
                 return StatusCode(500);
-				throw;
+				
 			}
 
             using var transaction = await _dbContext.Database.BeginTransactionAsync();/* 事务开始 */
@@ -394,7 +394,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "根据商家帐号Id{VehicleReplacementRecordId}获取storeId", GetUserIdInt());
                 return StatusCode(500);
-				throw;
+				
 			}
 
             // 租车点不等于当前门店Id
@@ -427,7 +427,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "订单结束，获取车辆{VehicleId}", order.TheVehicle);
                 return StatusCode(500);
-				throw;
+				
 			}
             vehicle.State = Vehicle.Estates.侍确认;
             vehicle.StateUpdatedAt = now;
@@ -458,7 +458,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 _logger.LogCritical(e, "用户还车事务");
                 await transaction.RollbackAsync();// 回滚
                 return StatusCode(500);
-				throw;
+				
 			}
 
             return StatusCode(200);
