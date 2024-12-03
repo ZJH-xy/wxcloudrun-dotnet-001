@@ -66,7 +66,7 @@ namespace aspnetapp.Pages.Callback {
 						returnData.code = "FAILD";
 						returnData.message = "数据库更新错误";
 						return StatusCode(500, returnData);
-						throw;
+						
 					}
 
 					_logger.LogInformation("refundOrder更新{refundOrderId}", refundOrder.Id);
