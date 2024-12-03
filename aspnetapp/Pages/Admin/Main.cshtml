@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components.Server
 @{
-	ViewData["Title"] = "后台管理";
+	ViewData["Title"] = "租赁后台管理";
 	Layout = "_Layout";
 }
 <!-- navbar.html -->
@@ -15,6 +15,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="~/css/main.css" />
 	<script src="~/js/main.js"></script>
+	<!-- 引入 FontAwesome 图标库 -->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 
 </head>
 
@@ -22,9 +24,18 @@
 
 	<!-- 侧边栏区域 -->
 	<nav>
-		<div class="sidebar" style="width:29vh;">
-			<div style="text-align: center;">
+		<!-- 侧边栏收起/展开按钮 -->
+		<div class="sidebar-toggle" onclick="toggleSidebar()">
+			<i class="fas fa-bars"></i> <!-- 你可以使用图标库如 FontAwesome -->
+		</div>
+		<div class="sidebar">
+			<div class="header">
 				<h3>租赁系统后台</h3>
+				<!-- 显示登录的管理员信息 -->
+				<div class="admin-info">
+					<span>管理员：</span> <!-- 显示管理员名称 -->
+					<a href="/admin/logout" class="logout-link">退出登录</a> <!-- 提供退出登录的链接 -->
+				</div>
 			</div>
 			<ul class="menu">
 				<li>

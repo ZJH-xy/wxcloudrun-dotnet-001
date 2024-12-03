@@ -9,10 +9,12 @@
 	<link rel="stylesheet" href="~/css/table.css" />
 	<link rel="stylesheet" href="~/css/loading.css" />
 	<script src="~/js/loading.js" defer></script>
-	<script src="~/js/userUtils.js" defer></script>
+	<script src="~/js/utils/user.js" defer></script>
 </head>
+<header>
+	<h3>用户总览</h3>
+</header>
 <body>
-	<button onclick="getListData()">getListData</button>
 
 	<!-- 加载动画 -->
 	<div class="box" id="loadding" style="display:none;">
@@ -24,7 +26,7 @@
 	</div>
 	<!-- 锁住页面的遮罩层 -->
 	<div id="overlay" style="display:none;"></div>
-	<h4>用户总览</h4>
+
 	<!-- 显示错误消息 -->
 	@if (!string.IsNullOrEmpty(Model.ErrorMessage)) {
 		<div id="failMessage" class="failMessage">@Model.ErrorMessage</div>

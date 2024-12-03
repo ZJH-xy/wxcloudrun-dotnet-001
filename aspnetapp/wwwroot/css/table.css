@@ -3,7 +3,15 @@
     padding: 20px;
 
 }
-
+header {
+    background-color: #07C160;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    box-sizing: border-box;
+    margin: -20px; /* 通过负边距来抵消 padding */
+    margin-bottom:20px;
+}
 /* 表格整体样式 */
 table {
     margin: 20px 0;
@@ -173,4 +181,158 @@ input.editing {
     .otherBtn:hover {
         background-color: #cfcfcf; /* 悬停时的背景颜色 */
     }
+
+/* 响应式布局调整 */
+
+/* 对大屏设备（桌面）进行优化 */
+@media (min-width: 1500px) {
+
+    input, tr, th, td {
+        font-size: small;
+        transition: font-size 0.3s ease,width 0.3s ease;
+    }
+    input {
+        font-size: small;
+        height: 30px;
+        transition: font-size 0.3s ease,height 0.3s ease;
+    }
+
+    button {
+        background-color: #07C160; /* 按钮背景颜色 */
+        color: rgb(255, 255, 255); /* 按钮文字颜色 */
+        padding: 0 20px; /* 内边距 */
+        text-align: center; /* 文本居中 */
+        text-decoration: none; /* 去掉下划线 */
+        display: inline-block; /* 使元素内联块 */
+        font-size: 16px; /* 字体大小 */
+        margin: 4px 2px; /* 外边距 */
+        cursor: pointer; /* 鼠标样式 */
+        border: none; /* 去掉边框 */
+        border-radius: 5px; /* 圆角 */
+        transition: background-color 0.3s; /* 过渡效果 */
+        height: 30px;
+        white-space: nowrap;
+        transition: font-size 0.3s ease,width 0.3s ease,padding 0.3s ease;
+    }
+    /* 表格整体样式 */
+    table {
+        margin: 20px 0;
+        width: 100%; /* 表格宽度占满父容器 */
+        border-collapse: collapse; /* 合并边框 */
+        white-space: nowrap;
+        transition: width 0.3s ease,margin 0.3s ease,border-collapse 0.3s ease,white-space 0.3s ease;
+    }
+}
+
+
+
+/* 对中屏设备（平板）进行优化 */
+@media (max-width: 1499px) and (min-width: 1199px) {
+    body {
+        font-size: small;
+    }
+
+    input, tr, th, td {
+        width: 100px;
+        font-size: small;
+        transition: font-size 0.3s ease,width 0.3s ease;
+    }
+
+    button {
+        width: 60px;
+        font-size: small;
+        padding: 0; /* 内边距 */
+        text-align: center; /* 文本居中 */
+        text-decoration: none; /* 去掉下划线 */
+        display: inline-block; /* 使元素内联块 */
+        cursor: pointer; /* 鼠标样式 */
+        border: none; /* 去掉边框 */
+        white-space: pre-wrap; /* 保留换行和空格 */
+        transition: font-size 0.3s ease,width 0.3s ease,padding 0.3s ease,white-space 0.3s ease;
+    }
+
+    /* 表格整体样式 */
+    table {
+
+        transition: width 0.3s ease,margin 0.3s ease,border-collapse 0.3s ease,white-space 0.3s ease;
+    }
+}
+/* 对中小屏设备（小型平板/大屏手机）进行优化 */
+@media (max-width: 1198px) and (min-width: 868px) {
+    body {
+        font-size: small;
+    }
+
+    input, tr, th, td {
+        width: 100px;
+        font-size: small;
+        transition: font-size 0.3s ease,width 0.3s ease;
+    }
+
+    button {
+        width: 60px;
+        font-size: small;
+        padding: 0; /* 内边距 */
+        text-align: center; /* 文本居中 */
+        text-decoration: none; /* 去掉下划线 */
+        display: inline-block; /* 使元素内联块 */
+        cursor: pointer; /* 鼠标样式 */
+        border: none; /* 去掉边框 */
+        white-space: pre-wrap; /* 保留换行和空格 */
+        transition: font-size 0.3s ease,width 0.3s ease,padding 0.3s ease,white-space 0.3s ease;
+    }
+
+    /* 表格整体样式 */
+    table {
+        margin: 0;
+        width: 100%; /* 表格宽度占满父容器 */
+        border-collapse: collapse; /* 合并边框 */
+        white-space: nowrap;
+        transition: width 0.3s ease,margin 0.3s ease,border-collapse 0.3s ease,white-space 0.3s ease;
+    }
+}
+
+/* 对小屏设备（手机）进行优化 */
+@media (max-width: 867px) {
+    body,a {
+        font-size: 10px;
+    }
+
+    td > input, tr, th, td {
+        width: 30px;
+        font-size: small;
+        transition: font-size 0.3s ease,width 0.3s ease;
+        font-size: small;
+        white-space: normal; /* 默认值，允许换行 */
+    }
+    input {
+        width: 80px;
+        overflow-y: auto; /* 允许垂直滚动 */
+        white-space: pre-wrap; /* 保留换行和空格 */
+    }
+
+    button {
+        width: 45px;
+        font-size: small;
+        padding: 0; /* 内边距 */
+        text-align: center; /* 文本居中 */
+        text-decoration: none; /* 去掉下划线 */
+        display: inline-block; /* 使元素内联块 */
+        cursor: pointer; /* 鼠标样式 */
+        border: none; /* 去掉边框 */
+        white-space: pre-wrap; /* 保留换行和空格 */
+        transition: font-size 0.3s ease,width 0.3s ease,padding 0.3s ease,white-space 0.3s ease;
+    }
+
+    /* 表格整体样式 */
+    table {
+        margin: 0;
+        padding: 0;
+        width: 100%; /* 表格宽度占满父容器 */
+        border-collapse: collapse; /* 合并边框 */
+        white-space: nowrap;
+        transition: width 0.3s ease,margin 0.3s ease,border-collapse 0.3s ease,white-space 0.3s ease;
+        white-space: normal; /* 默认值，允许换行 */
+    }
+}
 
