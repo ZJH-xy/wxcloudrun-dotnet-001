@@ -1,36 +1,249 @@
-using Microsoft.AspNetCore.Mvc;
+using aspnetapp.Controllers.Web;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
+using System.Threading.Tasks;
 
-namespace aspnetapp.Pages.Admin.Subpages.OrderManagement
-{
-    public class OrderOverviewModel : PageModel
-    {
-        public struct User
-        {
-            public int UserId;
-            public string Nickname;
-            public string UserName;
-            public string IdentityCard;
-            public string Phone;
+namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
+	public class OrderOverviewModel : PageModel {
+		private readonly OrderControllerWeb _orderController;
+		private readonly ILogger<OrderOverviewModel> _logger;
 
-        }
-        public List<User> List { get; set; } = new List<User>();
-        public IActionResult OnGet()
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                List.Add(new User
-                {
-                    UserId = i,
-                    Nickname = "a",
-                    UserName = "b",
-                    IdentityCard = "450000000000000123",
-                    Phone = "13000000000"
-                });
-            }
+		public OrderOverviewModel(OrderControllerWeb orderController, ILogger<OrderOverviewModel> logger) {
+			_orderController = orderController;
+			_logger = logger;
+		}
 
-            return Page();
-        }
-    }
+		public List<Order> List { get; set; } = new List<Order>();
 
+		// 用于在页面显示错误信息
+		public string ErrorMessage { get; set; }
+
+		// 用于在页面显示成功信息
+		public string SuccessMessage { get; set; }
+
+		// 分页查询
+		[BindProperty(SupportsGet = true)]
+		public int Limit { get; set; } = 10;
+
+		[BindProperty(SupportsGet = true)]
+		public static int PageIndex { get; set; } = 1;
+		public int PageIndexHtml { get; set; }
+
+		// 更新
+		[BindProperty]
+		public Order UpdatedOrder { get; set; } = new Order();
+
+		// 查询
+		public static List<Order> SearchList { get; set; } = new List<Order>(); // 查询用List
+
+		[BindProperty(SupportsGet = true)]
+		public int SearchSum { get; set; } = 0; // 查询结果总数
+
+		// 数据
+		[BindProperty(SupportsGet = true)]
+		public static string? SearchUserPhone { get; set; }
+		public string? SearchUserPhoneHtml { get; set; }
+
+		[BindProperty(SupportsGet = true)]
+		public static string? SearchStatus { get; set; }
+		public string? SearchStatusHtml { get; set; }
+
+		// 排序
+		[BindProperty(SupportsGet = true)]
+		public string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
+
+		[BindProperty(SupportsGet = true)]
+		public string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
+
+		/// <summary>
+		/// 默认页码查询
+		/// </summary>
+		/// <returns></returns>
+		public async Task<IActionResult> OnGetAsync() {
+			_logger.LogInformation("[OnGetAsync]正在获取限制为{Limit}的页面{PageIndex}的订单列表", PageIndex, Limit);
+
+			SearchUserPhone = "";
+			SearchStatus = "";
+
+			try {
+				List = await _orderController.GetOrderPage(Limit, PageIndex);
+			} catch (Exception ex) {
+				_logger.LogError(ex, "获取订单列表时出错");
+				ModelState.AddModelError(string.Empty, "加载订单列表时发生错误。");
+			}
+			return Page();
+		}
+
+		/// <summary>
+		/// 搜索
+		/// </summary>
+		/// <returns></returns>
+		public async Task<IActionResult> OnPostSearchAsync() {
+			_logger.LogDebug("[OnPostSearchAsync]正在条件查询: UserPhone: {UserPhone}, Status: {Status}, SortField: {SortField}, SortOrder: {SortOrder}",
+							  SearchUserPhone, SearchStatus, SortField, SortOrder);
+
+			// 调用 OrderControllerWeb 中的 SearchOrders 方法，包含排序字段和顺序
+			SearchList = await _orderController.SearchOrders(SearchUserPhone, SearchStatus, SortField, SortOrder);
+
+			List = SearchList
+				.Skip((PageIndex - 1) * Limit) // 跳过前面页的数据
+				.Take(Limit) // 获取当前页的数据
+				.ToList();
+
+			SearchSum = SearchList.Count;
+
+			return Page();
+		}
+
+		/// <summary>
+		/// 更新
+		/// </summary>
+		/// <returns></returns>
+		public async Task<IActionResult> OnPostUpdateOrderAsync() {
+			_logger.LogInformation("正在尝试使用ID更新订单{OrderId}", UpdatedOrder.Id);
+
+			if (!ModelState.IsValid) {
+				_logger.LogWarning("表单验证失败。OrderId: {OrderId}", UpdatedOrder.Id);
+				ErrorMessage = "表单验证失败，请检查输入内容";
+				return Page();
+			}
+
+			var result = await _orderController.UpdateOrder(UpdatedOrder);
+			if (result is NotFoundResult) {
+				_logger.LogWarning("找不到订单。OrderId: {OrderId}", UpdatedOrder.Id);
+				ErrorMessage = "找不到订单";
+			} else if (result is StatusCodeResult status && status.StatusCode == 500) {
+				_logger.LogError("更新订单时出错。OrderId: {OrderId}", UpdatedOrder.Id);
+				ErrorMessage = "更新订单时出错。";
+			} else if (result is ObjectResult objResult && objResult.StatusCode == 409) {
+				_logger.LogWarning("使用ID更新订单时发生并发冲突。OrderId: {OrderId}", UpdatedOrder.Id);
+				ErrorMessage = $"您尝试编辑的记录已被其他用户修改。请重新加载数据后重试，ID：{UpdatedOrder.Id}";
+			} else {
+				_logger.LogInformation("ID为{OrderId}的订单已成功更新", UpdatedOrder.Id);
+				// 计算行号
+				var rowIndex = List.FindIndex(order => order.Id == UpdatedOrder.Id) + 1; // 行号从1开始
+				SuccessMessage = $"保存成功，已更新 ID：{UpdatedOrder.Id}";
+			}
+
+			List = await _orderController.GetOrderPage(Limit, PageIndex); // 刷新订单列表
+
+			return Page();
+		}
+
+		/// <summary>
+		/// 导出功能
+		/// </summary>
+		/// <returns></returns>
+		public async Task<IActionResult> OnGetExportToExcelAsync() {
+			// 获取订单表
+			List<Order> excelList = await _orderController.GetAllOrders();
+
+			// 创建一个新的工作簿
+			IWorkbook workbook = new XSSFWorkbook();
+			ISheet sheet = workbook.CreateSheet("订单数据");
+
+			// 创建表头行
+			IRow headerRow = sheet.CreateRow(0);
+			headerRow.CreateCell(0).SetCellValue("序号");
+			headerRow.CreateCell(1).SetCellValue("订单 ID");
+			headerRow.CreateCell(2).SetCellValue("用户手机号");
+			headerRow.CreateCell(3).SetCellValue("订单状态");
+			headerRow.CreateCell(4).SetCellValue("交易号");
+			headerRow.CreateCell(5).SetCellValue("创建时间");
+			headerRow.CreateCell(6).SetCellValue("更新时间");
+
+			// 填充数据
+			for (int i = 0; i < excelList.Count; i++) {
+				var row = sheet.CreateRow(i + 1);
+				row.CreateCell(0).SetCellValue(i + 1);
+				row.CreateCell(1).SetCellValue(excelList[i].Id.ToString());
+				row.CreateCell(2).SetCellValue(excelList[i].UserPhone ?? "");
+				row.CreateCell(3).SetCellValue(excelList[i].Status.ToString());
+				row.CreateCell(4).SetCellValue(excelList[i].TransactionId ?? "");
+				row.CreateCell(5).SetCellValue(excelList[i].CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+				row.CreateCell(6).SetCellValue(excelList[i].UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+			}
+
+			// 自动调整列宽
+			for (int col = 0; col < 7; col++) {
+				sheet.AutoSizeColumn(col);
+			}
+
+			// 将工作簿保存到内存流
+			using (var memoryStream = new MemoryStream()) {
+				workbook.Write(memoryStream);
+				var fileName = "订单数据.xlsx";
+				var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+				// 返回文件流供下载
+				return File(memoryStream.ToArray(), contentType, fileName);
+			}
+		}
+
+		/// <summary>
+		/// 获取总页数
+		/// </summary>
+		/// <returns></returns>
+		public async Task<IActionResult> OnGetPageSumAsync() {
+			try {
+				// 获取所有订单数据的总数
+				var sum = await _orderController.GetOrderCount();
+
+				// 计算总页数
+				int totalPages = (sum / Limit) + 1;
+
+				// 返回总页数
+				return new JsonResult(new { totalPages });
+			} catch (Exception ex) {
+				_logger.LogError(ex, "获取总页数时发生错误");
+				return BadRequest("无法获取总页数");
+			}
+		}
+
+		/// <summary>
+		/// 更改页码
+		/// </summary>
+		/// <param name="requestData"></param>
+		/// <returns></returns>
+		[HttpPost]
+		[IgnoreAntiforgeryToken]
+		public async Task<JsonResult> OnPostChangePageAsync([FromBody] Dictionary<string, int> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+			PageIndex = requestData["PageIndex"];
+
+			return new JsonResult(new { success = true, message = "成功", pageIndex = PageIndex });
+		}
+
+		/// <summary>
+		/// 更改查询数据
+		/// </summary>
+		/// <param name="requestData"></param>
+		/// <returns></returns>
+		[HttpPost]
+		[IgnoreAntiforgeryToken]
+		public async Task<JsonResult> OnPostChangeSearchDataAsync([FromBody] Dictionary<string, string> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+			SearchUserPhone = requestData["SearchUserPhone"];
+			SearchStatus = requestData["SearchStatus"];
+
+			return new JsonResult(new { success = true, message = "成功" });
+		}
+
+		/// <summary>
+		/// 获取查询数据
+		/// </summary>
+		/// <returns></returns>
+		public async Task<JsonResult> OnGetSearchDataAsync() {
+			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus });
+		}
+	}
 }
