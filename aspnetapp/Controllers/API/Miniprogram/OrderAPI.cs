@@ -74,7 +74,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				_logger.LogError(e, "用户{UserId}查询订单{order}信息", GetUserIdInt(), orderId);
 
 				return StatusCode(500);
-				
+
 			}
 
 			if (order == null)
@@ -97,7 +97,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				_logger.LogError(e, "用户{UserId}查询订单信息", GetUserIdInt());
 
 				return StatusCode(500);
-				
+
 			}
 
 			List<ReturnOrderBasic> returnOrderorderList = new();
@@ -122,7 +122,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogError(e, "用户{UserId}查询订单{order}状态", GetUserIdInt(), orderId);
 				return StatusCode(500);
-				
+
 			}
 
 			if (orderStatus == null)
@@ -145,7 +145,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogError(e, "用户{UserId}查询订单{order}换车状态", GetUserIdInt(), orderId);
 				return StatusCode(500);
-				
+
 			}
 
 			return StatusCode(200, status);
@@ -402,9 +402,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			string prepayId = result.prepay_id;
 
 			if (prepayId.IsNullOrEmpty()) {
+				//_logger.LogError("getdata{}", data);
 				_logger.LogError("[PayOrder]创建订单错误result:{result}", System.Text.Json.JsonSerializer.Serialize(result));
 				_logger.LogError("[PayOrder]订单信息requestData:{requestData}", requestData);
-				return StatusCode(500);
+				return StatusCode(500, new { order, requestData, result });
 			}
 
 			//string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
@@ -522,7 +523,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 									returnData.code = "FAIL";//错误的订单处理
 									returnData.message = "服务器错误";
 									return StatusCode(403, returnData);
-									
+
 								}
 							}
 							break;
@@ -548,7 +549,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 									returnData.code = "FAIL";//错误的订单处理
 									returnData.message = "服务器错误";
 									return StatusCode(500, returnData);
-									
+
 								}
 							}
 							break;
@@ -602,7 +603,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				returnData.code = "FAIL";
 				returnData.message = "服用器错误";
 				return StatusCode(500, returnData);
-				
+
 			}
 		}
 		#endregion
@@ -650,7 +651,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogError(e, "新建退款表数据");
 				return StatusCode(500);
-				
+
 			}
 
 			RefundReturnJson refundReturnJson = await RefundAsync(order, refundOrder);// 调用退款
@@ -677,7 +678,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogError(e, "退款表更新失败refundOrder：{refundOrder}", System.Text.Json.JsonSerializer.Serialize(refundOrder));
 				return StatusCode(500);
-				
+
 			}
 
 			_logger.LogInformation("退款已成功refundReturnJson：{refundReturnJson}", refundReturnJson.ToJson(true));
@@ -691,7 +692,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogError(e, "订单退款更新失败order：{OrderId}", order.Id);
 				return StatusCode(500);
-				
+
 			}
 
 			return StatusCode(200);
@@ -745,7 +746,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 						returnData.code = "FAILD";
 						returnData.message = "数据库更新错误";
 						return StatusCode(500, returnData);
-						
+
 					}
 
 					_logger.LogInformation("refundOrder更新{refundOrderId}", refundOrder.Id);
@@ -796,7 +797,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogError("取消订单{OrderId}", getData.OrderId);
 				return StatusCode(500);
-				
+
 			}
 
 			return StatusCode(200);
@@ -849,7 +850,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				_logger.LogError(e, "VehicleReplacementRecord：{VehicleReplacementRecordId}添加至换车表", vrr.Id);
 				await transaction.RollbackAsync();// 回滚
 				return StatusCode(500);
-				
+
 			}
 
 			return StatusCode(200, "请求成功，请向商家确认");
@@ -888,7 +889,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogCritical(e, "取消换车请求{VehicleReplacementRecordId}", vrr.Id);
 				return StatusCode(500);
-				
+
 			}
 
 			return StatusCode(200);
@@ -976,7 +977,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogError(e, "自动新建退款表数据");
 				return StatusCode(500);
-				
+
 			}
 
 
@@ -1051,7 +1052,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 					_logger.LogCritical(ex, "更新订单{OrderId}或车辆{VehicleId}状态失败", v.Id, v.TheNewVehicles);
 
 					await transaction.RollbackAsync();
-					
+
 				}
 			}
 		}
