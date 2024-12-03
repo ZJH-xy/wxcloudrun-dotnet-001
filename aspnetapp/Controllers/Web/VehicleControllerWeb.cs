@@ -1,119 +1,137 @@
 ﻿using aspnetapp.Dao.RepositoryInterface.Web;
+using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 
 namespace aspnetapp.Controllers.Web {
-    public class VehicleControllerWeb : Controller, IVehicleRepositoryWeb {
-        private readonly MyDbContext _context;
-        private readonly ILogger<VehicleControllerWeb> _logger;
+	public class VehicleControllerWeb : Controller, IVehicleRepositoryWeb {
+		private readonly MyDbContext _context;
+		private readonly ILogger<VehicleControllerWeb> _logger;
+		private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;
 
-        public VehicleControllerWeb(MyDbContext context, ILogger<VehicleControllerWeb> logger) {
-            _context = context;
-            _logger = logger;
-        }
+		public VehicleControllerWeb(MyDbContext context, ILogger<VehicleControllerWeb> logger, IOptionsSnapshot<WeixinSetting> wxSetting) {
+			_context = context;
+			_logger = logger;
+			_wxSetting = wxSetting;
+		}
 
-        /// <summary>
-        /// 根据 ID 获取车辆信息
-        /// </summary>
-        public async Task<Vehicle?> GetById(int id) {
-            return await _context.Vehicle.FindAsync(id);
-        }
+		// 获取所有车辆列表
+		public async Task<List<Vehicle>> GetAllList() {
+			return await _context.Vehicle.ToListAsync();
+		}
 
-        /// <summary>
-        /// 获取分页车辆列表
-        /// </summary>
-        public async Task<List<Vehicle>> GetTablePage(int limit, int pageIndex) {
-            return await _context.Vehicle
-                .OrderBy(v => v.Id) // 根据主键排序
-                .Skip((pageIndex - 1) * limit)
-                .Take(limit)
-                .ToListAsync();
-        }
+		// 根据ID获取单个车辆
+		public async Task<Vehicle?> GetById(int id) {
+			return await _context.Vehicle.FindAsync(id);
+		}
 
-        /// <summary>
-        /// 获取车辆表的结构信息
-        /// </summary>
-        public async Task<List<string>> GetTableStructure() {
-            var properties = typeof(Vehicle).GetProperties();
-            List<string> structure = properties.Select(prop => $"{prop.Name} ({prop.PropertyType.Name})").ToList();
-            return await Task.FromResult(structure);
-        }
+		// 更新车辆信息
+		public async Task<IActionResult> UpdateVehicle(Vehicle updatedVehicle) {
+			_logger.LogInformation("正在启动ID为{VehicleId}的车辆更新过程", updatedVehicle.Id);
 
-        /// <summary>
-        /// 添加车辆
-        /// </summary>
-        public async Task<int> AddVehicle(Vehicle vehicle) {
-            _context.Vehicle.Add(vehicle);
-            return await _context.SaveChangesAsync();
-        }
+			var vehicle = await _context.Vehicle.FindAsync(updatedVehicle.Id);
+			if (vehicle == null) {
+				_logger.LogWarning("Vehicle with ID {VehicleId} not found", updatedVehicle.Id);
+				return NotFound("Vehicle not found.");
+			}
 
-        /// <summary>
-        /// 更新车辆状态
-        /// </summary>
-        public async Task<int> ChangeVehicleStatus(int vehicleId, Vehicle.Estates status) {
-            var vehicle = await _context.Vehicle.FindAsync(vehicleId);
-            if (vehicle == null) {
-                _logger.LogWarning("Vehicle with ID {VehicleId} not found", vehicleId);
-                return 0;
-            }
+			// 更新车辆属性
+			vehicle.PlateNumber = updatedVehicle.PlateNumber;
+			vehicle.FrameNumber = updatedVehicle.FrameNumber;
+			vehicle.Certificate = updatedVehicle.Certificate;
+			vehicle.Invoice = updatedVehicle.Invoice;
+			vehicle.Drivinglicense = updatedVehicle.Drivinglicense;
+			vehicle.PurchaseRegistrationTime = updatedVehicle.PurchaseRegistrationTime;
+			vehicle.Owner = updatedVehicle.Owner;
+			vehicle.VehicleIntroduction = updatedVehicle.VehicleIntroduction;
+			vehicle.State = updatedVehicle.State;
+			vehicle.IsCase = updatedVehicle.IsCase;
+			vehicle.StateUpdatedAt = DateTime.Now;
+			vehicle.UpdatedAt = DateTime.Now;
 
-            vehicle.State = status;
-            _context.Vehicle.Update(vehicle);
-            return await _context.SaveChangesAsync();
-        }
+			// 设置并发标记
+			_context.Entry(vehicle).Property("RowVersion").OriginalValue = updatedVehicle.RowVersion;
 
-        /// <summary>
-        /// 更新车辆信息
-        /// </summary>
-        public async Task<int> UpdateVehicle(Vehicle vehicle) {
-            var existingVehicle = await _context.Vehicle.FindAsync(vehicle.Id);
-            if (existingVehicle == null) {
-                _logger.LogWarning("Vehicle with ID {VehicleId} not found", vehicle.Id);
-                return 0;
-            }
+			try {
+				_context.Vehicle.Update(vehicle);
+				await _context.SaveChangesAsync();
+				_logger.LogInformation("Vehicle with ID {VehicleId} updated successfully", updatedVehicle.Id);
+				return Ok("Vehicle updated successfully.");
+			} catch (DbUpdateConcurrencyException) {
+				_logger.LogWarning("使用ID更新车辆时发生并发冲突 {VehicleId}", updatedVehicle.Id);
+				return Conflict("Update failed due to concurrent changes.");
+			} catch (DbUpdateException ex) {
+				_logger.LogError(ex, "Error updating vehicle with ID {VehicleId}", updatedVehicle.Id);
+				return StatusCode(500, "Error updating vehicle.");
+			} catch (Exception ex) {
+				_logger.LogError(ex, "Unexpected error while updating vehicle with ID {VehicleId}", updatedVehicle.Id);
+				return StatusCode(500, "Unexpected error updating vehicle.");
+			}
+		}
 
-            existingVehicle.TheOriginalStore = vehicle.TheOriginalStore;
-            existingVehicle.TheCurrentStore = vehicle.TheCurrentStore;
-            existingVehicle.PlateNumber = vehicle.PlateNumber;
-            existingVehicle.FrameNumber = vehicle.FrameNumber;
-            existingVehicle.Certificate = vehicle.Certificate;
-            existingVehicle.Invoice = vehicle.Invoice;
-            existingVehicle.Drivinglicense = vehicle.Drivinglicense;
-            existingVehicle.PurchaseRegistrationTime = vehicle.PurchaseRegistrationTime;
-            existingVehicle.Owner = vehicle.Owner;
-            existingVehicle.VehicleIntroduction = vehicle.VehicleIntroduction;
-            existingVehicle.Pictures = vehicle.Pictures;
-            existingVehicle.State = vehicle.State;
-            existingVehicle.IsCase = vehicle.IsCase;
-            existingVehicle.UpdatedAt = DateTime.Now;
+		// 查询车辆
+		public async Task<List<Vehicle>> SearchVehicles(string? plateNumber = null, string? owner = null, string sortField = "Id", string sortOrder = "asc") {
+			_logger.LogInformation("[SearchVehicles]Starting search with filters - PlateNumber: {PlateNumber}, Owner: {Owner}, SortField: {SortField}, SortOrder: {SortOrder}",
+								   plateNumber, owner, sortField, sortOrder);
 
-            _context.Entry(existingVehicle).Property("RowVersion").OriginalValue = vehicle.RowVersion;
-            try {
-                _context.Vehicle.Update(existingVehicle);
-                return await _context.SaveChangesAsync();
-            } catch (DbUpdateConcurrencyException) {
-                _logger.LogWarning("Concurrency conflict while updating vehicle with ID {VehicleId}", vehicle.Id);
-                throw;
-            }
-        }
+			var query = _context.Vehicle.AsQueryable();
 
-        /// <summary>
-        /// 删除车辆
-        /// </summary>
-        public async Task<int> DeleteVehicle(int id) {
-            var vehicle = await _context.Vehicle.FindAsync(id);
-            if (vehicle == null) {
-                _logger.LogWarning("Vehicle with ID {VehicleId} not found", id);
-                return 0;
-            }
+			// 过滤条件
+			if (!string.IsNullOrEmpty(plateNumber)) {
+				query = query.Where(v => v.PlateNumber.Contains(plateNumber));
+			}
+			if (!string.IsNullOrEmpty(owner)) {
+				query = query.Where(v => v.Owner.Contains(owner));
+			}
 
-            _context.Vehicle.Remove(vehicle);
-            return await _context.SaveChangesAsync();
-        }
+			// 排序逻辑
+			query = sortField.ToLower() switch {
+				"platenumber" => sortOrder == "asc" ? query.OrderBy(v => v.PlateNumber) : query.OrderByDescending(v => v.PlateNumber),
+				"owner" => sortOrder == "asc" ? query.OrderBy(v => v.Owner) : query.OrderByDescending(v => v.Owner),
+				"createdat" => sortOrder == "asc" ? query.OrderBy(v => v.CreatedAt) : query.OrderByDescending(v => v.CreatedAt),
+				"updatedat" => sortOrder == "asc" ? query.OrderBy(v => v.UpdatedAt) : query.OrderByDescending(v => v.UpdatedAt),
+				"stateupdatedat" => sortOrder == "asc" ? query.OrderBy(v => v.StateUpdatedAt) : query.OrderByDescending(v => v.StateUpdatedAt),
+				_ => sortOrder == "asc" ? query.OrderBy(v => v.Id) : query.OrderByDescending(v => v.Id),
+			};
 
-        /// <summary>
-        /// 搜索车辆
-        /// </summary>
-        public async Task<List<Vehicle>> SearchVehicles() {
-            return new List<Vehicle>();
-        }
-    }
+			List<Vehicle> results = await query.ToListAsync();
+			_logger.LogInformation("Found {Count} vehicles with given filters and sorting", results.Count);
+
+			return results;
+		}
+
+		// 更新车辆图片信息
+		public async Task<int> PutImagePath(int vehicleId, string fileId) {
+			var vehicle = await _context.Vehicle.SingleOrDefaultAsync(v => v.Id == vehicleId);
+
+			if (vehicle is null)
+				return -1;
+
+			// 删除原图片逻辑（如果有）
+			if (!string.IsNullOrEmpty(vehicle.Pictures)) {
+				var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+				var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+				var envId = _wxSetting.Value.Env;
+
+				List<string> fileidList = new() { vehicle.Pictures };
+
+				// 删除原图片
+				var re = await TcbApi.BatchDeleteFileAsync(appId, envId, fileidList);
+				if (re.errcode != ReturnCode.请求成功) {
+					_logger.LogError("删除车辆{VehicleId}原图片{ImageId}", vehicle.Id, vehicle.Pictures);
+				}
+			}
+
+			// 更新图片路径
+			vehicle.Pictures = fileId;
+			vehicle.UpdatedAt = DateTime.Now;
+			try {
+				_context.Vehicle.Update(vehicle);
+				await _context.SaveChangesAsync();
+			} catch (Exception e) {
+				_logger.LogError(e, "保存车辆{VehicleId}图片路径", vehicle);
+				return -2;
+			}
+
+			return 0;
+		}
+	}
 }
