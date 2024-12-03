@@ -16,7 +16,7 @@
             return await _context.Order.Where(o => o.TheUser == userId).FirstOrDefaultAsync(o => o.Id == orderid);
         }
 
-        public async Task<Order.OrderStatus?> GetOrderStatusById(int userId, int orderid) {
+        public async Task<Order.EOrderStatus?> GetOrderStatusById(int userId, int orderid) {
             Order? order = await _context.Order.Where(o => o.TheUser == userId).FirstOrDefaultAsync(o => o.Id == orderid);
             return order?.Status;
         }
@@ -35,5 +35,12 @@
             _context.Order.Update(order);
             return await _context.SaveChangesAsync();
         }
-    }
+
+		public async Task<int> UpdateOrderState(Order order, Order.EOrderStatus status) {
+            order.Status = status;
+            order.UpdatedAt = DateTime.Now;
+			_context.Order.Update(order);
+			return await _context.SaveChangesAsync();
+		}
+	}
 }

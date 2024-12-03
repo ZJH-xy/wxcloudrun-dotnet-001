@@ -125,3 +125,33 @@ content-type: application/json
 {
     "OderId": 28
 }
+
+
+### 下单 ==========================================================
+Post {{localhost}}/order/pay HTTP/1.1
+Authorization: Bearer {{authorization}}
+content-type: application/json
+
+{
+    "orderId": 18
+}
+
+
+###
+Post {{localhost}}/order/refund HTTP/1.1
+Authorization: Bearer {{authorization}}
+content-type: application/json
+
+{
+    "orderId": 13
+}
+
+###
+GET https://localhost:63295/callback/notify
+
+
+
+###
+GET https://localhost:63295/callback/Refund
+
+

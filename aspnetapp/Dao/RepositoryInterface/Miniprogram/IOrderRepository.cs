@@ -24,7 +24,7 @@
         /// </summary>
         /// <param name="orderid"></param>
         /// <returns></returns>
-        Task<Order.OrderStatus?> GetOrderStatusById(int userId, int orderid);
+        Task<Order.EOrderStatus?> GetOrderStatusById(int userId, int orderid);
         /// <summary>
         /// 获取订单换车状态
         /// </summary>
@@ -38,5 +38,11 @@
         /// <param name="order"></param>
         /// <returns></returns>
         Task<int> UpdateOrder(Order order);
+		/// <summary>
+		/// 更新订单状态
+		/// </summary>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		Task<int> UpdateOrderState(Order order, Order.EOrderStatus status);
     }
 }
