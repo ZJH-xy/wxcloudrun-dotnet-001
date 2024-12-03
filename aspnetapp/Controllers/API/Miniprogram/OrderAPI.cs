@@ -5,23 +5,12 @@ using System.Security.Claims;
 using Senparc.Weixin.TenPayV3.Apis;
 using Senparc.Weixin.TenPayV3.Apis.BasePay;
 using Senparc.Weixin.Exceptions;
-using Senparc.CO2NET.Helpers;
-using Senparc.Weixin.TenPayV3.Helpers;
-using Senparc.Weixin.Entities;
-using Senparc.Weixin.Helpers;
 using Senparc.Weixin.TenPayV3;
 using Senparc.CO2NET.Utilities;
-using Senparc.Weixin.TenPayV3.Apis.Entities;
 using Senparc.CO2NET.Extensions;
-using System.Text;
-using Polly.Caching;
 using Microsoft.CodeAnalysis;
 using System.Collections;
-using static aspnetapp.Models.RefundOrder;
-using Senparc.Weixin.WxOpen.Entities;
 using Senparc.Weixin.TenPayV3.Apis.BasePay.Entities;
-using aspnetapp.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
@@ -403,7 +392,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 			if (prepayId.IsNullOrEmpty()) {
 				//_logger.LogError("getdata{}", data);
-				_logger.LogError("[PayOrder]创建订单错误result:{result}", System.Text.Json.JsonSerializer.Serialize(result));
+				_logger.LogError("[PayOrder]创建订单错误result:{result}", result.ToJson(true));
 				_logger.LogError("[PayOrder]订单信息requestData:{requestData}", requestData);
 				return StatusCode(500, new { order, requestData, result });
 			}
@@ -676,7 +665,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				await _dbContext.SaveChangesAsync();
 
 			} catch (Exception e) {
-				_logger.LogError(e, "退款表更新失败refundOrder：{refundOrder}", System.Text.Json.JsonSerializer.Serialize(refundOrder));
+				_logger.LogError(e, "退款表更新失败refundOrder：{refundOrder}", refundOrder.ToJson(true));
 				return StatusCode(500);
 
 			}
@@ -742,7 +731,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 						await _dbContext.SaveChangesAsync();
 
 					} catch (Exception e) {
-						_logger.LogError(e, "更新退款refundOrder：{refundOrder}", System.Text.Json.JsonSerializer.Serialize(refundOrder));
+						_logger.LogError(e, "更新退款refundOrder：{refundOrder}", refundOrder.ToJson(true));
 						returnData.code = "FAILD";
 						returnData.message = "数据库更新错误";
 						return StatusCode(500, returnData);

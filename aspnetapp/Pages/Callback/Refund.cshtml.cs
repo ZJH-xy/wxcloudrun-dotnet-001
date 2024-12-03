@@ -62,7 +62,7 @@ namespace aspnetapp.Pages.Callback {
 						await _dbContext.SaveChangesAsync();
 
 					} catch (Exception e) {
-						_logger.LogError(e, "更新退款refundOrder：{refundOrder}", System.Text.Json.JsonSerializer.Serialize(refundOrder));
+						_logger.LogError(e, "更新退款refundOrder：{refundOrder}", refundOrder.ToJson(true));
 						returnData.code = "FAILD";
 						returnData.message = "数据库更新错误";
 						return StatusCode(500, returnData);
