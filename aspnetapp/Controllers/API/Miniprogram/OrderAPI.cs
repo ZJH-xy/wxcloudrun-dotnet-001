@@ -392,9 +392,9 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 			if (prepayId.IsNullOrEmpty()) {
 				//_logger.LogError("getdata{}", data);
-				_logger.LogError("[PayOrder]创建订单错误result:{result}", result.ToJson(true));
-				_logger.LogError("[PayOrder]订单信息requestData:{requestData}", requestData);
-				return StatusCode(500, new { order, requestData, result });
+				//_logger.LogError("[PayOrder]创建订单错误result:{result}", result.ToJson(true));
+				//_logger.LogError("[PayOrder]订单信息requestData:{requestData}", requestData);
+				return StatusCode(501, new { order, requestData, result });
 			}
 
 			//string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
