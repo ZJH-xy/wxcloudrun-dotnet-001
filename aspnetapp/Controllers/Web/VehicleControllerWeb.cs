@@ -2,7 +2,7 @@
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 
 namespace aspnetapp.Controllers.Web {
-	public class VehicleControllerWeb : Controller, IVehicleRepositoryWeb {
+	public class VehicleControllerWeb : Controller {
 		private readonly MyDbContext _context;
 		private readonly ILogger<VehicleControllerWeb> _logger;
 		private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;
@@ -11,6 +11,14 @@ namespace aspnetapp.Controllers.Web {
 			_context = context;
 			_logger = logger;
 			_wxSetting = wxSetting;
+		}
+
+		public async Task<List<Vehicle>> GetTablePage(int limit, int pageIndex) {
+			return await _context.Vehicle
+				.OrderBy(u => u.Id) // 根据主键排序，确保分页顺序一致
+				.Skip((pageIndex - 1) * limit) // 跳过前面页的数据
+				.Take(limit) // 获取当前页的数据
+				.ToListAsync();
 		}
 
 		// 获取所有车辆列表
