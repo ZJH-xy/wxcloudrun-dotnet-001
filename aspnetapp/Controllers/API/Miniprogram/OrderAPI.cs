@@ -361,7 +361,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 				/// 选填
 				/// 【优惠功能】 优惠功能
-				detail = null,
+				detail = new TransactionsRequestData.Detail(),
 
 				/// 选填
 				/// 【结算信息】 结算信息
@@ -780,6 +780,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				return StatusCode(403, "非法请求");
 
 			order.Status = Order.EOrderStatus.已取消;
+
+			// 车辆
 
 			try {
 				await _dbContext.SaveChangesAsync();
