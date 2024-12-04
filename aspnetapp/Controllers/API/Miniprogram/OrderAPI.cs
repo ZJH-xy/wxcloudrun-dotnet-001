@@ -326,7 +326,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				description = description,
 
 				// 【商户订单号(string(32))】 商户系统内部订单号，只能是数字、大小写字母_-*且在同一个商户号下唯一。
-				out_trade_no = outTradeNo,
+				out_trade_no = Guid.NewGuid().ToString() + outTradeNo,
 
 				/// 选填
 				/// 【交易结束时间】订单失效时间，遵循rfc3339标准格式，格式为yyyy-MM-DDTHH:mm:ss+TIMEZONE，yyyy-MM-DD表示年月日，
@@ -343,7 +343,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				notify_url = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/callback/notify",
 
 				// 【订单优惠标记】 订单优惠标记
-				goods_tag = "",
+				goods_tag = null,
 
 				// 【订单金额】 订单金额信息
 				amount = new TransactionsRequestData.Amount {
