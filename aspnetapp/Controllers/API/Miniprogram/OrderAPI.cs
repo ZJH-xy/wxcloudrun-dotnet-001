@@ -340,7 +340,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 				// 【通知地址】 异步接收微信支付结果通知的回调地址，通知URL必须为外网可访问的URL，不能携带参数。
 				// 公网域名必须为HTTPS，如果是走专线接入，使用专线NAT IP或者私有回调域名可使用HTTP
-				notify_url = notifyUrl,
+				notify_url = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/callback/notify",
 
 				// 【订单优惠标记】 订单优惠标记
 				goods_tag = "",
@@ -1171,7 +1171,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				out_trade_no = out_trade_no,
 				out_refund_no = out_refund_no,
 				reason = reason,
-				notify_url = notify_url,
+				notify_url = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/callback/notify",
 				funds_account = null,
 				amount = new RefundRequestData.Amount {
 					//【退款金额】退款金额，单位为分，只能为整数，不能超过原订单支付金额。
