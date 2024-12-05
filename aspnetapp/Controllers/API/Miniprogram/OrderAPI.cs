@@ -11,6 +11,7 @@ using Senparc.CO2NET.Extensions;
 using Microsoft.CodeAnalysis;
 using System.Collections;
 using Senparc.Weixin.TenPayV3.Apis.BasePay.Entities;
+using aspnetapp.Models;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
@@ -500,6 +501,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
                                     Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
                                     vehicle.State = Vehicle.Estates.已出租;
+                                    vehicle.UpdatedAt = now;
                                     vehicle.StateUpdatedAt = now;
                                     await _dbContext.SaveChangesAsync();
 
@@ -510,8 +512,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
                                     returnData.code = "FAIL";//错误的订单处理
                                     returnData.message = "服务器错误";
-                                    return StatusCode(403, returnData);
-
+                                    return StatusCode(500, returnData);
                                 }
                             }
                             break;
@@ -525,6 +526,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                                     Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
                                     vehicle.State = Vehicle.Estates.空闲;
                                     vehicle.StateUpdatedAt = now;
+                                    vehicle.UpdatedAt = now;
 
                                     await _dbContext.SaveChangesAsync();
 
@@ -537,7 +539,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                                     returnData.code = "FAIL";//错误的订单处理
                                     returnData.message = "服务器错误";
                                     return StatusCode(500, returnData);
-
                                 }
                             }
                             break;
@@ -700,9 +701,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 var resHandler = new TenPayNotifyHandler(HttpContext);
                 var refundNotifyJson = await resHandler.DecryptGetObjectAsync<RefundNotifyJson>();
 
-
-
-
                 WeixinTrace.SendCustomLog("跟踪RefundNotifyUrl信息", refundNotifyJson.ToJson(true));
 
                 string refund_status = refundNotifyJson.refund_status;
@@ -722,24 +720,40 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                     //string out_refund_no = refundNotifyJson.out_refund_no;
                     //int total_fee = refundNotifyJson.amount.payer_total;
                     //int refund_fee = refundNotifyJson.amount.refund;
+                   
+                    using (var transaction = await _dbContext.Database.BeginTransactionAsync()) {
+                        try {
+                            var now = DateTime.Now;
 
-                    var refundOrder = await _dbContext.RefundOrder.SingleAsync(ro => ro.Id == int.Parse(refundNotifyJson.out_refund_no));
-                    refundOrder.Status = (RefundOrder.Estatus)RefundOrderEstatusHashtable[refundNotifyJson.refund_status]!;
-                    refundOrder.SuccessTime = DateTimeOffset.Parse(refundNotifyJson.success_time).UtcDateTime;// 退款成功时间
-                    refundOrder.UpdatedAt = DateTime.Now;
+                            var refundOrder = await _dbContext.RefundOrder.SingleAsync(ro => ro.Id == int.Parse(refundNotifyJson.out_refund_no));
+                            refundOrder.Status = (RefundOrder.Estatus)RefundOrderEstatusHashtable[refundNotifyJson.refund_status]!;
+                            refundOrder.SuccessTime = DateTimeOffset.Parse(refundNotifyJson.success_time).UtcDateTime;// 退款成功时间
+                            refundOrder.UpdatedAt = now;
+                            await _dbContext.SaveChangesAsync();
 
-                    try {
-                        await _dbContext.SaveChangesAsync();
+                            Order order = await _dbContext.Order.SingleAsync(o => o.Id == refundOrder.TheOrder);
+                            order.Status = Order.EOrderStatus.已退款;
+                            order.UpdatedAt = now;
+                            await _dbContext.SaveChangesAsync();
 
-                    } catch (Exception e) {
-                        _logger.LogError(e, "更新退款refundOrder：{refundOrder}", refundOrder.ToJson(true));
-                        returnData.code = "FAILD";
-                        returnData.message = "数据库更新错误";
-                        return StatusCode(500, returnData);
+                            Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+                            vehicle.State = Vehicle.Estates.空闲;
+                            vehicle.StateUpdatedAt = now;
+                            vehicle.UpdatedAt = now;
+                            await _dbContext.SaveChangesAsync();
 
+                            _logger.LogInformation("refundOrder更新{refundOrderId}", refundOrder.Id);
+
+                            await transaction.CommitAsync();
+
+                        } catch (Exception e) {
+                            await transaction.RollbackAsync();
+                            _logger.LogError(e, "退款回调refundOrder失败");
+                            returnData.code = "FAILD";
+                            returnData.message = "数据库更新错误";
+                            return StatusCode(500, returnData);
+                        }
                     }
-
-                    _logger.LogInformation("refundOrder更新{refundOrderId}", refundOrder.Id);
 
                     return StatusCode(200);
                 } else {
