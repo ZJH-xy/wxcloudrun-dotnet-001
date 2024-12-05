@@ -778,17 +778,27 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             if (order is null || order.Status != Order.EOrderStatus.待付款)
                 return StatusCode(403, "非法请求");
 
-            order.Status = Order.EOrderStatus.已取消;
-
-            // 车辆
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
             try {
+                var now = DateTime.Now;
+                order.Status = Order.EOrderStatus.已取消;
+                order.UpdatedAt = now;
                 await _dbContext.SaveChangesAsync();
+
+                // 车辆
+                Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+
+                vehicle.State = Vehicle.Estates.空闲;
+                vehicle.StateUpdatedAt = now;
+                await _dbContext.SaveChangesAsync();
+
+                await transaction.CommitAsync();
 
             } catch (Exception e) {
                 _logger.LogError("取消订单{OrderId}", getData.OrderId);
+                await transaction.RollbackAsync();
                 return StatusCode(500);
-
             }
 
             return StatusCode(200);
