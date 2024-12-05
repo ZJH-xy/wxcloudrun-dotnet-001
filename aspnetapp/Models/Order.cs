@@ -12,10 +12,15 @@
 		[Key]
 		public int Id { get; init; }
 
-		/// <summary>
-		/// 微信支付系统生成的订单号
-		/// </summary>
-		public string? TransactionId { get; set; }
+        /// <summary>
+        /// 商户系统内部订单号，可以是数字、大小写字母_-*的任意组合且在同一个商户号下唯一。
+        /// </summary>
+        public string? OutTradeNo { get; set; }
+
+        /// <summary>
+        /// 微信支付系统生成的订单号
+        /// </summary>
+        public string? TransactionId { get; set; }
 
 		/// <summary>
 		/// 逻辑指向用户
