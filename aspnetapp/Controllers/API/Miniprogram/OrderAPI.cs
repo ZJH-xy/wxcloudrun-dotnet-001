@@ -206,53 +206,54 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             if (vehicle.State != Vehicle.Estates.空闲)
                 return StatusCode(403, "手慢了，请更换车辆");
 
-            // 锁定车辆，更新时间
-            vehicle.State = Vehicle.Estates.锁定;
-            vehicle.StateUpdatedAt = DateTime.Now;
-            vehicle.UpdatedAt = DateTime.Now;
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
 
-            try {
+            try {// 锁定车辆，更新时间
+                vehicle.State = Vehicle.Estates.锁定;
+                vehicle.StateUpdatedAt = DateTime.Now;
+                vehicle.UpdatedAt = DateTime.Now;
+
                 await _dbContext.SaveChangesAsync();// 保存车辆状态
+                //try {
 
-            } catch (Exception e) {
-                _logger.LogError(e, "车辆{Vehicle}锁定，操作用户{UserId}", vehicle.Id, userId);
+                //} catch (Exception e) {
+                //    _logger.LogError(e, "车辆{Vehicle}锁定，操作用户{UserId}", vehicle.Id, userId);
+                //    return StatusCode(500, "车辆锁定失败");
+                //}
 
-                return StatusCode(500, "车辆锁定失败");
-            }
+                Order order = new() {
+                    TheUser = userId,
+                    TheRentalLocation = store.Id,
+                    TheVehicle = data.Vehicle,// 车辆
+                    TheStoreMenu = data.StoreMenuId,// 套餐Id
+                    UserName = data.UserName,// 用户姓名
+                    UserPhone = data.UserPhone,// 用户手机号
+                    IdentityCard = data.IdentityCard,// 身份证号
+                    Deposit = storeMenus.Deposit,// 押金
+                    Rent = storeMenus.Rent,// 租金
+                    Status = Order.EOrderStatus.待付款,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
 
-            Order order = new() {
-                TheUser = userId,
-                TheRentalLocation = store.Id,
-                TheVehicle = data.Vehicle,// 车辆
-                TheStoreMenu = data.StoreMenuId,// 套餐Id
-                UserName = data.UserName,// 用户姓名
-                UserPhone = data.UserPhone,// 用户手机号
-                IdentityCard = data.IdentityCard,// 身份证号
-                Deposit = storeMenus.Deposit,// 押金
-                Rent = storeMenus.Rent,// 租金
-                Status = Order.EOrderStatus.待付款,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            };
+                //_logger.LogDebug("订单创建信息{OrderId}", order.Id);
 
-            _logger.LogDebug("订单创建信息{OrderId}", order.Id);
-
-            try {
-                int changes = await _orderController.AddOrder(order);
-                if (0 == changes) {
-                    throw new Exception("新增行数为0");
-                }
+                //await _orderController.AddOrder(order);
+                await _dbContext.Order.AddAsync(order);
+                await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
 
                 _logger.LogInformation("订单{OrderId}创建", order.Id);
 
-            } catch (Exception e) {
-                _logger.LogError(e, "创建订单{OrderId}", order.Id);
+                // 获取新建订单的id
+                return StatusCode(201, order.Id);
+
+            } catch (Exception ex) {
+                _logger.LogError(ex, "创建订单错误");
+                await transaction.RollbackAsync();
 
                 return StatusCode(403, "创建订单失败，请联系管理员");
             }
-
-            // 获取新建订单的id
-            return StatusCode(201, order.Id);
         }
         #endregion
 
@@ -296,9 +297,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             // 商品描述
             string description = "测试";
             // 商户订单号
-            string outTradeNo = data.OrderId.ToString();
-            outTradeNo = "WX" + Guid.NewGuid().ToString("N").Substring(0, 20);
-            //outTradeNo = string.Concat("TEST", Guid.NewGuid().ToString("N").AsSpan(0, 20));
+            string outTradeNo = string.Concat("Rental_", Guid.NewGuid().ToString("N").AsSpan(0, 20), order.Id.ToString());// 创建订单号
             // 交易结束时间（10分钟）
             string time_expire = order.CreatedAt.AddMinutes(10).ToString("yyyy-MM-ddTHH:mm:sszzz");
             // 附加数据
@@ -390,7 +389,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 //_logger.LogError("getdata{}", data);
                 _logger.LogError("[PayOrder]创建订单错误result:{result}", result.ToJson(true));
                 _logger.LogError("[PayOrder]订单信息requestData:{requestData}", requestData);
-                return StatusCode(500, new { order, requestData, result });
+                return StatusCode(500);
             }
 
             //string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
@@ -960,18 +959,13 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 UpdatedAt = now,
             };
 
-            // 生成退款表数据
-            _dbContext.RefundOrder.Add(refundOrder);
+            //try {
+            //    await _dbContext.SaveChangesAsync();
 
-            try {
-                await _dbContext.SaveChangesAsync();
-
-            } catch (Exception e) {
-                _logger.LogError(e, "自动新建退款表数据");
-                return StatusCode(500);
-
-            }
-
+            //} catch (Exception e) {
+            //    _logger.LogError(e, "自动新建退款表数据");
+            //    return StatusCode(500);
+            //}
 
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
@@ -982,6 +976,9 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 order.DepositRefunded += refundOrder.Refund;
                 order.Status = Order.EOrderStatus.退款中;
                 order.UpdatedAt = now;
+
+                // 生成退款表数据
+                _dbContext.RefundOrder.Add(refundOrder);
 
                 await _dbContext.SaveChangesAsync();
 
@@ -1110,7 +1107,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         }
         #endregion
 
-
         /// <summary>
         /// 退款
         /// </summary>
@@ -1143,7 +1139,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             //} catch (Exception e) {
             //	_logger.LogError(e, "新建退款表数据");
             //	return StatusCode(500);
-            //	
             //}
 
             BasePayApis basePayApis = new();
@@ -1151,16 +1146,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             //【微信支付订单号】原支付交易对应的微信订单号，与out_trade_no二选一
             string transaction_id = order.TransactionId;
             //【商户订单号】原支付交易对应的商户订单号，与transaction_id二选一
-            string out_trade_no = refundOrder.TheOrder.ToString();
-#if DEBUG
-            out_trade_no = "4200002366202412053781678220";
-            out_trade_no = "WXd5b02fdef64440cbae95";
-#endif
+            string out_trade_no = order.OutTradeNo;
             //【商户退款单号】商户系统内部的退款单号，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一退款单号多次请求只退一笔。
-            string out_refund_no = refundOrder.Id.ToString();
-#if DEBUG
-            out_refund_no = "TEST" + out_refund_no;
-#endif
+            string out_refund_no = string.Concat("Refund_", Guid.NewGuid().ToString("N").AsSpan(0, 20), refundOrder.Id.ToString());
+
             //【退款原因】若商户传入，会在下发给用户的退款消息中体现退款原因
             string reason = refundOrder.Reason;
             //【退款币种】符合ISO 4217标准的三位字母代码，目前只支持人民币：CNY。
@@ -1190,7 +1179,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             return await basePayApis.RefundAsync(refundRequestData);// 调用退款
         }
 
-
         /// <summary>
         /// JWT 获取用户id
         /// </summary>
@@ -1198,7 +1186,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public int GetUserIdInt() {
             return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
-
 
         #region RSA加密用
         /// <summary>
