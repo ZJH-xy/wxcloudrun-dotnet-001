@@ -133,7 +133,7 @@ Authorization: Bearer {{authorization}}
 content-type: application/json
 
 {
-    "orderId": 23
+    "orderId": 18
 }
 
 
@@ -143,7 +143,7 @@ Authorization: Bearer {{authorization}}
 content-type: application/json
 
 {
-    "orderId": 22
+    "orderId": 13
 }
 
 ###
@@ -155,3 +155,15 @@ GET https://localhost:63295/callback/notify
 GET https://localhost:63295/callback/Refund
 
 
+###
+GET https://localhost:63295/callback/notify
+
+
+
+###
+GET https://localhost:63295/callback/Refund
+
+
+
+###
+POST {{localhost}}/order/callback/notify

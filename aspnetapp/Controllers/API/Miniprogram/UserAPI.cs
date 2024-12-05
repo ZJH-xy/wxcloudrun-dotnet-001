@@ -95,6 +95,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             return StatusCode(200, new UserPro(user));
         }
 
+        #region 实名认证
         /// <summary>
         /// 实名认证
         /// </summary>
@@ -146,7 +147,9 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
             return StatusCode(200);
         }
+        #endregion
 
+        #region 更新昵称
         /// <summary>
         /// 更新昵称
         /// </summary>
@@ -191,14 +194,15 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
             return StatusCode(200);
         }
+        #endregion
 
-		#region 更改密码
-		/// <summary>
-		/// 更改密码
-		/// </summary>
-		/// <param name="updatePassword"></param>
-		/// <returns></returns>
-		[Authorize]
+        #region 更改密码
+        /// <summary>
+        /// 更改密码
+        /// </summary>
+        /// <param name="updatePassword"></param>
+        /// <returns></returns>
+        [Authorize]
         [HttpPost("update/password")]
         public async Task<IActionResult> UpdatePassword(UpdatePassword updatePassword) {
             User? user;
@@ -320,7 +324,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				
 			}
 
-            List<Claim> claims;
+            //List<Claim> claims;
             // 未注册
             if (user is null) {
 				// code 换取 session_key，支付时使用
