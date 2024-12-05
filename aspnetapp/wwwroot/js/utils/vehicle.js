@@ -1,5 +1,5 @@
 ﻿
-const RESPONSEURL = `/Admin/Subpages/UserManagement/UserOverview`;
+const RESPONSEURL = `/Admin/Subpages/VehicleManagement/VehicleOverview`;
 const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]').value;
 const LENGTH = document.getElementById('PageCount').value;// 显示长度
 var file;
@@ -464,8 +464,6 @@ async function confirmChangeSearchData() {
 
 async function getListData() {
 	loadHTML(); // 显示加载中
-
-
 	try {
 		const response = await fetch(`${RESPONSEURL}?handler=Search`, {
 			method: 'POST',
@@ -485,19 +483,27 @@ async function getListData() {
 			const list = data.list;
 			for (var i = 0; i < LENGTH; i++) {
 				var id = document.getElementById('id'+i);
-				var nickname = document.getElementById('nickname' + i);
-				var name = document.getElementById('name' + i);
-				var phone = document.getElementById('phone' + i);
-				var identityCard = document.getElementById('identityCard' + i);
+				var plateNumber = document.getElementById('plateNumber' + i);
+				var frameNumber = document.getElementById('frameNumber' + i);
+				var certificate = document.getElementById('certificate' + i);
+				var drivinglicense = document.getElementById('drivinglicense' + i);
+				var invoice = document.getElementById('invoice' + i);
+				var purchaseRegistrationTime = document.getElementById('purchaseRegistrationTime' + i);
+				var Model = document.getElementById('Model' + i);
+				var State = document.getElementById('State' + i);
 				var createdAt = document.getElementById('createdAt' + i);
 				var updatedAt = document.getElementById('updatedAt' + i);
 				id.value = list[i].id;
-				nickname.value = list[i].nickname
-				name.value = list[i].name;
-				phone.value = list[i].phone;
-				identityCard.value = list[i].identityCard;
+				plateNumber.value = list[i].plateNumber;
+				frameNumber.value = list[i].frameNumber;
+				certificate.value = list[i].certificate;
+				drivinglicense.value = list[i].drivinglicense;
+				invoice.value = list[i].invoice;
+				purchaseRegistrationTime.value = list[i].purchaseRegistrationTime;
+				Model.value = list[i].Model;
+				State.value = list[i].State;
 				createdAt.value = list[i].createdAt;
-				updatedAt.value = list[i].updatedAt;
+				updatedAt.value = list[i].updatedAt;  
 			}
 
 		} else {
