@@ -304,7 +304,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             // 附加数据
             string attach = "";
             // 通知地址
-            const string notifyUrl = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/order/notify";
+            const string notifyUrl = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/order/callback/notify";
             // 订单总金额（分）
             int total = Order.GetTotal(order.GetTotalPrice());
             // 用户Unionid
@@ -426,6 +426,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         [AllowAnonymous]// 允许匿名访问
         [HttpPost("callback/notify")]
         public async Task<IActionResult> PayNotifyUrl() {
+            _logger.LogInformation("PayNotifyUrl收到微信支付回调");
+
             WxPayCallbackViewModel returnData = new();// 创建应答格式
             try {
                 //获取微信服务器异步发送的支付通知信息
@@ -433,13 +435,13 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 OrderReturnJson orderReturnJson = await resHandler.DecryptGetObjectAsync<OrderReturnJson>();
 
                 //记录日志
-                _logger.LogDebug("PayNotifyUrl收到微信支付回调：{data}", orderReturnJson.ToJson(true));
+                _logger.LogInformation("PayNotifyUrl收到微信支付回调：{data}", orderReturnJson.ToJson(true));
                 Senparc.Weixin.WeixinTrace.SendCustomLog("PayNotifyUrl 接收到消息", orderReturnJson.ToJson(true));
 
                 //演示记录 transaction_id，实际开发中需要记录到数据库，以便退款和后续跟踪
                 // transaction_id 微信支付系统生成的订单号。
                 Order? order = await _orderController.GetById(GetUserIdInt(), int.Parse(orderReturnJson.out_trade_no));// 根据Id获取对应的订单
-                                                                                                                       //Order order = await _dbContext.Order.SingleAsync(o => o.Id.ToString() == orderReturnJson.out_trade_no);
+                //Order order = await _dbContext.Order.SingleAsync(o => o.Id.ToString() == orderReturnJson.out_trade_no);
 
                 if (order is null) {
                     _logger.LogError("订单获取错误transaction_id：{transaction_id}", orderReturnJson.out_trade_no);
@@ -689,6 +691,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         [AllowAnonymous]// 允许匿名访问
         [HttpPost("callback/refund")]
         public async Task<IActionResult> RefundNotify(GetCancelReplacementInfo getData) {
+            _logger.LogInformation("RefundNotify收到微信退款回调");
+
             WeixinTrace.SendCustomLog("RefundNotifyUrl被访问", "IP" + HttpContext.UserHostAddress()?.ToString());
 
             WxPayCallbackViewModel returnData = new();
@@ -1162,14 +1166,13 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             //【退款币种】符合ISO 4217标准的三位字母代码，目前只支持人民币：CNY。
             string currency = "CNY";
             //【退款结果回调url】异步接收微信支付退款结果通知的回调地址，通知url必须为外网可访问的url，不能携带参数。 如果参数中传了notify_url，则商户平台上配置的回调地址将不会生效，优先回调当前传的这个地址。
-            const string notify_url = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/callback/notify";
-
+            const string notify_url = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/order/callback/refund";
             RefundRequestData refundRequestData = new() {
                 transaction_id = transaction_id,
                 out_trade_no = out_trade_no,
                 out_refund_no = out_refund_no,
                 reason = reason,
-                notify_url = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/callback/notify",
+                notify_url = notify_url,
                 funds_account = null,
                 amount = new RefundRequestData.Amount {
                     //【退款金额】退款金额，单位为分，只能为整数，不能超过原订单支付金额。
