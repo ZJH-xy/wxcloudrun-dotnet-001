@@ -229,7 +229,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 UserPhone = data.UserPhone,// 用户手机号
                 IdentityCard = data.IdentityCard,// 身份证号
                 Deposit = storeMenus.Deposit,// 押金
-                Rent = storeMenus.Deposit,// 租金
+                Rent = storeMenus.Rent,// 租金
                 Status = Order.EOrderStatus.待付款,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
@@ -608,8 +608,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             if (order is null || order.Status != Order.EOrderStatus.待确认)
                 return StatusCode(403, "非法请求");
 
-            if (await _dbContext.RefundOrder.AnyAsync(ro => ro.TheOrder == order.Id))
-                return StatusCode(403, "请勿重复请求");
+            //if (await _dbContext.RefundOrder.AnyAsync(ro => ro.TheOrder == order.Id))
+            //    return StatusCode(403, "请勿重复请求");
 
             #region 退款
             /* 退款流程 */
@@ -1149,8 +1149,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             //【商户订单号】原支付交易对应的商户订单号，与transaction_id二选一
             string out_trade_no = refundOrder.TheOrder.ToString();
 #if DEBUG
-            out_trade_no = "TEST" + out_trade_no;
-            out_trade_no = "WX10abe0fa32d64283b14e";
+            out_trade_no = "4200002366202412053781678220";
+            out_trade_no = "WXd5b02fdef64440cbae95";
 #endif
             //【商户退款单号】商户系统内部的退款单号，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一退款单号多次请求只退一笔。
             string out_refund_no = refundOrder.Id.ToString();
