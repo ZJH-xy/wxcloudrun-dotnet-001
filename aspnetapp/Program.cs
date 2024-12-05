@@ -8,41 +8,41 @@ using Senparc.Weixin.AspNet;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ע�� DatabaseConfig ʵ��
+// 注入 DatabaseConfig 实例
 builder.Services.AddSingleton(new DatabaseConfig(builder.Configuration));
 
-// ʹ�� AddDbContext ע�� MyDbContext
+// 使用 AddDbContext 注册 MyDbContext
 builder.Services.AddDbContext<MyDbContext>((serviceProvider, options) => {
-	// ��ȡ DatabaseConfig ʵ��
-	var databaseConfig = serviceProvider.GetRequiredService<DatabaseConfig>();
-	// ���� MySQL ���ݿ�
-	databaseConfig.ConfigureMySql(options);
+    // 获取 DatabaseConfig 实例
+    var databaseConfig = serviceProvider.GetRequiredService<DatabaseConfig>();
+    // 配置 MySQL 数据库
+    databaseConfig.ConfigureMySql(options);
 });
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 
-// Web��̨���
+// 激活本地缓存
 builder.Services.AddScoped<UserControllerWeb>();
 builder.Services.AddScoped<VehicleControllerWeb>();
 builder.Services.AddScoped<OrderControllerWeb>();
 
-// ����ػ���
+// 小程序相关
 builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<MyDbContext>();
-builder.Services.AddScoped<IUserRepository, UserController>();// ����ע��
+builder.Services.AddScoped<IUserRepository, UserController>();// 依赖注入
 builder.Services.AddScoped<IStoreRepository, StoreController>();
 builder.Services.AddScoped<IVehicleRepository, VehicleController>();
 builder.Services.AddScoped<IOrderRepository, OrderController>();
 builder.Services.AddScoped<IStoreAccountRepository, StoreAccountController>();
 builder.Services.AddScoped<IFavoritesStoreRepository, FavoritesStoreController>();
 
-// Web��̨���
+// Web相关
 builder.Services.AddScoped<UserControllerWeb>();
 builder.Services.AddScoped<VehicleControllerWeb>();
 builder.Services.AddScoped<StatisticsControllerWeb>();
 
-builder.Services.AddScoped<OrderAPI>(); // ע�� OrderAPI����ʱȡ������
+builder.Services.AddScoped<OrderAPI>();// 注册 OrderAPI，定时取消订单
 builder.Services.AddHostedService<TimedHostedService>();
 
 
@@ -62,24 +62,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 	});
 
 
-//Senparc.Weixin ע�ᣨ���룩
+//Senparc.Weixin 注册（必须）
 builder.Services.AddSenparcWeixin(builder.Configuration);
-// ������� Senparc.Weixin ��ע�ᡣ
-builder.Services.Configure<WeixinSetting>(builder.Configuration.GetSection("SenparcWeixinSetting"));// ����WeixinSetting
+// 读取微信配置
+builder.Services.Configure<WeixinSetting>(builder.Configuration.GetSection("SenparcWeixinSetting"));// WeixinSetting
 
 
-// ������� Senparc.Weixin ��ע�ᡣ
+// 用于完成 Senparc.Weixin 的注册。
 //builder.Services.AddSenparcWeixinServices(builder.Configuration);
 
 
-// ������־
-builder.Logging.ClearProviders();                    // ���Ĭ����־�ṩ����
-builder.Logging.AddConsole();                        // ���ӿ���̨��־
-													 //builder.Logging.AddDebug();                          // ���� Debug �����־���ʺϵ��Ի�����
-													 //builder.Logging.AddEventLog();                       // Windows �¼���־
-builder.Logging.SetMinimumLevel(LogLevel.Information); // ������С��־����
+// 配置日志
+builder.Logging.ClearProviders();                    // 清除默认日志提供程序
+builder.Logging.AddConsole();                        // 添加控制台日志
+//builder.Logging.AddDebug();                          // 添加 Debug 输出日志（适合调试环境）
+//builder.Logging.AddEventLog();                       // Windows 事件日志
+builder.Logging.SetMinimumLevel(LogLevel.Information); // 设置最小日志级别
 
-// �����Դ� appsettings.json �ж�ȡ����
+// 还可以从 appsettings.json 中读取配置
 builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
 
 
@@ -87,16 +87,16 @@ var app = builder.Build();
 
 
 
-//����΢�����ã����룩
+//启用微信配置（必须）
 var registerService = app.UseSenparcWeixin(app.Environment,
-	null /* ��Ϊ null �򸲸� appsettings  �е� SenpacSetting ����*/,
-	null /* ��Ϊ null �򸲸� appsettings  �е� SenpacWeixinSetting ����*/,
-	register => { },
+    null /* 不为 null 则覆盖 appsettings  中的 SenpacSetting 配置*/,
+    null /* 不为 null 则覆盖 appsettings  中的 SenpacWeixinSetting 配置*/,
+    register => { },
 	(register, weixinSetting) => {
-		//ע�ṫ�ں���Ϣ������ִ�ж�Σ�ע����С����
-		register.RegisterWxOpenAccount(weixinSetting, "����С����");
-		//ע��΢��֧��������ִ�ж�Σ�ע����΢��֧����
-		register.RegisterTenpayApiV3(weixinSetting, "��ʢ������С���֡�΢��֧����ApiV3��");
+        //注册公众号信息（可以执行多次，注册多个小程序）
+        register.RegisterWxOpenAccount(weixinSetting, "文旅小程序");
+        //注册微信支付（可以执行多次，注册多个微信支付）
+        register.RegisterTenpayApiV3(weixinSetting, "【盛派网络小助手】微信支付（ApiV3）");
 	});
 
 
@@ -118,7 +118,7 @@ if (!app.Environment.IsDevelopment()) {
 //}
 
 
-//#region �˲��ִ���Ϊ Sample �����ļ���Ҫ�����ӣ�ʵ����Ŀ��������
+//#region 此部分代码为 Sample 共享文件需要而添加，实际项目无需添加
 //#if DEBUG
 ////app.UseStaticFiles(new StaticFileOptions
 ////{
