@@ -496,12 +496,13 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                                     order.Status = Order.EOrderStatus.待确认;// 更改订单状态
                                     order.Paid += orderReturnJson.amount.total;// 增加已付金额
                                     order.UpdatedAt = now;
+                                    await _dbContext.SaveChangesAsync();
 
                                     Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
                                     vehicle.State = Vehicle.Estates.已出租;
                                     vehicle.StateUpdatedAt = now;
-
                                     await _dbContext.SaveChangesAsync();
+
                                     await transaction.CommitAsync();
                                 } catch (Exception e) {
                                     _logger.LogCritical(e, "支付回调{orderReturnJson}", orderReturnJson.ToJson(true));
@@ -918,18 +919,11 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 return StatusCode(403, "请检查还车点");
             }
 
-            // 调度
-            if (order.TheRentalLocation != getData.StoreId) {
-                order.DispatchFee += 10;
-            }
-
+            // 当前时间
+            var now = DateTime.Now;
 
             // 超时费率 (每小时10元)
             decimal overtimeRate = 10;
-
-            // 当前时间
-            var now = DateTime.Now;
-            order.ActualReturnTime = now;// 归还时间
 
             // 订单开始时间
             DateTime actualStartingTime = (DateTime)order.ActualStartingTime!;
@@ -952,8 +946,13 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 order.OvertimeFee += overtimeHours * overtimeRate;
             }
 
+            // 调度
+            if (order.TheRentalLocation != getData.StoreId) {
+                order.DispatchFee += 10;
+            }
+
             #region 退款
-            // 退押金
+            // 退押金金额（金额修改完成后计算！！！）
             var sum = order.Paid - order.GetTotalPrice();
 
             // 新建退款表数据
@@ -969,31 +968,36 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 UpdatedAt = now,
             };
 
-            //try {
-            //    await _dbContext.SaveChangesAsync();
-
-            //} catch (Exception e) {
-            //    _logger.LogError(e, "自动新建退款表数据");
-            //    return StatusCode(500);
-            //}
-
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
             try {
                 Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
                 vehicle.State = Vehicle.Estates.侍确认;
-
-                order.DepositRefunded += refundOrder.Refund;
-                order.Status = Order.EOrderStatus.退款中;
-                order.UpdatedAt = now;
-
+                vehicle.StateUpdatedAt = now;
+                
                 // 生成退款表数据
                 _dbContext.RefundOrder.Add(refundOrder);
 
-                await _dbContext.SaveChangesAsync();
-
                 // 调用退款服务
                 RefundReturnJson refundReturnJson = await RefundAsync(order, refundOrder);
+
+                order.Status = Order.EOrderStatus.退款中;
+                order.ActualReturnTime = now;// 归还时间
+                order.TheReturnThePoint = store.Id;
+                order.DepositRefunded += refundOrder.Refund;
+                order.UpdatedAt = now;
+
+                // 营业额统计表
+                RevenueStatistics revenueStatistics = new() {
+                    TheStoreA = order.TheRentalLocation,
+                    TheStoreB = (int)order.TheReturnThePoint,
+                    TheOrder = order.Id,
+                    CreatedAt = now,
+                    UpdatedAt = now,
+                };
+
+                await _dbContext.RevenueStatistic.AddAsync(revenueStatistics);
+                await _dbContext.SaveChangesAsync();
 
                 // 如果退款成功，提交事务
                 await transaction.CommitAsync();
