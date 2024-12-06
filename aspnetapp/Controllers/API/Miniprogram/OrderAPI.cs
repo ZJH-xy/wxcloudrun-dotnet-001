@@ -447,9 +447,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                     _logger.LogError("订单获取错误transaction_id：{transaction_id}", orderReturnJson.out_trade_no);
                     throw new Exception("订单获取错误transaction_id");
                 }
-                var now = DateTime.Now;
-                order.TransactionId = orderReturnJson.transaction_id;// 赋值微信传入的id
-                order.UpdatedAt = now;
 
                 //获取支付状态
                 string trade_state = orderReturnJson.trade_state;
@@ -458,6 +455,17 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
                 //验证可靠的支付状态
                 if (orderReturnJson.VerifySignSuccess == true) {
+                    var now = DateTime.Now;
+                    order.TransactionId = orderReturnJson.transaction_id;// 赋值微信传入的id
+                    order.UpdatedAt = now;
+
+                    try {
+                        await _dbContext.SaveChangesAsync();
+                    } catch (Exception e) {
+                        _logger.LogError(e, "赋值微信传入的id");
+                        throw;
+                    }
+
                     /* 交易状态，枚举值：
 					 * SUCCESS：支付成功
 					 * REFUND：转入退款
@@ -485,6 +493,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                             if (trade.trade_state != "SUCCESS") {
                                 returnData.code = "FAIL";//错误的订单处理
                                 returnData.message = "订单状态不一致";
+                                return StatusCode(500, returnData);
                             }
 
                             /* 提示：
@@ -494,11 +503,13 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 							*/
                             using (var transaction = await _dbContext.Database.BeginTransactionAsync()) {
                                 try {
+                                    _logger.LogInformation("开始更改订单状态");
                                     order.Status = Order.EOrderStatus.待确认;// 更改订单状态
                                     order.Paid += orderReturnJson.amount.total;// 增加已付金额
                                     order.UpdatedAt = now;
                                     await _dbContext.SaveChangesAsync();
 
+                                    _logger.LogInformation("开始更改车辆状态");
                                     Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
                                     vehicle.State = Vehicle.Estates.已出租;
                                     vehicle.UpdatedAt = now;
@@ -506,6 +517,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                                     await _dbContext.SaveChangesAsync();
 
                                     await transaction.CommitAsync();
+                                    _logger.LogInformation("更改完毕");
                                 } catch (Exception e) {
                                     _logger.LogCritical(e, "支付回调{orderReturnJson}", orderReturnJson.ToJson(true));
                                     await transaction.RollbackAsync();
@@ -520,6 +532,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                         case "CLOSED":// 已关闭
                             using (var transaction = await _dbContext.Database.BeginTransactionAsync()) {
                                 try {
+                                    _logger.LogInformation("订单已关闭");
                                     order.Status = Order.EOrderStatus.已取消;
                                     order.UpdatedAt = now;
 
@@ -531,6 +544,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                                     await _dbContext.SaveChangesAsync();
 
                                     await transaction.CommitAsync();
+                                    _logger.LogInformation("处理完毕");
 
                                 } catch (Exception e) {
                                     _logger.LogError(e, "支付回调{orderReturnJson}", orderReturnJson.ToJson(true));
@@ -556,6 +570,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                             break;
                     }
                 } else {
+                    _logger.LogInformation("回调验证失败");
                     returnData.code = "FAIL";//错误的订单处理
                     returnData.message = "验证失败";
 
