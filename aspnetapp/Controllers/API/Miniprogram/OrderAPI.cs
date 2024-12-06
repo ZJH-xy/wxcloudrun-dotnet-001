@@ -382,6 +382,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             // 【预支付交易会话标识】 预支付交易会话标识。用于后续接口调用中使用，该值有效期为2小时
             string prepayId = result.prepay_id;
 
+            #region 加密
             if (prepayId.IsNullOrEmpty()) {
                 //_logger.LogError("getdata{}", data);
                 _logger.LogError("[PayOrder]创建订单错误result:{result}", result.ToJson(true));
@@ -409,6 +410,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             ////临时记录订单信息，留给退款申请接口测试使用（分布式情况下请注意数据同步）
             //HttpContext.Session.SetString("BillNo", sp_billno);
             //HttpContext.Session.SetString("BillFee", price.ToString());
+            #endregion
 
             return StatusCode(200, new { appid, timestamp, nonceStr, pack, signType, paySign });
         }
@@ -460,12 +462,12 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 //验证请求是否从微信发过来（安全）
 
                 //验证可靠的支付状态
-                if (true /*orderReturnJson.VerifySignSuccess == true*/) {
+                if (orderReturnJson.VerifySignSuccess == true) {
                     var now = DateTime.Now;
-                    order.Status = Order.EOrderStatus.待确认;// 更改订单状态
-                    order.Paid += orderReturnJson.amount.total / 100m;// 增加已付金额,在代码中将 `total` 转换为元
+                    //order.Status = Order.EOrderStatus.待确认;// 更改订单状态
+                    //order.Paid += orderReturnJson.amount.total / 100m;// 增加已付金额,在代码中将 `total` 转换为元
                     order.TransactionId = orderReturnJson.transaction_id;// 赋值微信传入的id
-                    order.UpdatedAt = now;
+                    //order.UpdatedAt = now;
 
                     try {
                         await _dbContext.SaveChangesAsync();
@@ -513,7 +515,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                                 try {
                                     _logger.LogInformation("开始更改订单状态");
                                     order.Status = Order.EOrderStatus.待确认;// 更改订单状态
-                                    order.Paid += orderReturnJson.amount.total;// 增加已付金额
+                                    order.Paid += orderReturnJson.amount.total / 100m;// 增加已付金额
                                     order.SuccessTime = orderReturnJson.success_time;
                                     order.UpdatedAt = now;
                                     await _dbContext.SaveChangesAsync();
@@ -1257,19 +1259,19 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         /// <param name="nonceStr">随机字符串</param>
         /// <param name="pack"></param>
         /// <returns></returns>
-        public string GetSign(string appId, long timestamp, string nonceStr, string pack) {
+        public static string GetSign(string appId, long timestamp, string nonceStr, string pack) {
             string message = BuildMessage(appId, timestamp, nonceStr, pack);
             string paySign = Sign(message);
             return paySign;
         }
 
         // 构建消息
-        private string BuildMessage(string appId, long timestamp, string nonceStr, string pack) {
+        private static string BuildMessage(string appId, long timestamp, string nonceStr, string pack) {
             return $"{appId}\n{timestamp}\n{nonceStr}\n{pack}\n";
         }
 
         // 签名方法
-        private string Sign(string message) {
+        private static string Sign(string message) {
             // 获取商户私钥明文
             string privateKey = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_PrivateKey;
 
