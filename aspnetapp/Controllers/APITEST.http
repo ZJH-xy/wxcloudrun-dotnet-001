@@ -25,7 +25,8 @@ Post {{localhost}}/user/ql HTTP/1.1
 content-type: application/json
 
 {
-    "Code": "0e303A000RNSiT1PeA000TByGH103A0m"
+    "Code": "5b2defb2c87fefb4c96598a724ffd2cb5b493d3be7840a73c9b8b73ec14676d4",
+    "Unionid": "0e3IDa000yekjT1vDq100bJ8Lu0IDa0B"
 }
 
 ###
