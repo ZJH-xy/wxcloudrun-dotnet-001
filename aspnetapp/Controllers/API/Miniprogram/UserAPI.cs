@@ -336,15 +336,16 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             // 未注册
             if (user is null) {
 				// code 换取 session_key，支付时使用
-				//string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
-				//string secret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
-				//var sessionKey = await Senparc.Weixin.WxOpen.AdvancedAPIs.Sns.SnsApi.JsCode2JsonAsync(appid, secret, data.Code);
+				string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+                string secret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+                var sessionKey = await Senparc.Weixin.WxOpen.AdvancedAPIs.Sns.SnsApi.JsCode2JsonAsync(appid, secret, data.Unionid);
 
 				int changeSum;
 
                 // 创建新用户
                 user = new() {
                     Phone = result.phone_info.purePhoneNumber,
+                    Unionid = sessionKey.unionid,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
 				};
@@ -492,6 +493,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 	/// </summary>
 	public class GetQl {
         public string Code { get; set; }// 
+        public string Unionid { get; set; }
     }
 
     public class RealNameAuthentication {

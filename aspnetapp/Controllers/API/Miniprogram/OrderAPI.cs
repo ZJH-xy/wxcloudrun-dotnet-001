@@ -309,10 +309,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             int total = Order.GetTotal(order.GetTotalPrice());
             // 用户Unionid
             var user = await _dbContext.User.SingleAsync(u => u.Id == GetUserIdInt());
-            //string unionid = user.Unionid;
-            string secret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
-            var sessionKey = await Senparc.Weixin.WxOpen.AdvancedAPIs.Sns.SnsApi.JsCode2JsonAsync(appid, secret, data.Code);
-            string unionid = sessionKey.unionid;
+            string unionid = user.Unionid;
+            //string secret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+            //var sessionKey = await Senparc.Weixin.WxOpen.AdvancedAPIs.Sns.SnsApi.JsCode2JsonAsync(appid, secret, data.Code);
+            //string unionid = sessionKey.unionid;
 
             // 创建请求类
             TransactionsRequestData requestData = new() {
@@ -1303,7 +1303,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
     /// </summary>
     public class PayData {
         public int OrderId { get; set; }
-        public string Code { get; set; }
     }
 
     /// <summary>
