@@ -147,6 +147,18 @@ content-type: application/json
 
 
 ###
+Post {{localhost}}/order/test HTTP/1.1
+Authorization: Bearer {{authorization}}
+content-type: application/json
+
+{
+    "orderId": 18,
+    "Code": "0f3Tgc1006GEkT1OzQ000SL85z2Tgc1w"
+}
+
+
+
+###
 Post {{localhost}}/order/refund HTTP/1.1
 Authorization: Bearer {{authorization}}
 content-type: application/json
