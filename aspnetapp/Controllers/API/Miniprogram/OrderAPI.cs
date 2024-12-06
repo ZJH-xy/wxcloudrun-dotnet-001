@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis;
 using System.Collections;
 using Senparc.Weixin.TenPayV3.Apis.BasePay.Entities;
 using aspnetapp.Models;
-using NPOI.SS.Formula.Functions;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
@@ -35,10 +34,12 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         /// </summary>
         /// <param name="rentalLocation">租车门店Id</param>
         /// <param name="menuId">套餐Id</param>
+        /// <param name="depositRequired">需要押金</param>
         /// <returns></returns>
+        /// 
         [AllowAnonymous]// 允许匿名访问
-        [HttpGet("calculate/{rentalLocation}/{menuId}")]
-        public async Task<IActionResult> CalculateRent(int rentalLocation, int menuId) {
+        [HttpGet("calculate/{rentalLocation}/{menuId}/{depositRequired}")]
+        public async Task<IActionResult> CalculateRent(int rentalLocation, int menuId, bool depositRequired) {
             Store? store = await _dbContext.Store.SingleOrDefaultAsync(s => s.Id == rentalLocation && !s.IsDelete);
             if (store is null)
                 return StatusCode(404);
@@ -47,7 +48,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             if (storeMenus is null)
                 return StatusCode(404);
 
-            return StatusCode(200, storeMenus.Rent + storeMenus.Deposit);
+            decimal rent = storeMenus.Rent;
+            decimal deposit = depositRequired ? storeMenus.Deposit : 0;
+
+            return StatusCode(200, new { rent, deposit });
         }
 
         /// <summary>
@@ -88,7 +92,55 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "用户{UserId}查询订单信息", GetUserIdInt());
 
                 return StatusCode(500);
+            }
 
+            foreach (var order in orderList) {
+                // 如果在退款则请求
+                if (order.Status == Order.EOrderStatus.退款中) {
+                    var refundOrder = await _dbContext.RefundOrder.SingleAsync(ro => ro.TheOrder == order.Id);// 退款数据
+
+                    BasePayApis basePayApis = new();
+                    RefundReturnJson refundReturnJson = await basePayApis.RefundQueryAsync(new RefundQueryRequestData(order.OutTradeNo));// 查询退款信息
+
+                    if (refundReturnJson.ResultCode.Success != true) {
+                        _logger.LogError("请求获取退款信息失败{OrderId}", order.Id);
+                        continue;
+                    }
+
+                    if (refundReturnJson.status == "SUCCESS") {
+                        // 退款成功
+                        using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务
+
+                        order.Status = Order.EOrderStatus.已退款;
+                        order.UpdatedAt = DateTime.Now;
+
+                        refundOrder.SuccessTime = refundReturnJson.success_time;
+                        refundOrder.UpdatedAt = DateTime.Now;
+
+                        try {
+                            _dbContext.Order.Update(order);
+                            await _dbContext.SaveChangesAsync();
+                            await transaction.CommitAsync();
+
+                        } catch (Exception e) {
+                            _logger.LogError(e, "[GetOderByUserId]更新退款信息");
+                            await transaction.RollbackAsync();
+                            throw;
+                        }
+                    } else {
+                        // 其他状态
+                        refundOrder.Status = (RefundOrder.Estatus)RefundOrderEstatusHashtable[refundReturnJson.status]!;
+                        refundOrder.UpdatedAt = DateTime.Now;
+                        try {
+                            _dbContext.RefundOrder.Update(refundOrder);
+                            await _dbContext.SaveChangesAsync();
+
+                        } catch (Exception e) {
+                            _logger.LogError(e, "更新退款状态");
+                            throw;
+                        }
+                    }
+                }
             }
 
             List<ReturnOrderBasic> returnOrderorderList = new();
@@ -232,7 +284,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                     UserName = data.UserName,// 用户姓名
                     UserPhone = data.UserPhone,// 用户手机号
                     IdentityCard = data.IdentityCard,// 身份证号
-                    Deposit = storeMenus.Deposit,// 押金
+                    Deposit = data.DepositRequired ? storeMenus.Deposit : 0,// 押金
                     Rent = storeMenus.Rent,// 租金
                     Status = Order.EOrderStatus.待付款,
                     CreatedAt = DateTime.Now,
@@ -280,20 +332,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             if (order.CreatedAt > now.AddMinutes(10)) {
                 return StatusCode(403, "订单已超时，请重新下单");
             }
-
             
-
-            // 订单付款中
-            //order.Status = Order.EOrderStatus.付款中;
-            //order.UpdatedAt = now;
-            //try {
-            //	_dbContext.Order.Update(order);
-            //	await _dbContext.SaveChangesAsync();
-
-            //} catch (Exception e) {
-            //	_logger.LogError(e, "更改订单{OrderId}状态为付款中", order.Id);
-            //	return StatusCode(500);
-            //}
             /* 订单数据定义 */
             string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
             string mchid = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_MchId;
@@ -392,6 +431,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             // 【预支付交易会话标识】 预支付交易会话标识。用于后续接口调用中使用，该值有效期为2小时
             string prepayId = result.prepay_id;
 
+            #region 加密
             if (prepayId.IsNullOrEmpty()) {
                 //_logger.LogError("getdata{}", data);
                 _logger.LogError("[PayOrder]创建订单错误result:{result}", result.ToJson(true));
@@ -419,6 +459,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             ////临时记录订单信息，留给退款申请接口测试使用（分布式情况下请注意数据同步）
             //HttpContext.Session.SetString("BillNo", sp_billno);
             //HttpContext.Session.SetString("BillFee", price.ToString());
+            #endregion
 
             return StatusCode(200, new { appid, timestamp, nonceStr, pack, signType, paySign });
         }
@@ -470,12 +511,12 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 //验证请求是否从微信发过来（安全）
 
                 //验证可靠的支付状态
-                if (true /*orderReturnJson.VerifySignSuccess == true*/) {
+                if (orderReturnJson.VerifySignSuccess == true) {
                     var now = DateTime.Now;
-                    order.Status = Order.EOrderStatus.待确认;// 更改订单状态
-                    order.Paid += orderReturnJson.amount.total / 100m;// 增加已付金额,在代码中将 `total` 转换为元
+                    //order.Status = Order.EOrderStatus.待确认;// 更改订单状态
+                    //order.Paid += orderReturnJson.amount.total / 100m;// 增加已付金额,在代码中将 `total` 转换为元
                     order.TransactionId = orderReturnJson.transaction_id;// 赋值微信传入的id
-                    order.UpdatedAt = now;
+                    //order.UpdatedAt = now;
 
                     try {
                         await _dbContext.SaveChangesAsync();
@@ -523,7 +564,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                                 try {
                                     _logger.LogInformation("开始更改订单状态");
                                     order.Status = Order.EOrderStatus.待确认;// 更改订单状态
-                                    order.Paid += orderReturnJson.amount.total;// 增加已付金额
+                                    order.Paid += orderReturnJson.amount.total / 100m;// 增加已付金额
+                                    order.SuccessTime = orderReturnJson.success_time;
                                     order.UpdatedAt = now;
                                     await _dbContext.SaveChangesAsync();
 
@@ -955,9 +997,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         }
         #endregion
 
-        #region 还车
-        [HttpPost("Return")]
-        public async Task<IActionResult> ReturnVehicle(GetReturnInfo getData) {
+        #region 还车（不使用）
+        private async Task<IActionResult> ReturnVehicle(GetReturnInfo getData) {
             // 检查订单状态
             Order? order = await _orderController.GetById(GetUserIdInt(), getData.OrderId);
             if (order is null || order.Status != Order.EOrderStatus.进行中) {
@@ -1184,7 +1225,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         /// <param name="order"></param>
         /// <param name="refundOrder"></param>
         /// <returns></returns>
-        private async Task<RefundReturnJson> RefundAsync(Order order, RefundOrder refundOrder) {
+        public async static Task<RefundReturnJson> RefundAsync(Order order, RefundOrder refundOrder) {
             /* 退款流程 */
             var now = DateTime.Now;
 
@@ -1267,19 +1308,19 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         /// <param name="nonceStr">随机字符串</param>
         /// <param name="pack"></param>
         /// <returns></returns>
-        public string GetSign(string appId, long timestamp, string nonceStr, string pack) {
+        public static string GetSign(string appId, long timestamp, string nonceStr, string pack) {
             string message = BuildMessage(appId, timestamp, nonceStr, pack);
             string paySign = Sign(message);
             return paySign;
         }
 
         // 构建消息
-        private string BuildMessage(string appId, long timestamp, string nonceStr, string pack) {
+        private static string BuildMessage(string appId, long timestamp, string nonceStr, string pack) {
             return $"{appId}\n{timestamp}\n{nonceStr}\n{pack}\n";
         }
 
         // 签名方法
-        private string Sign(string message) {
+        private static string Sign(string message) {
             // 获取商户私钥明文
             string privateKey = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_PrivateKey;
 
