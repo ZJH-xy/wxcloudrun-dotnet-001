@@ -39,7 +39,7 @@ namespace aspnetapp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("T_AdminAccount");
+                    b.ToTable("T_AdminAccount", (string)null);
                 });
 
             modelBuilder.Entity("aspnetapp.Models.HomepageAd", b =>
@@ -67,7 +67,7 @@ namespace aspnetapp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("T_HomepageAd");
+                    b.ToTable("T_HomepageAd", (string)null);
                 });
 
             modelBuilder.Entity("aspnetapp.Models.Order", b =>
@@ -169,7 +169,7 @@ namespace aspnetapp.Migrations
 
                     b.HasIndex("TheUser", "Status");
 
-                    b.ToTable("T_OrderForm");
+                    b.ToTable("T_OrderForm", (string)null);
                 });
 
             modelBuilder.Entity("aspnetapp.Models.RefundOrder", b =>
@@ -211,7 +211,7 @@ namespace aspnetapp.Migrations
 
                     b.HasIndex("TheOrder");
 
-                    b.ToTable("T_RefundOrderForm");
+                    b.ToTable("T_RefundOrderForm", (string)null);
                 });
 
             modelBuilder.Entity("aspnetapp.Models.RevenueStatistics", b =>
@@ -252,7 +252,7 @@ namespace aspnetapp.Migrations
 
                     b.HasIndex("TheStoreA", "TheStoreB");
 
-                    b.ToTable("T_RevenueStatistics");
+                    b.ToTable("T_RevenueStatistics", (string)null);
                 });
 
             modelBuilder.Entity("aspnetapp.Models.Store", b =>
@@ -311,7 +311,7 @@ namespace aspnetapp.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("T_StoreSummary");
+                    b.ToTable("T_StoreSummary", (string)null);
                 });
 
             modelBuilder.Entity("aspnetapp.Models.StoreAccount", b =>
@@ -341,7 +341,7 @@ namespace aspnetapp.Migrations
                     b.HasIndex("TheStore", "Account")
                         .IsUnique();
 
-                    b.ToTable("T_StoreAccount");
+                    b.ToTable("T_StoreAccount", (string)null);
                 });
 
             modelBuilder.Entity("aspnetapp.Models.StoreMenu", b =>
@@ -376,7 +376,7 @@ namespace aspnetapp.Migrations
 
                     b.HasIndex("TheStore");
 
-                    b.ToTable("T_StoreMenu");
+                    b.ToTable("T_StoreMenu", (string)null);
                 });
 
             modelBuilder.Entity("aspnetapp.Models.User", b =>
@@ -412,6 +412,10 @@ namespace aspnetapp.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp(6)");
 
+                    b.Property<string>("Unionid")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -420,7 +424,7 @@ namespace aspnetapp.Migrations
                     b.HasIndex("Phone")
                         .IsUnique();
 
-                    b.ToTable("T_Users");
+                    b.ToTable("T_Users", (string)null);
                 });
 
             modelBuilder.Entity("aspnetapp.Models.UserFavoritesStore", b =>
@@ -447,7 +451,7 @@ namespace aspnetapp.Migrations
 
                     b.HasIndex("TheUser");
 
-                    b.ToTable("T_UserFavoritesStore");
+                    b.ToTable("T_UserFavoritesStore", (string)null);
                 });
 
             modelBuilder.Entity("aspnetapp.Models.Vehicle", b =>
@@ -519,7 +523,7 @@ namespace aspnetapp.Migrations
 
                     b.HasIndex("TheOriginalStore", "TheCurrentStore", "State");
 
-                    b.ToTable("T_VehicleSummary");
+                    b.ToTable("T_VehicleSummary", (string)null);
                 });
 
             modelBuilder.Entity("aspnetapp.Models.VehicleReplacementRecord", b =>
@@ -555,7 +559,7 @@ namespace aspnetapp.Migrations
 
                     b.HasIndex("TheOrder");
 
-                    b.ToTable("T_VehicleReplacementRecord");
+                    b.ToTable("T_VehicleReplacementRecord", (string)null);
                 });
 #pragma warning restore 612, 618
         }
