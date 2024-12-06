@@ -14,7 +14,7 @@
 		/// <summary>
 		/// 用户在开放平台的唯一标识符，若当前小程序已绑定到微信开放平台账号下会返回，详见 UnionID 机制说明。
 		/// </summary>
-		public string Unionid { get; init; }
+		public string Unionid { get; set; }
 
 		/// <summary>
 		/// 手机号码
