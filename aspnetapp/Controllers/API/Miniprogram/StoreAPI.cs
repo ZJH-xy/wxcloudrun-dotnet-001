@@ -94,7 +94,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 }
             }*/
 
-            if (list.Any(s => s.Id == storeId))
+            if (list.Any(s => s.TheStore == storeId))
                 return StatusCode(403, "不可重复收藏");
 
             await _favoritesStoreController.AddFavoritesStore(GetUserIdInt(), storeId);
