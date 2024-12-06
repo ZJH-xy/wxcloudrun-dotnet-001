@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using aspnetapp.Controllers.Miniprogram;
 using aspnetapp.Controllers.API.Miniprogram;
 using aspnetapp.Models;
+using Senparc.Weixin.TenPayV3.Apis.BasePay;
 
 namespace aspnetapp.Controllers.API.StoreAccount
 {
@@ -347,7 +348,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "订单{OrderId}查询", getData.OderId);
                 return StatusCode(500);
-				
 			}
 
             if (order is null)
@@ -368,13 +368,43 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "套餐{StoreMenuId}查询", order.TheStoreMenu);
                 return StatusCode(500);
-				
 			}
 
             using var transaction = await _dbContext.Database.BeginTransactionAsync();/* 事务开始 */
 
             /* 判断超时 */
-            DateTime now = DateTime.Now;
+            // 当前时间
+            var now = DateTime.Now;
+
+            // 超时费率 (每小时10元)
+            decimal overtimeRate = 10;
+
+            // 订单开始时间
+            DateTime actualStartingTime = (DateTime)order.ActualStartingTime!;
+
+            // 免费时间长度 (1小时)
+            TimeSpan freeDuration = TimeSpan.FromHours(1);
+
+            // 计算订单已经持续的时间
+            TimeSpan elapsedTime = now - actualStartingTime;
+
+            // 如果超时，计算超时费用
+            if (elapsedTime > freeDuration) {
+                // 超出免费时间的部分
+                TimeSpan overtime = elapsedTime - freeDuration;
+
+                // 按小时计算超时费用（向上取整到整小时）
+                int overtimeHours = (int)Math.Ceiling(overtime.TotalHours);
+
+                // 计算总超时费用
+                order.OvertimeFee += overtimeHours * overtimeRate;
+            }
+
+            // 调度
+            if (order.TheRentalLocation != GetUserIdInt()) {
+                order.DispatchFee += 10;
+            }
+
             order.ActualReturnTime = now;// 更新订单归还时间
             DateTime startingTime = (DateTime)order.ActualStartingTime!;// 租车开始时间
             DateTime expireTime = startingTime.AddHours(storeMenu.Duration);// 开始时间加上套餐时间
@@ -386,80 +416,71 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 order.OvertimeFee = (decimal)(overtime.Hours * 5);// 超时费，一小时5 元
             }
 
-            /* 判断调度费 */
-            int storeId;// 当前商家Id
-            try {
-                storeId = await _dbContext.StoreAccount.Where(sa => sa.Id == GetUserIdInt()).Select(sa => sa.TheStore).FirstAsync();
-
-            } catch (Exception e) {
-                _logger.LogError(e, "根据商家帐号Id{VehicleReplacementRecordId}获取storeId", GetUserIdInt());
-                return StatusCode(500);
-				
-			}
-
-            // 租车点不等于当前门店Id
-            if (order.TheRentalLocation != storeId) {
-                order.DispatchFee += (decimal)10;// 调度费，一次10 元
-            }
-
-            /* 计算总价，更新订单 */
-            decimal orderTotalPrice = order.GetTotalPrice();// 订单总价
-
-            /* 退还押金或支付差价 */
-            decimal totalPrice;
 
             // 已付金额小于总金额
             if (order.Paid < order.GetTotalPrice()) {
                 // 要求用户支付剩余金额
 
+
+
+
+                return StatusCode(202);
             } else {
-                // 退还剩余押金
+                // 进入退款
+                // 退押金金额（金额修改完成后计算！！！）
+                var sum = order.Paid - order.GetTotalPrice();
 
+                // 新建退款表数据
+                RefundOrder refundOrder = new() {
+                    TheOrder = order.Id,
+                    RefundId = "",//等待
+                    Reason = "自动退款",
+                    Status = RefundOrder.Estatus.已创建,//等待
+                    Total = Order.GetTotal(order.Paid),
+                    Refund = Order.GetTotal(sum),//归还多余费用
+                    SuccessTime = null,//等待
+                    CreateTime = now,//等待
+                    UpdatedAt = now,
+                };
+
+                try {
+                    Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+                    vehicle.State = Vehicle.Estates.侍确认;
+                    vehicle.StateUpdatedAt = now;
+
+                    // 生成退款表数据
+                    _dbContext.RefundOrder.Add(refundOrder);
+
+                    // 调用退款服务
+                    RefundReturnJson refundReturnJson = await OrderAPI.RefundAsync(order, refundOrder);
+
+                    order.Status = Order.EOrderStatus.退款中;
+                    order.ActualReturnTime = now;// 归还时间
+                    order.TheReturnThePoint = GetUserIdInt();
+                    order.DepositRefunded += refundOrder.Refund;
+                    order.UpdatedAt = now;
+
+                    // 营业额统计表
+                    RevenueStatistics revenueStatistics = new() {
+                        TheStoreA = order.TheRentalLocation,
+                        TheStoreB = GetUserIdInt(),
+                        TheOrder = order.Id,
+                        CreatedAt = now,
+                        UpdatedAt = now,
+                    };
+
+                    await _dbContext.RevenueStatistic.AddAsync(revenueStatistics);
+                    await _dbContext.SaveChangesAsync();
+
+                    // 如果退款成功，提交事务
+                    await transaction.CommitAsync();
+                } catch (Exception ex) {
+                    _logger.LogError(ex, "订单处理失败。订单ID: {OrderId}, 车辆ID: {VehicleId}, 退款金额: {RefundAmount}",
+                        order.Id, order.TheVehicle, refundOrder.Refund);
+                    await transaction.RollbackAsync();
+                    return StatusCode(500);
+                }
             }
-
-            // 更新订单金额
-
-            /* 车辆状态改为侍确认 */
-            Vehicle vehicle;
-            try {
-                vehicle = await _dbContext.Vehicle.SingleAsync(o => o.Id == order.TheVehicle);
-
-            } catch (Exception e) {
-                _logger.LogError(e, "订单结束，获取车辆{VehicleId}", order.TheVehicle);
-                return StatusCode(500);
-				
-			}
-            vehicle.State = Vehicle.Estates.侍确认;
-            vehicle.StateUpdatedAt = now;
-
-            /* 订单表Order 状态更新 */
-            order.Status = EOrderStatus.已完成;
-            order.UpdatedAt = now;
-            order.TheReturnThePoint = storeId;// 当前商家Id
-
-            /* 营业额统计表RevenueStatistics 更新 */
-            RevenueStatistics revenueStatistics = new() {
-                TheOrder = order.Id,
-                TheStoreA = order.TheRentalLocation,
-                TheStoreB = storeId,
-                CreatedAt = now,
-                UpdatedAt = now
-            };
-
-            // 保存修改
-            try {
-                _dbContext.Vehicle.Update(vehicle);
-                _dbContext.Order.Update(order);
-                await _dbContext.RevenueStatistic.AddAsync(revenueStatistics);
-                await _dbContext.SaveChangesAsync();
-                await transaction.CommitAsync();// 提交事务
-
-            } catch (Exception e) {
-                _logger.LogCritical(e, "用户还车事务");
-                await transaction.RollbackAsync();// 回滚
-                return StatusCode(500);
-				
-			}
 
             return StatusCode(200);
         }

@@ -11,8 +11,6 @@ using Senparc.CO2NET.Extensions;
 using Microsoft.CodeAnalysis;
 using System.Collections;
 using Senparc.Weixin.TenPayV3.Apis.BasePay.Entities;
-using aspnetapp.Models;
-using NPOI.SS.Formula.Functions;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
@@ -285,20 +283,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             if (order.CreatedAt > now.AddMinutes(10)) {
                 return StatusCode(403, "订单已超时，请重新下单");
             }
-
             
-
-            // 订单付款中
-            //order.Status = Order.EOrderStatus.付款中;
-            //order.UpdatedAt = now;
-            //try {
-            //	_dbContext.Order.Update(order);
-            //	await _dbContext.SaveChangesAsync();
-
-            //} catch (Exception e) {
-            //	_logger.LogError(e, "更改订单{OrderId}状态为付款中", order.Id);
-            //	return StatusCode(500);
-            //}
             /* 订单数据定义 */
             string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
             string mchid = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_MchId;
@@ -529,6 +514,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                                     _logger.LogInformation("开始更改订单状态");
                                     order.Status = Order.EOrderStatus.待确认;// 更改订单状态
                                     order.Paid += orderReturnJson.amount.total;// 增加已付金额
+                                    order.SuccessTime = orderReturnJson.success_time;
                                     order.UpdatedAt = now;
                                     await _dbContext.SaveChangesAsync();
 
@@ -960,9 +946,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         }
         #endregion
 
-        #region 还车
-        [HttpPost("Return")]
-        public async Task<IActionResult> ReturnVehicle(GetReturnInfo getData) {
+        #region 还车（不使用）
+        private async Task<IActionResult> ReturnVehicle(GetReturnInfo getData) {
             // 检查订单状态
             Order? order = await _orderController.GetById(GetUserIdInt(), getData.OrderId);
             if (order is null || order.Status != Order.EOrderStatus.进行中) {
@@ -1189,7 +1174,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         /// <param name="order"></param>
         /// <param name="refundOrder"></param>
         /// <returns></returns>
-        private async Task<RefundReturnJson> RefundAsync(Order order, RefundOrder refundOrder) {
+        public async static Task<RefundReturnJson> RefundAsync(Order order, RefundOrder refundOrder) {
             /* 退款流程 */
             var now = DateTime.Now;
 
