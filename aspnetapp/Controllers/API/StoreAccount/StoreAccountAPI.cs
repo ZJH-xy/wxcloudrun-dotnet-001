@@ -92,6 +92,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             return StatusCode(200, new ReturnConfirmOrder(order));
         }
 
+        #region 商家确认订单
         /// <summary>
         /// 商家确认订单
         /// </summary>
@@ -167,6 +168,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             return StatusCode(200);
         }
+        #endregion
 
         /// <summary>
         /// 商家获取换车信息
@@ -335,11 +337,18 @@ namespace aspnetapp.Controllers.API.StoreAccount
         /// <returns></returns>
         [HttpGet("confirm/vehicle/return/{orderId}")]
         public async Task<IActionResult> GetConfirmVehicleReturn(int orderId) {
+            Order? order = await storeAccountController.GetConfirmOder(orderId);
 
+            if (order is null)
+                return StatusCode(404, "订单不存在");// 订单不存在
 
-            return StatusCode(200);
+            if (order.Status != Order.EOrderStatus.进行中)
+                return StatusCode(403, "订单状态异常");
+
+            return StatusCode(200, new ReturnOrder(order));
         }
 
+        #region 商家确认还车
         /// <summary>
         /// 商家确认还车
         /// </summary>
@@ -620,7 +629,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             return StatusCode(200);
         }
-
+        #endregion
 
         #region 接收支付回调
         /// <summary>
@@ -940,5 +949,41 @@ namespace aspnetapp.Controllers.API.StoreAccount
         public string? Notes { get; set; }// 备注
         // 套餐相关
         public int Duration { get; set; }// 小时时长
+    }
+
+    /// <summary>
+    /// 商家确认还车返回格式
+    /// </summary>
+    public struct ReturnOrder {
+        public ReturnOrder(Order order) {
+            Id = order.Id;
+            TheVehicle = order.TheVehicle;
+            TheStoreMenu = order.TheStoreMenu;
+            ActualStartingTime = order.ActualStartingTime;
+            TheRentalLocation = order.TheRentalLocation;
+            UserName = order.UserName;
+            UserPhone = order.UserPhone;
+            Deposit = order.Deposit;
+            Rent = order.Rent;
+            Paid = order.Paid;
+            Status = order.Status;
+            CreatedAt = order.CreatedAt;
+            Notes = order.Notes;
+        }
+        public int Id { get; init; }// 订单编号
+        public int TheVehicle { get; set; }// 租用车辆
+        public DateTime? ActualStartingTime { get; set; }// 实际起始时间
+        public int TheStoreMenu { get; set; }// 套餐
+        public int TheRentalLocation { get; set; }// 租车点（StoreId）
+        public string UserName { get; set; }// 用户姓名
+        public string UserPhone { get; set; }// 用户手机号
+        public decimal Deposit { get; set; }// 押金
+        public decimal Rent { get; set; }// 租金
+        public decimal Paid { get; set; }// 已付
+        public Order.EOrderStatus Status { get; set; }// 订单状态
+        public DateTime CreatedAt { get; set; }
+        public string? Notes { get; set; }// 备注
+        //public DateTime UpdatedAt { get; set; }
+        //public string? IdentityCard { get; set; }// 身份证号
     }
 }
