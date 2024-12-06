@@ -701,7 +701,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                             // 微信支付订单号查询订单，二次验证
                             BasePayApis basePayApis = new();
                             string mchid = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_MchId;
-                            var trade = await basePayApis.OrderQueryByTransactionIdAsync(new QueryRequestData(mchid, order.TransactionId));
+                            var trade = await basePayApis.OrderQueryByTransactionIdAsync(new QueryRequestData(mchid, supplementaryOrders.TransactionId));
 
                             if (trade.trade_state != "SUCCESS") {
                                 returnData.code = "FAIL";//错误的订单处理
