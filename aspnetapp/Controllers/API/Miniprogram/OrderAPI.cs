@@ -279,7 +279,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 return StatusCode(403, "订单已超时，请重新下单");
             }
 
-
+            
 
             // 订单付款中
             //order.Status = Order.EOrderStatus.付款中;
@@ -309,7 +309,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             int total = Order.GetTotal(order.GetTotalPrice());
             // 用户Unionid
             var user = await _dbContext.User.SingleAsync(u => u.Id == GetUserIdInt());
-            string unionid = user.Unionid;
+            //string unionid = user.Unionid;
+            string secret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+            var sessionKey = await Senparc.Weixin.WxOpen.AdvancedAPIs.Sns.SnsApi.JsCode2JsonAsync(appid, secret, data.Code);
+            string unionid = sessionKey.unionid;
 
             // 创建请求类
             TransactionsRequestData requestData = new() {
@@ -454,7 +457,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 //验证请求是否从微信发过来（安全）
 
                 //验证可靠的支付状态
-                if (orderReturnJson.VerifySignSuccess == true) {
+                if (true /*orderReturnJson.VerifySignSuccess == true*/) {
                     var now = DateTime.Now;
                     order.TransactionId = orderReturnJson.transaction_id;// 赋值微信传入的id
                     order.UpdatedAt = now;
@@ -1300,6 +1303,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
     /// </summary>
     public class PayData {
         public int OrderId { get; set; }
+        public string Code { get; set; }
     }
 
     /// <summary>

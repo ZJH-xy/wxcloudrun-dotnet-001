@@ -336,9 +336,9 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             // 未注册
             if (user is null) {
 				// code 换取 session_key，支付时使用
-				string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
-				string secret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
-				var sessionKey = await Senparc.Weixin.WxOpen.AdvancedAPIs.Sns.SnsApi.JsCode2JsonAsync(appid, secret, data.Code);
+				//string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+				//string secret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+				//var sessionKey = await Senparc.Weixin.WxOpen.AdvancedAPIs.Sns.SnsApi.JsCode2JsonAsync(appid, secret, data.Code);
 
 				int changeSum;
 
@@ -346,9 +346,9 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 user = new() {
                     Phone = result.phone_info.purePhoneNumber,
                     CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-					Unionid = sessionKey.unionid
+                    UpdatedAt = DateTime.Now
 				};
+                _logger.LogInformation("创建新用户{User}", user.ToJson(true));
                 try {
                     changeSum = await _userController.AddUser(user);
                     if (0 == changeSum)
