@@ -758,7 +758,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                         try {
                             var now = DateTime.Now;
 
-                            var refundOrder = await _dbContext.RefundOrder.SingleAsync(ro => ro.Id == int.Parse(refundNotifyJson.out_refund_no));
+                            var refundOrder = await _dbContext.RefundOrder.SingleAsync(ro => ro.RefundId == refundNotifyJson.out_refund_no);
                             refundOrder.Status = (RefundOrder.Estatus)RefundOrderEstatusHashtable[refundNotifyJson.refund_status]!;
                             refundOrder.SuccessTime = DateTimeOffset.Parse(refundNotifyJson.success_time).UtcDateTime;// 退款成功时间
                             refundOrder.UpdatedAt = now;
