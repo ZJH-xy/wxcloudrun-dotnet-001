@@ -11,6 +11,7 @@ using Senparc.CO2NET.Extensions;
 using Microsoft.CodeAnalysis;
 using System.Collections;
 using Senparc.Weixin.TenPayV3.Apis.BasePay.Entities;
+using aspnetapp.Models;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
@@ -91,7 +92,55 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "用户{UserId}查询订单信息", GetUserIdInt());
 
                 return StatusCode(500);
+            }
 
+            foreach (var order in orderList) {
+                // 如果在退款则请求
+                if (order.Status == Order.EOrderStatus.退款中) {
+                    var refundOrder = await _dbContext.RefundOrder.SingleAsync(ro => ro.TheOrder == order.Id);// 退款数据
+
+                    BasePayApis basePayApis = new();
+                    RefundReturnJson refundReturnJson = await basePayApis.RefundQueryAsync(new RefundQueryRequestData(order.OutTradeNo));// 查询退款信息
+
+                    if (refundReturnJson.ResultCode.Success != true) {
+                        _logger.LogError("请求获取退款信息失败{OrderId}", order.Id);
+                        continue;
+                    }
+
+                    if (refundReturnJson.status == "SUCCESS") {
+                        // 退款成功
+                        using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务
+
+                        order.Status = Order.EOrderStatus.已退款;
+                        order.UpdatedAt = DateTime.Now;
+
+                        refundOrder.SuccessTime = refundReturnJson.success_time;
+                        refundOrder.UpdatedAt = DateTime.Now;
+
+                        try {
+                            _dbContext.Order.Update(order);
+                            await _dbContext.SaveChangesAsync();
+                            await transaction.CommitAsync();
+
+                        } catch (Exception e) {
+                            _logger.LogError(e, "[GetOderByUserId]更新退款信息");
+                            await transaction.RollbackAsync();
+                            throw;
+                        }
+                    } else {
+                        // 其他状态
+                        refundOrder.Status = (RefundOrder.Estatus)RefundOrderEstatusHashtable[refundReturnJson.status]!;
+                        refundOrder.UpdatedAt = DateTime.Now;
+                        try {
+                            _dbContext.RefundOrder.Update(refundOrder);
+                            await _dbContext.SaveChangesAsync();
+
+                        } catch (Exception e) {
+                            _logger.LogError(e, "更新退款状态");
+                            throw;
+                        }
+                    }
+                }
             }
 
             List<ReturnOrderBasic> returnOrderorderList = new();
