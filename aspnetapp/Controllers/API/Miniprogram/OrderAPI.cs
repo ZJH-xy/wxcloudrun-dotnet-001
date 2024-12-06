@@ -735,12 +735,11 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 var refundNotifyJson = await resHandler.DecryptGetObjectAsync<RefundNotifyJson>();
 
                 WeixinTrace.SendCustomLog("跟踪RefundNotifyUrl信息", refundNotifyJson.ToJson(true));
+                _logger.LogInformation("refundNotifyJson:{refundNotifyJson}", refundNotifyJson.ToJson(true));
 
                 string refund_status = refundNotifyJson.refund_status;
                 //if (refundNotifyJson.VerifySignSuccess != true)
-                if (/*refundNotifyJson.VerifySignSuccess == true &*/ refund_status == "SUCCESS") {
-                    //returnData.code = "SUCCESS";
-                    //returnData.message = "OK";
+                if (/*refundNotifyJson.VerifySignSuccess == true &*/ /*refund_status == "SUCCESS"*/ true) {
 
                     //填写逻辑
                     WeixinTrace.SendCustomLog("RefundNotifyUrl被访问", "验证通过");
@@ -753,39 +752,48 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                     //string out_refund_no = refundNotifyJson.out_refund_no;
                     //int total_fee = refundNotifyJson.amount.payer_total;
                     //int refund_fee = refundNotifyJson.amount.refund;
-                   
-                    using (var transaction = await _dbContext.Database.BeginTransactionAsync()) {
-                        try {
-                            var now = DateTime.Now;
 
-                            var refundOrder = await _dbContext.RefundOrder.SingleAsync(ro => ro.RefundId == refundNotifyJson.out_refund_no);
-                            refundOrder.Status = (RefundOrder.Estatus)RefundOrderEstatusHashtable[refundNotifyJson.refund_status]!;
-                            refundOrder.SuccessTime = DateTimeOffset.Parse(refundNotifyJson.success_time).UtcDateTime;// 退款成功时间
-                            refundOrder.UpdatedAt = now;
-                            await _dbContext.SaveChangesAsync();
+                    switch (refund_status) {
+                        case "SUCCESS":
+                            using (var transaction = await _dbContext.Database.BeginTransactionAsync()) {
+                                try {
+                                    var now = DateTime.Now;
+                                    _logger.LogInformation("开始更新退款相关数据");
 
-                            Order order = await _dbContext.Order.SingleAsync(o => o.Id == refundOrder.TheOrder);
-                            order.Status = Order.EOrderStatus.已退款;
-                            order.UpdatedAt = now;
-                            await _dbContext.SaveChangesAsync();
+                                    var refundOrder = await _dbContext.RefundOrder.SingleAsync(ro => ro.RefundId == refundNotifyJson.out_refund_no);
+                                    refundOrder.Status = (RefundOrder.Estatus)RefundOrderEstatusHashtable[refundNotifyJson.refund_status]!;
+                                    refundOrder.SuccessTime = DateTimeOffset.Parse(refundNotifyJson.success_time).UtcDateTime;// 退款成功时间
+                                    refundOrder.UpdatedAt = now;
+                                    await _dbContext.SaveChangesAsync();
 
-                            Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
-                            vehicle.State = Vehicle.Estates.空闲;
-                            vehicle.StateUpdatedAt = now;
-                            vehicle.UpdatedAt = now;
-                            await _dbContext.SaveChangesAsync();
+                                    Order order = await _dbContext.Order.SingleAsync(o => o.Id == refundOrder.TheOrder);
+                                    order.Status = Order.EOrderStatus.已退款;
+                                    order.UpdatedAt = now;
+                                    await _dbContext.SaveChangesAsync();
 
-                            _logger.LogInformation("refundOrder更新{refundOrderId}", refundOrder.Id);
+                                    Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+                                    vehicle.State = Vehicle.Estates.空闲;
+                                    vehicle.StateUpdatedAt = now;
+                                    vehicle.UpdatedAt = now;
+                                    await _dbContext.SaveChangesAsync();
 
-                            await transaction.CommitAsync();
+                                    _logger.LogInformation("相关数据refundOrder更新{refundOrderId}", refundOrder.Id);
 
-                        } catch (Exception e) {
-                            await transaction.RollbackAsync();
-                            _logger.LogError(e, "退款回调refundOrder失败");
-                            returnData.code = "FAILD";
-                            returnData.message = "数据库更新错误";
-                            return StatusCode(500, returnData);
-                        }
+                                    await transaction.CommitAsync();
+
+                                } catch (Exception e) {
+                                    await transaction.RollbackAsync();
+                                    _logger.LogError(e, "退款回调refundOrder失败");
+                                    returnData.code = "FAILD";
+                                    returnData.message = "数据库更新错误";
+                                    return StatusCode(500, returnData);
+                                }
+                            }
+                            break;
+
+                        default:
+                            _logger.LogInformation("退款收到其他状态{refund_status}", refund_status);
+                            break;
                     }
 
                     return StatusCode(200);
@@ -803,13 +811,15 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             } catch (Exception ex) {
                 returnData.code = "FAILD";
                 returnData.message = ex.Message;
+                _logger.LogError(ex, "退款回调发生错误");
                 WeixinTrace.WeixinExceptionLog(new WeixinException(ex.Message, ex));
+                return StatusCode(500, returnData);
             }
 
             //https://pay.weixin.qq.com/wiki/doc/apiv3/wechatpay/wechatpay3_3.shtml
             //return Json(returnData);
 
-            return StatusCode(200);
+            //return StatusCode(200);
         }
         #endregion
 
