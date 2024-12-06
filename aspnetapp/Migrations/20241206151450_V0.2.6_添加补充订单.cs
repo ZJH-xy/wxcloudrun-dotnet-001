@@ -16,6 +16,7 @@ namespace aspnetapp.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    TheOrder = table.Column<int>(type: "int", nullable: false),
                     OutTradeNo = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     TransactionId = table.Column<string>(type: "longtext", nullable: true)

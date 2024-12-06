@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace aspnetapp.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    [Migration("20241206151147_V0.2.6_添加补充订单")]
+    [Migration("20241206151450_V0.2.6_添加补充订单")]
     partial class V026_添加补充订单
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -407,6 +407,9 @@ namespace aspnetapp.Migrations
 
                     b.Property<DateTime?>("SuccessTime")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int>("TheOrder")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Total")
                         .HasPrecision(10, 2)

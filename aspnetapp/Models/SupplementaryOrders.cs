@@ -11,6 +11,10 @@ namespace aspnetapp.Models {
         [Key]
         public int Id { get; init; }
         /// <summary>
+        /// 订单编号
+        /// </summary>
+        public int TheOrder {get; set;}
+        /// <summary>
         /// 商户系统内部订单号，可以是数字、大小写字母_-*的任意组合且在同一个商户号下唯一。
         /// </summary>
         public string? OutTradeNo { get; set; }
