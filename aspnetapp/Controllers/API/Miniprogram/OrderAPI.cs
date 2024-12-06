@@ -35,10 +35,12 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         /// </summary>
         /// <param name="rentalLocation">租车门店Id</param>
         /// <param name="menuId">套餐Id</param>
+        /// <param name="depositRequired">需要押金</param>
         /// <returns></returns>
+        /// 
         [AllowAnonymous]// 允许匿名访问
-        [HttpGet("calculate/{rentalLocation}/{menuId}")]
-        public async Task<IActionResult> CalculateRent(int rentalLocation, int menuId) {
+        [HttpGet("calculate/{rentalLocation}/{menuId}/{depositRequired}")]
+        public async Task<IActionResult> CalculateRent(int rentalLocation, int menuId, bool depositRequired) {
             Store? store = await _dbContext.Store.SingleOrDefaultAsync(s => s.Id == rentalLocation && !s.IsDelete);
             if (store is null)
                 return StatusCode(404);
@@ -47,7 +49,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             if (storeMenus is null)
                 return StatusCode(404);
 
-            return StatusCode(200, storeMenus.Rent + storeMenus.Deposit);
+            decimal rent = storeMenus.Rent;
+            decimal deposit = depositRequired ? storeMenus.Deposit : 0;
+
+            return StatusCode(200, new { rent, deposit });
         }
 
         /// <summary>
@@ -232,7 +237,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                     UserName = data.UserName,// 用户姓名
                     UserPhone = data.UserPhone,// 用户手机号
                     IdentityCard = data.IdentityCard,// 身份证号
-                    Deposit = storeMenus.Deposit,// 押金
+                    Deposit = data.DepositRequired ? storeMenus.Deposit : 0,// 押金
                     Rent = storeMenus.Rent,// 租金
                     Status = Order.EOrderStatus.待付款,
                     CreatedAt = DateTime.Now,
