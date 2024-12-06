@@ -290,7 +290,15 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		[HttpPost("ql")]
         public async Task<IActionResult> QuickLogin(GetQl data) {
             // 获取手机号
-            var result = await BusinessApi.GetUserPhoneNumberAsync(BaseContainer<AccessTokenBag>.GetFirstOrDefaultAppId(PlatformType.WxOpen), data.Code);
+            Senparc.Weixin.WxOpen.AdvancedAPIs.WxApp.Business.JsonResult.GetUserPhoneNumberJsonResult result;
+            try {
+                var appid = BaseContainer<AccessTokenBag>.GetFirstOrDefaultAppId(PlatformType.WxOpen);
+                result = await BusinessApi.GetUserPhoneNumberAsync(appid, data.Code);
+
+            } catch (Exception e) {
+                _logger.LogError(e, "获取手机号");
+                return StatusCode(500);
+            }
 
 			switch (result.errcode) {
                 case ReturnCode.请求成功:
