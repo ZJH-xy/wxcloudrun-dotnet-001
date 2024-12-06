@@ -226,6 +226,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 Order order = new() {
                     TheUser = userId,
                     TheRentalLocation = store.Id,
+                    OutTradeNo = string.Concat("Rental_", Guid.NewGuid().ToString("N").AsSpan(0, 20)),// 创建订单号
                     TheVehicle = data.Vehicle,// 车辆
                     TheStoreMenu = data.StoreMenuId,// 套餐Id
                     UserName = data.UserName,// 用户姓名
@@ -299,7 +300,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             // 商品描述
             string description = "测试";
             // 商户订单号
-            string outTradeNo = string.Concat("Rental_", Guid.NewGuid().ToString("N").AsSpan(0, 20), order.Id.ToString());// 创建订单号
+            string outTradeNo = order.OutTradeNo!;// 创建订单号
+            //string outTradeNo = string.Concat("Rental_", Guid.NewGuid().ToString("N").AsSpan(0, 20), order.Id.ToString());// 创建订单号
             // 交易结束时间（10分钟）
             string time_expire = order.CreatedAt.AddMinutes(10).ToString("yyyy-MM-ddTHH:mm:sszzz");
             // 附加数据
@@ -422,6 +424,16 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         }
         #endregion
 
+        #region 小程序查询订单支付状态
+        [HttpPost("query/notify")]
+        public async Task<IActionResult> QueryNotify(int orderId) {
+            Order? order = await _orderController.GetById(GetUserIdInt(), orderId);// 根据Id获取对应的订单
+
+
+            return StatusCode(200);
+        }
+        #endregion
+
         #region 接收支付回调
         /// <summary>
         /// 支付回调（侍测试）
@@ -444,13 +456,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
                 //演示记录 transaction_id，实际开发中需要记录到数据库，以便退款和后续跟踪
                 // transaction_id 微信支付系统生成的订单号。
-                Order? order = await _orderController.GetById(GetUserIdInt(), int.Parse(orderReturnJson.out_trade_no));// 根据Id获取对应的订单
-                //Order order = await _dbContext.Order.SingleAsync(o => o.Id.ToString() == orderReturnJson.out_trade_no);
-
-                order.Status = Order.EOrderStatus.待确认;// 更改订单状态
-                order.Paid += orderReturnJson.amount.total;// 增加已付金额
-                order.UpdatedAt = DateTime.Now;
-                await _dbContext.SaveChangesAsync();
+                //Order? order = await _orderController.GetById(GetUserIdInt(), int.Parse(orderReturnJson.out_trade_no));// 根据Id获取对应的订单
+                Order order = await _dbContext.Order.SingleAsync(o => o.OutTradeNo == orderReturnJson.out_trade_no);
 
                 if (order is null) {
                     _logger.LogError("订单获取错误transaction_id：{transaction_id}", orderReturnJson.out_trade_no);
@@ -465,6 +472,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 //验证可靠的支付状态
                 if (true /*orderReturnJson.VerifySignSuccess == true*/) {
                     var now = DateTime.Now;
+                    order.Status = Order.EOrderStatus.待确认;// 更改订单状态
+                    order.Paid += orderReturnJson.amount.total / 100m;// 增加已付金额,在代码中将 `total` 转换为元
                     order.TransactionId = orderReturnJson.transaction_id;// 赋值微信传入的id
                     order.UpdatedAt = now;
 
