@@ -345,7 +345,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 // 创建新用户
                 user = new() {
                     Phone = result.phone_info.purePhoneNumber,
-                    Unionid = sessionKey.unionid,
+                    Unionid = sessionKey.openid,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
 				};
