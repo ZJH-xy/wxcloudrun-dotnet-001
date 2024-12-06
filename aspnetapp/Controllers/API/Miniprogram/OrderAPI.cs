@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using System.Collections;
 using Senparc.Weixin.TenPayV3.Apis.BasePay.Entities;
 using aspnetapp.Models;
+using NPOI.SS.Formula.Functions;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
@@ -445,6 +446,11 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 // transaction_id 微信支付系统生成的订单号。
                 Order? order = await _orderController.GetById(GetUserIdInt(), int.Parse(orderReturnJson.out_trade_no));// 根据Id获取对应的订单
                 //Order order = await _dbContext.Order.SingleAsync(o => o.Id.ToString() == orderReturnJson.out_trade_no);
+
+                order.Status = Order.EOrderStatus.待确认;// 更改订单状态
+                order.Paid += orderReturnJson.amount.total;// 增加已付金额
+                order.UpdatedAt = DateTime.Now;
+                await _dbContext.SaveChangesAsync();
 
                 if (order is null) {
                     _logger.LogError("订单获取错误transaction_id：{transaction_id}", orderReturnJson.out_trade_no);
