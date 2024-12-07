@@ -546,10 +546,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         /// <exception cref="WeixinException"></exception>
         [HttpPost("pay/supplementaryOrder")]
         public async Task<IActionResult> PaySupplementaryOrder(PaySupplementaryOrderData data) {
-            var supplementaryOrders = await _dbContext.SupplementaryOrders.SingleOrDefaultAsync(o => o.TheOrder == data.SupplementaryOrderId);
+            var supplementaryOrders = await _dbContext.SupplementaryOrders.SingleOrDefaultAsync(o => o.Id == data.SupplementaryOrderId);
 
             if (supplementaryOrders is null) {
-                return StatusCode(404);
+                return StatusCode(404, "找不到");
             }
 
             /* 订单数据定义 */
@@ -563,7 +563,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             // 商户订单号
             //string outTradeNo = order.OutTradeNo!;// 创建订单号
             string outTradeNo = supplementaryOrders.OutTradeNo!;// 创建订单号
-                                                               // 交易结束时间（10分钟）
+            // 交易结束时间（10分钟）
             string time_expire = supplementaryOrders.CreatedAt.AddMinutes(10).ToString("yyyy-MM-ddTHH:mm:sszzz");
             // 附加数据
             string attach = "";
