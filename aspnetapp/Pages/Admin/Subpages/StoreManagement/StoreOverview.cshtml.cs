@@ -65,8 +65,17 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         public static string FileId { get; set; } = "";
 
 
+		/// <summary>
+		/// 添加
+		/// </summary>
+		/// <returns></returns>
+		[HttpPost]
+		public async Task<IActionResult> OnPostAddStoreAsync() {
 
-        /// <summary>
+			return await _storeControllerWeb.AddStoreAsync(NewStore);
+		}
+
+		/// <summary>
 		/// 用于提供给前端的 API 方法
 		/// </summary>
 		/// <param name="requestData"></param>
@@ -82,8 +91,8 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
                 var envId = _wxSetting.Value.Env;
 
                 // 模拟业务逻辑
-                ImageName = "admin/store/identityCardPictures/" + Guid.NewGuid().ToString() + ".jpg";
-                Console.WriteLine($"[97]ImageName: {ImageName}");
+                ImageName = "admin/store/pictures/" + Guid.NewGuid().ToString() + ".jpg";
+                Console.WriteLine($"ImageName: {ImageName}");
 
                 WxUploadFileJsonResult result = TcbApi.UploadFile(appId, envId, ImageName);
 
@@ -113,17 +122,6 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
                 return new JsonResult(new { success = false, message });
             }
         }
-
-        /// <summary>
-        /// 添加
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
-        public async Task<IActionResult> OnPostAddStoreAsync() {
-
-            return await _storeControllerWeb.AddStoreAsync(NewStore);
-        }
-
 
         /// <summary>
         /// 获取文件下载链接

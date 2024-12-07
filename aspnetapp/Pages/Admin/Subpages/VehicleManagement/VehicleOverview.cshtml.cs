@@ -79,7 +79,7 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
                 var envId = _wxSetting.Value.Env;
 
                 // 模拟业务逻辑
-                ImageName = "admin/user/identityCardPictures/" + Guid.NewGuid().ToString() + ".jpg";
+                ImageName = "admin/vehicle/pictures/" + Guid.NewGuid().ToString() + ".jpg";
                 Console.WriteLine($"[97]ImageName: {ImageName}");
 
                 WxUploadFileJsonResult result = TcbApi.UploadFile(appId, envId, ImageName);
@@ -230,6 +230,38 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 			PageIndex = requestData["PageIndex"];
 
 			return new JsonResult(new { success = true, message = "成功", pageIndex = PageIndex });
+		}
+
+		/// <summary>
+		/// 获取文件下载链接
+		/// </summary>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		[HttpPost]
+		[IgnoreAntiforgeryToken]
+		public async Task<JsonResult> OnPostImageDownload([FromBody] Dictionary<string, string> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+			var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+			var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+			var envId = _wxSetting.Value.Env;
+
+			List<FileItem> fileid_list = new() {
+				new FileItem {
+					fileid = requestData["fileid"],
+					max_age = 7200
+				}
+				};
+
+			var re = await TcbApi.BatchDownloadFileAsync(appId, envId, fileid_list);
+			if (re.errcode != ReturnCode.请求成功) {
+				_logger.LogError("{errmsg},获取下载链接{fileid_list}", re.errmsg, fileid_list.ToJson());
+			}
+
+			return new JsonResult(new { success = true, message = "获取文件下载链接结束", re.file_list });
 		}
 
 		/// <summary>
