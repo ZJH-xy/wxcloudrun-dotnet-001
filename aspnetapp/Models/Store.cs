@@ -53,12 +53,12 @@
 		/// <summary>
 		/// Longitude 经度，范围 [-180, 180]
 		/// </summary>
-		public double GpsLongitude { get; init; }
+		public double GpsLongitude { get; set; }
 
 		/// <summary>
 		/// Latitude 纬度，范围 [-90, 90]
 		/// </summary>
-		public double GpsLatitude { get; init; }
+		public double GpsLatitude { get; set; }
 
 		/// <summary>
 		/// 门店图片

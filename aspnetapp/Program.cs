@@ -23,9 +23,6 @@ builder.Services.AddDbContext<MyDbContext>((serviceProvider, options) => {
 builder.Services.AddRazorPages();
 
 // 激活本地缓存
-builder.Services.AddScoped<UserControllerWeb>();
-builder.Services.AddScoped<VehicleControllerWeb>();
-builder.Services.AddScoped<OrderControllerWeb>();
 
 // 小程序相关
 builder.Services.AddMemoryCache();
@@ -41,6 +38,8 @@ builder.Services.AddScoped<IFavoritesStoreRepository, FavoritesStoreController>(
 builder.Services.AddScoped<UserControllerWeb>();
 builder.Services.AddScoped<VehicleControllerWeb>();
 builder.Services.AddScoped<StatisticsControllerWeb>();
+builder.Services.AddScoped<OrderControllerWeb>();
+builder.Services.AddScoped<StoreControllerWeb>();
 
 builder.Services.AddScoped<OrderAPI>();// 注册 OrderAPI，定时取消订单
 builder.Services.AddHostedService<TimedHostedService>();
