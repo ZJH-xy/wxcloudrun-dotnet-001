@@ -116,6 +116,17 @@ GET {{localhost}}/storeAccount/confirm/order/13 HTTP/1.1
 Authorization: Bearer {{storeAccountauthorization}}
 
 
+###
+Post {{localhost}}/storeAccount/confirm/order HTTP/1.1
+Authorization: Bearer {{storeAccountauthorization}}
+content-type: application/json
+
+{
+    "OderId": 62,
+    "TheVehicle": 24
+}
+
+
 ### 确认订单
 POST {{localhost}}/storeAccount/confirm HTTP/1.1
 Authorization: Bearer {{storeAccountauthorization}}
