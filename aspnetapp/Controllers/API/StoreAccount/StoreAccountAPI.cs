@@ -144,26 +144,43 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (vehicle.TheCurrentStore != storeId)// 车辆当前所在门店
                 return StatusCode(403, "车辆不在当前门店");
 
-            if (vehicle.State != Vehicle.Estates.锁定)
+            if ((vehicle.State != Vehicle.Estates.锁定) || (vehicle.State != Vehicle.Estates.空闲))
                 return StatusCode(403, "车辆状态异常");
 
             using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
 
             DateTime now = DateTime.Now;
 
-            /* 确认订单 */
-            order.Status = Order.EOrderStatus.进行中;
-            order.ActualStartingTime = now;
+
             vehicle.State = Vehicle.Estates.已出租;
-            try {
-                await _dbContext.SaveChangesAsync();
+            try {/* 确认订单 */
+                order.Status = Order.EOrderStatus.进行中;
+                order.ActualStartingTime = now;
+
+                if (order.TheVehicle != getData.TheVehicle) {
+                    Vehicle oldV = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+                    oldV.State = Vehicle.Estates.空闲;
+                    oldV.UpdatedAt = now;
+                    oldV.StateUpdatedAt = now;
+                    _dbContext.Update(oldV);
+                    await _dbContext.SaveChangesAsync();
+
+                    order.TheVehicle = getData.TheVehicle;
+                    order.UpdatedAt = now;
+                    vehicle.State = Vehicle.Estates.已出租;
+                    vehicle.UpdatedAt = now;
+                    vehicle.StateUpdatedAt = now;
+                    _dbContext.Update(vehicle);
+                    _dbContext.Update(order);
+                    await _dbContext.SaveChangesAsync();
+                }
+
                 await transaction.CommitAsync();// 提交事务
 
             } catch (Exception e) {
                 _logger.LogError(e, "确认订单事务失败，订单{OrderId}，车辆{VehicleId}状态更改", order.Id, vehicle.Id);
                 await transaction.RollbackAsync();// 回滚事务
                 return StatusCode(500);
-				
 			}
 
             return StatusCode(200);
