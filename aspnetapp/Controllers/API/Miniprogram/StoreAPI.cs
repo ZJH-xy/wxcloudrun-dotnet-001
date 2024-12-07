@@ -1,5 +1,6 @@
 ﻿using aspnetapp.Controllers.Miniprogram;
 using Microsoft.AspNetCore.Authorization;
+using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 using System.Security.Claims;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
@@ -11,13 +12,15 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         private readonly ILogger<StoreAPI> _logger;
         private readonly StoreController _storeController;
         private readonly FavoritesStoreController _favoritesStoreController;
+		private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;
 
-        public StoreAPI(MyDbContext dbContext, ILogger<StoreAPI> logger) {
+		public StoreAPI(MyDbContext dbContext, ILogger<StoreAPI> logger, IOptionsSnapshot<WeixinSetting> wxSetting) {
             _dbContext = dbContext;
             _logger = logger;
             _storeController = new(_dbContext);
             _favoritesStoreController = new(_dbContext);
-        }
+			_wxSetting = wxSetting;
+		}
 
         /// <summary>
         /// 获取门店名称
@@ -33,7 +36,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             } catch (Exception e) {
                 _logger.LogError(e, "获取门店{StoreId}名称", id);
                 return StatusCode(500);
-				
 			}
 
             if (store is null)
@@ -56,24 +58,28 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "获取所有门店");
 
                 return StatusCode(500);
-				
 			}
 
             List<StoreBasic> storeBasicList = new();
 
             foreach (Store store in storeList) {
-                storeBasicList.Add(new StoreBasic(store));
+                StoreBasic storeBasic = new(store);
+
+				// 获取图片下载
+				storeBasic.Pictures = storeBasic.Pictures is not null ? await GetImageDownload(storeBasic.Pictures) : null;
+
+				storeBasicList.Add(storeBasic);
             }
 
             return StatusCode(200, storeBasicList);
         }
 
-        /// <summary>
-        /// 获取门店套餐
-        /// </summary>
-        /// <param name="storeId"></param>
-        /// <returns></returns>
-        [HttpGet("storeMenus/{storeId}")]
+		/// <summary>
+		/// 获取门店套餐
+		/// </summary>
+		/// <param name="storeId"></param>
+		/// <returns></returns>
+		[HttpGet("storeMenus/{storeId}")]
         public async Task<IActionResult> CalculateRent(int storeId) {
 
             return StatusCode(200, await _dbContext.StoreMenus.Where(sm => sm.TheStore == storeId && !sm.IsDelete).ToListAsync());
@@ -101,11 +107,37 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             return StatusCode(200);
         }
 
-        /// <summary>
-        /// JWT 获取用户id
-        /// </summary>
-        /// <returns></returns>
-        public int GetUserIdInt() {
+		/// <summary>
+		/// 获取图片文件下载链接
+		/// </summary>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		private async Task<string> GetImageDownload(string fileid) {
+			var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+			//var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+			var envId = _wxSetting.Value.Env;
+
+			List<FileItem> fileid_list = new() {
+				new FileItem {
+					fileid = fileid,
+					max_age = 7200
+				}
+				};
+
+			var re = await TcbApi.BatchDownloadFileAsync(appId, envId, fileid_list);
+
+			if (re.errcode != ReturnCode.请求成功) {
+				_logger.LogError("{errmsg},获取下载链接{fileid_list}", re.errmsg, fileid_list.ToJson());
+			}
+
+			return re.file_list.First().download_url;
+		}
+
+		/// <summary>
+		/// JWT 获取用户id
+		/// </summary>
+		/// <returns></returns>
+		public int GetUserIdInt() {
             return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
     }
