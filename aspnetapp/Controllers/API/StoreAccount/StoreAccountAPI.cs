@@ -408,8 +408,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
             // 当前时间
             var now = DateTime.Now;
 
-            // 超时费率 (每小时10元)
-            decimal overtimeRate = 10;
+            // 超时费率 (每小时5元)
+            decimal overtimeRate = 5;
 
             // 订单开始时间
             DateTime actualStartingTime = (DateTime)order.ActualStartingTime!;
@@ -442,11 +442,11 @@ namespace aspnetapp.Controllers.API.StoreAccount
             DateTime expireTime = startingTime.AddHours(storeMenu.Duration);// 开始时间加上套餐时间
 
             // 超时60 分钟
-            if (now >= expireTime.AddMinutes(60)) {
-                // 更新超时费
-                TimeSpan overtime = now - expireTime;
-                order.OvertimeFee = (decimal)(overtime.Hours * 5);// 超时费，一小时5 元
-            }
+            //if (now >= expireTime.AddMinutes(60)) {
+            //    // 更新超时费
+            //    TimeSpan overtime = now - expireTime;
+            //    order.OvertimeFee = (decimal)(overtime.Hours * 5);// 超时费，一小时5 元
+            //}
 
 
             // 已付金额小于总金额
@@ -455,7 +455,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 order.Status = EOrderStatus.侍补余;
                 try {
                     _dbContext.Order.Update(order);
-                    await _dbContext.SaveChangesAsync();
+                    var s = await _dbContext.SaveChangesAsync();
 
                 } catch (Exception e) {
                     _logger.LogError(e, "[订单结算]更改订单{OrderId}状态为侍补余", order.Id);
@@ -474,7 +474,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 };
 
                 try {
-                    await _dbContext.AddAsync(supplementaryOrders);
+                    await _dbContext.SupplementaryOrders.AddAsync(supplementaryOrders);
                     await _dbContext.SaveChangesAsync();
 
                 } catch (Exception e) {
