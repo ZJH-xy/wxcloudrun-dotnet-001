@@ -516,7 +516,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 TheOrder = order.Id,
                 OutTradeNo = string.Concat("SRental_", Guid.NewGuid().ToString("N").AsSpan(0, 20)),
                 //TransactionId = "",//等
-                Total = Order.GetTotal(order.GetTotalPrice() - order.Paid),
+                Total = order.GetTotalPrice() - order.Paid,
                 Status = EOrderStatus.待付款,
                 //SuccessTime
                 CreatedAt = now,
@@ -914,8 +914,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 RefundId = "",//等待
                 Reason = "直接退款",
                 Status = RefundOrder.Estatus.已创建,//等待
-                Total = Order.GetTotal(order.Paid),
-                Refund = Order.GetTotal(order.Paid),
+                Total = order.Paid,
+                Refund = order.Paid,
                 SuccessTime = null,//等待
                 CreateTime = now,//等待
                 UpdatedAt = now,
@@ -1498,11 +1498,11 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 funds_account = null,
                 amount = new RefundRequestData.Amount {
                     //【退款金额】退款金额，单位为分，只能为整数，不能超过原订单支付金额。
-                    refund = refundOrder.Refund,
+                    refund = Order.GetTotal(refundOrder.Refund),
                     /// 选填【退款出资账户及金额】退款需要从指定账户出资时，传递此参数指定出资金额（币种的最小单位，只能为整数）。
                     from = null,
                     //【原订单金额】原支付交易的订单总金额，单位为分，只能为整数。
-                    total = refundOrder.Total,
+                    total = Order.GetTotal(refundOrder.Total),
                     currency = "CNY"
                 },
                 /// 选填【退款商品】指定商品退款需要传此参数，其他场景无需传递

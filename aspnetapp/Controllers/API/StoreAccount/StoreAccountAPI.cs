@@ -53,7 +53,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "查询商家帐号");
                 return StatusCode(500);
-				
 			}
 
             if (storeAccount is null)
@@ -80,7 +79,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "查询订单{OrderId}", orderId);
                 return StatusCode(500);
-				
 			}
 
             if (order is null)
@@ -108,7 +106,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "获取订单{OderId}", getData.OderId);
                 return StatusCode(500);
-				
 			}
 
             if (order is null)
@@ -125,7 +122,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "查询车辆{VehicleId}", getData.TheVehicle);
                 return StatusCode(500);
-				
 			}
 
             if (vehicle is null)
@@ -139,7 +135,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "获取商家{VehicleId}的门店Id", GetUserIdInt());
                 return StatusCode(500);
-				
 			}
             if (vehicle.TheCurrentStore != storeId)// 车辆当前所在门店
                 return StatusCode(403, "车辆不在当前门店");
@@ -455,7 +450,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 order.Status = EOrderStatus.侍补余;
                 try {
                     _dbContext.Order.Update(order);
-                    var s = await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync();
 
                 } catch (Exception e) {
                     _logger.LogError(e, "[订单结算]更改订单{OrderId}状态为侍补余", order.Id);
@@ -476,6 +471,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 try {
                     await _dbContext.SupplementaryOrders.AddAsync(supplementaryOrders);
                     await _dbContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
 
                 } catch (Exception e) {
                     _logger.LogError(e, "创建补充订单{supplementaryOrders}失败", supplementaryOrders.ToJson(true));
@@ -495,8 +491,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
                     RefundId = "",//等待
                     Reason = "自动退款",
                     Status = RefundOrder.Estatus.已创建,//等待
-                    Total = Order.GetTotal(order.Paid),
-                    Refund = Order.GetTotal(sum),//归还多余费用
+                    Total = order.Paid,
+                    Refund = sum,//归还多余费用
                     SuccessTime = null,//等待
                     CreateTime = now,//等待
                     UpdatedAt = now,
