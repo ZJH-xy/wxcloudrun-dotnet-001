@@ -39,15 +39,17 @@
 		/// </summary>
 		public Estatus Status { get; set; }
 
-		/// <summary>
-		/// 【原订单金额】原支付交易的订单总金额，单位为分，只能为整数。
-		/// </summary>
-		public int Total { get; set; }
+        /// <summary>
+        /// 【原订单金额】原支付交易的订单总金额，单位为分，只能为整数。
+        /// </summary>
+        [Precision(10, 2)]
+        public decimal Total { get; set; }
 
-		/// <summary>
-		/// 【退款金额】退款标价金额，单位为分，可以做部分退款
-		/// </summary>
-		public int Refund { get; set; }
+        /// <summary>
+        /// 【退款金额】退款标价金额，单位为分，可以做部分退款
+        /// </summary>
+        [Precision(10, 2)]
+        public decimal Refund { get; set; }
 
 		/// <summary>
 		/// 【退款币种】符合ISO 4217标准的三位字母代码，目前只支持人民币：CNY。
