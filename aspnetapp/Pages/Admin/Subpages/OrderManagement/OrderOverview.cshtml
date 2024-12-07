@@ -21,7 +21,7 @@
 	<script src="~/js/utils/user.js" defer></script>
 </head>
 <header>
-	<h3>用户总览</h3>
+	<h3>订单总览</h3>
 </header>
 <body>
 
@@ -68,22 +68,22 @@
 			<button onclick="exportFile()" class="editBtn export">导出为 Excel</button>
 
 		</div>
-		@* 		<form method="post" asp-page-handler="Search">
-		<input asp-for="SearchPhoneHtml" id="SearchPhoneHtml" value="" placeholder="手机号" />
-		<input asp-for="SearchNameHtml" id="SearchNameHtml" value="" placeholder="姓名" />
-		<input asp-for="SearchNicknameHtml" id="SearchNicknameHtml" value="" placeholder="昵称" />
-		<select asp-for="SortField">
-		<option value="Id">ID</option>
-		<option value="Phone">手机号</option>
-		<option value="Name">姓名</option>
-		<option value="CreatedAt">创建时间</option>
-		<option value="UpdatedAt">更新时间</option>
+@* 				<form method="post" asp-page-handler="search">
+		<input asp-for="searchphonehtml" id="searchphonehtml" value="" placeholder="手机号" />
+		<input asp-for="searchnamehtml" id="searchnamehtml" value="" placeholder="姓名" />
+		<input asp-for="searchnicknamehtml" id="searchnicknamehtml" value="" placeholder="昵称" />
+		<select asp-for="sortfield">
+		<option value="id">id</option>
+		<option value="phone">手机号</option>
+		<option value="name">姓名</option>
+		<option value="createdat">创建时间</option>
+		<option value="updatedat">更新时间</option>
 		</select>
-		<select asp-for="SortOrder">
+		<select asp-for="sortorder">
 		<option value="asc">升序</option>
 		<option value="desc">降序</option>
 		</select>
-		<button type="submit" onclick="confirmChangeSearchData()">搜索</button>
+		<button type="submit" onclick="confirmchangesearchdata()">搜索</button>
 		</form> *@
 	</div>
 
@@ -117,11 +117,29 @@
 				<td>@(i + 1)</td>
 				<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" /></td>
 				<td><span id="@("TheUser" + i)">@Model.List[i].TheUser</span></td>
-				<td><span id="@("ActualStartingTime" + i)">@Model.List[i].ActualStartingTime</span></td>
-				<td><span id="@("ActualReturnTime" + i)">@Model.List[i].ActualReturnTime</span></td>
+				<td>
+						@if (@Model.List[i].ActualStartingTime != null) {
+						<span id="@("ActualStartingTime" + i)">@Model.List[i].ActualStartingTime</span>
+						} else {
+						<span>无</span>
+						}
+				</td>
+				<td>
+					@if (@Model.List[i].ActualReturnTime!=null) {
+						<span id="@("ActualReturnTime" + i)">@Model.List[i].ActualReturnTime </span>
+					} else {
+						<span>无</span>
+					}
+				</td>
 				<td><span id="@("TheVehicle" + i)">@Model.List[i].TheVehicle</span></td>
 				<td><span id="@("TheRentalLocation" + i)">@Model.List[i].TheRentalLocation</span></td>
-				<td><span id="@("TheReturnThePoint" + i)">@Model.List[i].TheReturnThePoint</span></td>
+				<td>
+						@if (@Model.List[i].TheReturnThePoint != null) {
+						<span id="@("ActualStartingTime" + i)">@Model.List[i].TheReturnThePoint</span>
+						} else {
+						<span>未归还</span>
+						}
+				</td>
 				<td><input id="@("Deposit" + i)" type="text" name="UpdatedUser.Deposit" value="@Model.List[i].Deposit" placeholder="无" disabled /></td>
 				<td><input id="@("Rent" + i)" type="text" name="UpdatedUser.Rent" value="@Model.List[i].Rent" placeholder="无" disabled /></td>
 				<td><input id="@("DispatchFee" + i)" type="text" name="UpdatedUser.DispatchFee" value="@Model.List[i].DispatchFee" placeholder="无" disabled /></td>
@@ -130,7 +148,13 @@
 				<td><span id="@("Paid" + i)">@Model.List[i].Paid</span></td>
 				<td><input id="@("DepositRefunded" + i)" type="text" name="UpdatedUser.DepositRefunded" value="@Model.List[i].DepositRefunded" placeholder="无" disabled /></td>
 				<td><span id="@("Status" + i)">@Model.List[i].Status</span></td>
-				<td><span id="@("SuccessTime" + i)">@Model.List[i].SuccessTime</span></td>
+				<td>
+						@if (@Model.List[i].SuccessTime != null) {
+						<span id="@("ActualStartingTime" + i)">@Model.List[i].SuccessTime</span>
+						} else {
+						<span>无</span>
+						}
+				</td>
 				<td><input id="@("Notes" + i)" type="text" name="UpdatedUser.Notes" value="@Model.List[i].Notes" placeholder="无" disabled /></td>
 				<td><span id="@("createdAt" + i)">@Model.List[i].CreatedAt</span></td>
 				<td><span id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</span></td>

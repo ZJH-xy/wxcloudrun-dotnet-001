@@ -14,7 +14,7 @@ using NPOI.XSSF.UserModel;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 using aspnetapp.Pages.Admin.Subpages.UserManagement;
 
-namespace aspnetapp.Pages.Admin.Subpages.StoreOverviewModel {
+namespace aspnetapp.Pages.Admin.Subpages.StoreManagement{
     public class StoreOverviewModel : PageModel {
         private readonly StoreControllerWeb _storeControllerWeb;
         private readonly ILogger<StoreOverviewModel> _logger;
@@ -29,13 +29,13 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreOverviewModel {
         public List<Store> List { get; set; } = new List<Store>();
 
 
-        // ÓÃÓÚÔÚÒ³ÃæÏÔÊ¾´íÎóĞÅÏ¢
+        // ç”¨äºåœ¨é¡µé¢æ˜¾ç¤ºé”™è¯¯ä¿¡æ¯
         public string ErrorMessage { get; set; }
 
-        // ÓÃÓÚÔÚÒ³ÃæÏÔÊ¾³É¹¦ĞÅÏ¢
+        // ç”¨äºåœ¨é¡µé¢æ˜¾ç¤ºæˆåŠŸä¿¡æ¯
         public string SuccessMessage { get; set; }
 
-        // ·ÖÒ³²éÑ¯
+        // åˆ†é¡µæŸ¥è¯¢
         [BindProperty(SupportsGet = true)]
         public int Limit { get; set; } = 10;
 
@@ -43,17 +43,17 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreOverviewModel {
         public static int PageIndex { get; set; } = 1;
         public int PageIndexHtml { get; set; }
 
-        // ¸üĞÂ
+        // æ›´æ–°
         [BindProperty]
         public Store UpdatedStore { get; set; } = new Store();
 
-        // ²éÑ¯
-        public static List<Store> SearchList { get; set; } = new();// ²éÑ¯ÓÃList
+        // æŸ¥è¯¢
+        public static List<Store> SearchList { get; set; } = new();// æŸ¥è¯¢ç”¨List
 
         [BindProperty(SupportsGet = true)]
-        public int SearchSum { get; set; } = 0;// ²éÑ¯½á¹û×ÜÊı
+        public int SearchSum { get; set; } = 0;// æŸ¥è¯¢ç»“æœæ€»æ•°
 
-        // Êı¾İ
+        // æ•°æ®
         [BindProperty(SupportsGet = true)]
         public static string? SearchName { get; set; }
         public string? SearchNameHtml { get; set; }
@@ -62,49 +62,49 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreOverviewModel {
         public static string? SearchAddress { get; set; }
         public string? SearchAddressHtml { get; set; }
 
-        // ÅÅĞò
+        // æ’åº
         [BindProperty(SupportsGet = true)]
-        public string? SortField { get; set; } = "Id"; // Ä¬ÈÏÅÅĞò×Ö¶ÎÎª "Id"
+        public string? SortField { get; set; } = "Id"; // é»˜è®¤æ’åºå­—æ®µä¸º "Id"
 
         [BindProperty(SupportsGet = true)]
-        public string? SortOrder { get; set; } = "asc"; // Ä¬ÈÏÅÅĞòË³ĞòÎªÉıĞò
+        public string? SortOrder { get; set; } = "asc"; // é»˜è®¤æ’åºé¡ºåºä¸ºå‡åº
 
-        // Í¼Æ¬ÉÏ´«
-        public string ImageName { get; set; }// Í¼Æ¬ÎÄ¼şÃû
+        // å›¾ç‰‡ä¸Šä¼ 
+        public string ImageName { get; set; }// å›¾ç‰‡æ–‡ä»¶å
         public static string FileId { get; set; } = "";
 
 
 
         /// <summary>
-		/// ÓÃÓÚÌá¹©¸øÇ°¶ËµÄ API ·½·¨
+		/// ç”¨äºæä¾›ç»™å‰ç«¯çš„ API æ–¹æ³•
 		/// </summary>
 		/// <param name="requestData"></param>
 		/// <returns></returns>
 		[HttpPost]
         [IgnoreAntiforgeryToken]
         public async Task<JsonResult> OnPostSayHelloAsync() {
-            Console.WriteLine("½Ó¿ÚÒÑ´¥·¢");
-            string message = "Î´¶¨Òå´íÎó"; // Ä¬ÈÏ´íÎóĞÅÏ¢
+            Console.WriteLine("æ¥å£å·²è§¦å‘");
+            string message = "æœªå®šä¹‰é”™è¯¯"; // é»˜è®¤é”™è¯¯ä¿¡æ¯
             try {
                 var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
                 var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
                 var envId = _wxSetting.Value.Env;
 
-                // Ä£ÄâÒµÎñÂß¼­
+                // æ¨¡æ‹Ÿä¸šåŠ¡é€»è¾‘
                 ImageName = "admin/store/identityCardPictures/" + Guid.NewGuid().ToString() + ".jpg";
                 Console.WriteLine($"[97]ImageName: {ImageName}");
 
                 WxUploadFileJsonResult result = TcbApi.UploadFile(appId, envId, ImageName);
 
                 if (result.ErrorCodeValue != 0) {
-                    message = "ÉÏ´«Ê§°Ü£¬´íÎóÂë£º" + result.ErrorCodeValue;
+                    message = "ä¸Šä¼ å¤±è´¥ï¼Œé”™è¯¯ç ï¼š" + result.ErrorCodeValue;
                     Console.WriteLine(message);
                     return new JsonResult(new { success = false, message });
                 }
 
                 FileId = result.file_id;
 #if DEBUG
-                Console.WriteLine($"file_id¸üĞÂ£º{FileId}");
+                Console.WriteLine($"file_idæ›´æ–°ï¼š{FileId}");
 #endif
 
                 string filePath = ImageName;
@@ -117,23 +117,23 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreOverviewModel {
                     Cos_file_id = result.cos_file_id
                 });
             } catch (Exception ex) {
-                message = "·¢ÉúÒì³££º" + ex.Message;
+                message = "å‘ç”Ÿå¼‚å¸¸ï¼š" + ex.Message;
                 Console.WriteLine(message);
                 return new JsonResult(new { success = false, message });
             }
         }
 
         /// <summary>
-        /// »ñÈ¡ÎÄ¼şÏÂÔØÁ´½Ó
+        /// è·å–æ–‡ä»¶ä¸‹è½½é“¾æ¥
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
         [HttpPost]
         [IgnoreAntiforgeryToken]
         public async Task<JsonResult> OnPostImageDownload([FromBody] Dictionary<string, string> requestData) {
-            // È·±£½ÓÊÕµ½µÄÊı¾İ±»ÕıÈ·°ó¶¨
+            // ç¡®ä¿æ¥æ”¶åˆ°çš„æ•°æ®è¢«æ­£ç¡®ç»‘å®š
             if (requestData == null || !requestData.Any()) {
-                return new JsonResult(new { success = false, message = "ÇëÇóÊı¾İÎª¿Õ£¡" });
+                return new JsonResult(new { success = false, message = "è¯·æ±‚æ•°æ®ä¸ºç©ºï¼" });
             }
 
             var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
@@ -148,19 +148,19 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreOverviewModel {
                 };
 
             var re = await TcbApi.BatchDownloadFileAsync(appId, envId, fileid_list);
-            if (re.errcode != ReturnCode.ÇëÇó³É¹¦) {
-                _logger.LogError("{errmsg},»ñÈ¡ÏÂÔØÁ´½Ó{fileid_list}", re.errmsg, fileid_list.ToJson());
+            if (re.errcode != ReturnCode.è¯·æ±‚æˆåŠŸ) {
+                _logger.LogError("{errmsg},è·å–ä¸‹è½½é“¾æ¥{fileid_list}", re.errmsg, fileid_list.ToJson());
             }
 
-            return new JsonResult(new { success = true, message = "»ñÈ¡ÎÄ¼şÏÂÔØÁ´½Ó½áÊø", re.file_list });
+            return new JsonResult(new { success = true, message = "è·å–æ–‡ä»¶ä¸‹è½½é“¾æ¥ç»“æŸ", re.file_list });
         }
 
         /// <summary>
-        /// Ä¬ÈÏÒ³Âë²éÑ¯
+        /// é»˜è®¤é¡µç æŸ¥è¯¢
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnGetAsync() {
-            //_logger.LogInformation("[OnGetAsync]ÕıÔÚ»ñÈ¡ÏŞÖÆÎª{Limit}µÄÒ³Ãæ{PageIndex}µÄÓÃ»§ÁĞ±í", PageIndex, Limit);
+            //_logger.LogInformation("[OnGetAsync]æ­£åœ¨è·å–é™åˆ¶ä¸º{Limit}çš„é¡µé¢{PageIndex}çš„ç”¨æˆ·åˆ—è¡¨", PageIndex, Limit);
 
             SearchName = "";
             SearchAddress = "";
@@ -169,24 +169,24 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreOverviewModel {
                 List = await _storeControllerWeb.GetTablePage(Limit, PageIndex);
 
             } catch (Exception ex) {
-                _logger.LogError(ex, "»ñÈ¡ÓÃ»§ÁĞ±íÊ±³ö´í");
-                ModelState.AddModelError(string.Empty, "¼ÓÔØÓÃ»§ÁĞ±íÊ±·¢Éú´íÎó¡£");
+                _logger.LogError(ex, "è·å–ç”¨æˆ·åˆ—è¡¨æ—¶å‡ºé”™");
+                ModelState.AddModelError(string.Empty, "åŠ è½½ç”¨æˆ·åˆ—è¡¨æ—¶å‘ç”Ÿé”™è¯¯ã€‚");
             }
             return Page();
         }
 
         /// <summary>
-        /// ËÑË÷
+        /// æœç´¢
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnPostSearchAsync() {
 
-            // µ÷ÓÃ UserControllerWeb ÖĞµÄ SearchUsers ·½·¨£¬°üº¬ÅÅĞò×Ö¶ÎºÍË³Ğò
+            // è°ƒç”¨ UserControllerWeb ä¸­çš„ SearchUsers æ–¹æ³•ï¼ŒåŒ…å«æ’åºå­—æ®µå’Œé¡ºåº
             SearchList = await _storeControllerWeb.SearchStores(SearchName, SearchAddress);
 
             List = SearchList
-                .Skip((PageIndex - 1) * Limit) // Ìø¹ıÇ°ÃæÒ³µÄÊı¾İ
-                .Take(Limit).ToList(); // »ñÈ¡µ±Ç°Ò³µÄÊı¾İ
+                .Skip((PageIndex - 1) * Limit) // è·³è¿‡å‰é¢é¡µçš„æ•°æ®
+                .Take(Limit).ToList(); // è·å–å½“å‰é¡µçš„æ•°æ®
 
             SearchSum = SearchList.Count;
 
@@ -194,43 +194,43 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreOverviewModel {
         }
 
         /// <summary>
-        /// ¸üĞÂ
+        /// æ›´æ–°
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnPostUpdateUserAsync() {
 
             if (!ModelState.IsValid) {
-                _logger.LogWarning("±íµ¥ÑéÖ¤Ê§°Ü¡£UserId: {UserId}", UpdatedStore.Id);
-                ErrorMessage = "±íµ¥ÑéÖ¤Ê§°Ü£¬Çë¼ì²éÊäÈëÄÚÈİ";
+                _logger.LogWarning("è¡¨å•éªŒè¯å¤±è´¥ã€‚UserId: {UserId}", UpdatedStore.Id);
+                ErrorMessage = "è¡¨å•éªŒè¯å¤±è´¥ï¼Œè¯·æ£€æŸ¥è¾“å…¥å†…å®¹";
                 return Page();
             }
 
             var result = await _storeControllerWeb.UpdateStore(UpdatedStore);
             if (result is NotFoundResult) {
-                _logger.LogWarning("ÕÒ²»µ½ÓÃ»§¡£UserId: {UserId}", UpdatedStore.Id);
-                ErrorMessage = "ÕÒ²»µ½ÓÃ»§";
+                _logger.LogWarning("æ‰¾ä¸åˆ°ç”¨æˆ·ã€‚UserId: {UserId}", UpdatedStore.Id);
+                ErrorMessage = "æ‰¾ä¸åˆ°ç”¨æˆ·";
             } else if (result is StatusCodeResult status && status.StatusCode == 500) {
-                _logger.LogError("¸üĞÂÓÃ»§Ê±³ö´í¡£UserId: {UserId}", UpdatedStore.Id);
-                ErrorMessage = "¸üĞÂÓÃ»§Ê±³ö´í¡£";
+                _logger.LogError("æ›´æ–°ç”¨æˆ·æ—¶å‡ºé”™ã€‚UserId: {UserId}", UpdatedStore.Id);
+                ErrorMessage = "æ›´æ–°ç”¨æˆ·æ—¶å‡ºé”™ã€‚";
             } else if (result is ObjectResult objResult && objResult.StatusCode == 409) {
-                _logger.LogWarning("Ê¹ÓÃID¸üĞÂÓÃ»§Ê±·¢Éú²¢·¢³åÍ»¡£UserId: {UserId}", UpdatedStore.Id);
-                ErrorMessage = $"Äú³¢ÊÔ±à¼­µÄ¼ÇÂ¼ÒÑ±»ÆäËûÓÃ»§ĞŞ¸Ä¡£ÇëÖØĞÂ¼ÓÔØÊı¾İºóÖØÊÔ£¬ID£º{UpdatedStore.Id}";
+                _logger.LogWarning("ä½¿ç”¨IDæ›´æ–°ç”¨æˆ·æ—¶å‘ç”Ÿå¹¶å‘å†²çªã€‚UserId: {UserId}", UpdatedStore.Id);
+                ErrorMessage = $"æ‚¨å°è¯•ç¼–è¾‘çš„è®°å½•å·²è¢«å…¶ä»–ç”¨æˆ·ä¿®æ”¹ã€‚è¯·é‡æ–°åŠ è½½æ•°æ®åé‡è¯•ï¼ŒIDï¼š{UpdatedStore.Id}";
             } else {
-                _logger.LogInformation("IDÎª{UserId}µÄÓÃ»§ÒÑ³É¹¦¸üĞÂ", UpdatedStore.Id);
-                // ¼ÆËãĞĞºÅ
-                var rowIndex = List.FindIndex(user => user.Id == UpdatedStore.Id) + 1; // ĞĞºÅ´Ó1¿ªÊ¼
-                SuccessMessage = $"±£´æ³É¹¦£¬ÒÑ¸üĞÂ ID£º{UpdatedStore.Id}";
+                _logger.LogInformation("IDä¸º{UserId}çš„ç”¨æˆ·å·²æˆåŠŸæ›´æ–°", UpdatedStore.Id);
+                // è®¡ç®—è¡Œå·
+                var rowIndex = List.FindIndex(user => user.Id == UpdatedStore.Id) + 1; // è¡Œå·ä»1å¼€å§‹
+                SuccessMessage = $"ä¿å­˜æˆåŠŸï¼Œå·²æ›´æ–° IDï¼š{UpdatedStore.Id}";
             }
 
-            List = await _storeControllerWeb.GetTablePage(Limit, PageIndex); // Ë¢ĞÂÓÃ»§ÁĞ±í
+            List = await _storeControllerWeb.GetTablePage(Limit, PageIndex); // åˆ·æ–°ç”¨æˆ·åˆ—è¡¨
 
             Thread.Sleep(2500);
 
             if (!FileId.IsNullOrEmpty()) {
 #if DEBUG
-                Console.WriteLine($"¸üĞÂÓÃ»§Í¼Æ¬ĞÅÏ¢FileId£º{FileId}");
+                Console.WriteLine($"æ›´æ–°ç”¨æˆ·å›¾ç‰‡ä¿¡æ¯FileIdï¼š{FileId}");
 #endif
-                // ¸üĞÂÓÃ»§Í¼Æ¬ĞÅÏ¢
+                // æ›´æ–°ç”¨æˆ·å›¾ç‰‡ä¿¡æ¯
                 await _storeControllerWeb.PutStoreImagePath(UpdatedStore.Id, FileId);
                 FileId = "";
             }
@@ -239,53 +239,53 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreOverviewModel {
         }
 
         /// <summary>
-        /// ·µ»Ø×ÜÒ³Êı
+        /// è¿”å›æ€»é¡µæ•°
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnGetPageSumAsync() {
             try {
-                // »ñÈ¡ËùÓĞÓÃ»§Êı¾İµÄ×ÜÊı£¨¿ÉÒÔÍ¨¹ı·şÎñ·½·¨»ñÈ¡£©
+                // è·å–æ‰€æœ‰ç”¨æˆ·æ•°æ®çš„æ€»æ•°ï¼ˆå¯ä»¥é€šè¿‡æœåŠ¡æ–¹æ³•è·å–ï¼‰
                 var sum = await _storeControllerWeb.GetPageSum();
 
-                // ¼ÆËã×ÜÒ³Êı
+                // è®¡ç®—æ€»é¡µæ•°
                 int totalPages = (sum / Limit) + 1;
 
-                // ·µ»Ø×ÜÒ³Êı
+                // è¿”å›æ€»é¡µæ•°
                 return new JsonResult(new { totalPages });
             } catch (Exception ex) {
-                _logger.LogError(ex, "»ñÈ¡×ÜÒ³ÊıÊ±·¢Éú´íÎó");
-                return BadRequest("ÎŞ·¨»ñÈ¡×ÜÒ³Êı");
+                _logger.LogError(ex, "è·å–æ€»é¡µæ•°æ—¶å‘ç”Ÿé”™è¯¯");
+                return BadRequest("æ— æ³•è·å–æ€»é¡µæ•°");
             }
         }
 
 
         /// <summary>
-        /// µ¼³öÃÅµêÊı¾İµ½ Excel
+        /// å¯¼å‡ºé—¨åº—æ•°æ®åˆ° Excel
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnGetExportToExcelAsync() {
-            // »ñÈ¡ÃÅµêÊı¾İ
+            // è·å–é—¨åº—æ•°æ®
             List<Store> excelList = await _storeControllerWeb.GetAllList();
 
-            // ´´½¨Ò»¸öĞÂµÄ¹¤×÷²¾
+            // åˆ›å»ºä¸€ä¸ªæ–°çš„å·¥ä½œç°¿
             IWorkbook workbook = new XSSFWorkbook();
-            ISheet sheet = workbook.CreateSheet("ÃÅµêÊı¾İ");
+            ISheet sheet = workbook.CreateSheet("é—¨åº—æ•°æ®");
 
-            // ´´½¨±íÍ·ĞĞ
+            // åˆ›å»ºè¡¨å¤´è¡Œ
             IRow headerRow = sheet.CreateRow(0);
-            headerRow.CreateCell(0).SetCellValue("ĞòºÅ");
-            headerRow.CreateCell(1).SetCellValue("ÃÅµê ID");
-            headerRow.CreateCell(2).SetCellValue("ÃÅµêÃû³Æ");
-            headerRow.CreateCell(3).SetCellValue("ÁªÏµµç»°");
-            headerRow.CreateCell(4).SetCellValue("Î¢ĞÅ");
-            headerRow.CreateCell(5).SetCellValue("µØÖ·");
-            headerRow.CreateCell(6).SetCellValue("ÓªÒµ×´Ì¬");
-            headerRow.CreateCell(7).SetCellValue("ÓªÒµ¿ªÊ¼Ê±¼ä");
-            headerRow.CreateCell(8).SetCellValue("ÓªÒµ½áÊøÊ±¼ä");
-            headerRow.CreateCell(9).SetCellValue("´´½¨Ê±¼ä");
-            headerRow.CreateCell(10).SetCellValue("¸üĞÂÊ±¼ä");
+            headerRow.CreateCell(0).SetCellValue("åºå·");
+            headerRow.CreateCell(1).SetCellValue("é—¨åº— ID");
+            headerRow.CreateCell(2).SetCellValue("é—¨åº—åç§°");
+            headerRow.CreateCell(3).SetCellValue("è”ç³»ç”µè¯");
+            headerRow.CreateCell(4).SetCellValue("å¾®ä¿¡");
+            headerRow.CreateCell(5).SetCellValue("åœ°å€");
+            headerRow.CreateCell(6).SetCellValue("è¥ä¸šçŠ¶æ€");
+            headerRow.CreateCell(7).SetCellValue("è¥ä¸šå¼€å§‹æ—¶é—´");
+            headerRow.CreateCell(8).SetCellValue("è¥ä¸šç»“æŸæ—¶é—´");
+            headerRow.CreateCell(9).SetCellValue("åˆ›å»ºæ—¶é—´");
+            headerRow.CreateCell(10).SetCellValue("æ›´æ–°æ—¶é—´");
 
-            // Ìî³äÃÅµêÊı¾İ
+            // å¡«å……é—¨åº—æ•°æ®
             for (int i = 0; i < excelList.Count; i++) {
                 var row = sheet.CreateRow(i + 1);
                 row.CreateCell(0).SetCellValue(i + 1);
@@ -294,31 +294,31 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreOverviewModel {
                 row.CreateCell(3).SetCellValue(excelList[i].Telephone ?? "");
                 row.CreateCell(4).SetCellValue(excelList[i].WeChat ?? "");
                 row.CreateCell(5).SetCellValue(excelList[i].Address ?? "");
-                row.CreateCell(6).SetCellValue(excelList[i].BusinessStatus ? "ÓªÒµÖĞ" : "¹Ø±Õ");
+                row.CreateCell(6).SetCellValue(excelList[i].BusinessStatus ? "è¥ä¸šä¸­" : "å…³é—­");
                 row.CreateCell(7).SetCellValue(excelList[i].BusinessHoursStart.ToString(@"hh\:mm"));
                 row.CreateCell(8).SetCellValue(excelList[i].BusinessHoursEnd.ToString(@"hh\:mm"));
                 row.CreateCell(9).SetCellValue(excelList[i].CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
                 row.CreateCell(10).SetCellValue(excelList[i].UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
             }
 
-            // ×Ô¶¯µ÷ÕûÁĞ¿í
+            // è‡ªåŠ¨è°ƒæ•´åˆ—å®½
             for (int col = 0; col < 11; col++) {
                 sheet.AutoSizeColumn(col);
             }
 
-            // ½«¹¤×÷²¾±£´æµ½ÄÚ´æÁ÷
+            // å°†å·¥ä½œç°¿ä¿å­˜åˆ°å†…å­˜æµ
             using (var memoryStream = new MemoryStream()) {
                 workbook.Write(memoryStream);
-                var fileName = "ÃÅµêÊı¾İ.xlsx";
+                var fileName = "é—¨åº—æ•°æ®.xlsx";
                 var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-                // ·µ»ØÎÄ¼şÁ÷¹©ÏÂÔØ
+                // è¿”å›æ–‡ä»¶æµä¾›ä¸‹è½½
                 return File(memoryStream.ToArray(), contentType, fileName);
             }
         }
 
         /// <summary>
-        /// »ñÈ¡Ò³Âë
+        /// è·å–é¡µç 
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnGetPageIndexAsync() {
@@ -326,49 +326,49 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreOverviewModel {
         }
 
         /// <summary>
-        /// ¸ü¸ÄÒ³Âë
+        /// æ›´æ”¹é¡µç 
         /// </summary>
         /// <param name="requestData"></param>
         /// <returns></returns>
         [HttpPost]
         [IgnoreAntiforgeryToken]
         public async Task<JsonResult> OnPostChangePageAsync([FromBody] Dictionary<string, int> requestData) {
-            // È·±£½ÓÊÕµ½µÄÊı¾İ±»ÕıÈ·°ó¶¨
+            // ç¡®ä¿æ¥æ”¶åˆ°çš„æ•°æ®è¢«æ­£ç¡®ç»‘å®š
             if (requestData == null || !requestData.Any()) {
-                return new JsonResult(new { success = false, message = "ÇëÇóÊı¾İÎª¿Õ£¡" });
+                return new JsonResult(new { success = false, message = "è¯·æ±‚æ•°æ®ä¸ºç©ºï¼" });
             }
 
             PageIndex = requestData["PageIndex"];
 
-            return new JsonResult(new { success = true, message = "³É¹¦", pageIndex = PageIndex });
+            return new JsonResult(new { success = true, message = "æˆåŠŸ", pageIndex = PageIndex });
         }
 
         /// <summary>
-        /// ¸ü¸Ä²éÑ¯Êı¾İ
+        /// æ›´æ”¹æŸ¥è¯¢æ•°æ®
         /// </summary>
         /// <param name="requestData"></param>
         /// <returns></returns>
         [HttpPost]
         [IgnoreAntiforgeryToken]
         public async Task<JsonResult> OnPostChangeSearchDataAsync([FromBody] Dictionary<string, string> requestData) {
-            // È·±£½ÓÊÕµ½µÄÊı¾İ±»ÕıÈ·°ó¶¨
+            // ç¡®ä¿æ¥æ”¶åˆ°çš„æ•°æ®è¢«æ­£ç¡®ç»‘å®š
             if (requestData == null || !requestData.Any()) {
-                return new JsonResult(new { success = false, message = "ÇëÇóÊı¾İÎª¿Õ£¡" });
+                return new JsonResult(new { success = false, message = "è¯·æ±‚æ•°æ®ä¸ºç©ºï¼" });
             }
 
             SearchName = requestData["SearchName"];
             SearchAddress = requestData["SearchAddress"];
 
-            return new JsonResult(new { success = true, message = "³É¹¦" });
+            return new JsonResult(new { success = true, message = "æˆåŠŸ" });
         }
 
         /// <summary>
-        /// »ñÈ¡²éÑ¯Êı¾İ
+        /// è·å–æŸ¥è¯¢æ•°æ®
         /// </summary>
         /// <returns></returns>
         public async Task<JsonResult> OnGetSearchDataAsync() {
 
-            return new JsonResult(new { success = true, message = "³É¹¦", SearchName, SearchAddress });
+            return new JsonResult(new { success = true, message = "æˆåŠŸ", SearchName, SearchAddress });
         }
     }
 }

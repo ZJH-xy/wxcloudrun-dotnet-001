@@ -1,5 +1,5 @@
 ﻿
-const RESPONSEURL = `/Admin/Subpages/UserManagement/UserOverview`;
+const RESPONSEURL = `/Admin/Subpages/StoreManagement/StoreOverview`;
 const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]').value;
 const LENGTH = document.getElementById('PageCount').value;// 显示长度
 var file;

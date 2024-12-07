@@ -1,5 +1,5 @@
 ﻿
-const RESPONSEURL = `/Admin/Subpages/OrderManagement/OrderOverview.cshtml`;
+const RESPONSEURL = `/Admin/Subpages/OrderManagement/OrderOverview`;
 const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]').value;
 const LENGTH = document.getElementById('PageCount').value;// 显示长度
 var file;
