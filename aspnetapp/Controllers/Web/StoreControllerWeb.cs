@@ -90,6 +90,26 @@ namespace aspnetapp.Controllers.Web {
             }
         }
 
+        // 添加门店
+        public async Task<IActionResult> AddStoreAsync(Store newStore) {
+            if (!ModelState.IsValid) {
+                return BadRequest("门店信息无效");
+            }
+
+            try {
+                newStore.CreatedAt = DateTime.Now;
+                newStore.UpdatedAt = DateTime.Now;
+
+                // 这里保存门店到数据库
+                _context.Store.Add(newStore);
+                await _context.SaveChangesAsync();
+
+                return Ok("门店添加成功");
+            } catch (Exception ex) {
+                return StatusCode(500, $"添加门店时发生错误: {ex.Message}");
+            }
+        }
+
         // 根据条件进行门店搜索
         public async Task<List<Store>> SearchStores(string? name = null, string? address = null, string sortField = "Id", string sortOrder = "asc") {
             _logger.LogInformation("[SearchStores] Starting search with filters - Name: {Name}, Address: {Address}, SortField: {SortField}, SortOrder: {SortOrder}",

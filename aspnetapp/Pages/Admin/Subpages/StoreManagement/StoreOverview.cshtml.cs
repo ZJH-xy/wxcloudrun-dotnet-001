@@ -1,20 +1,10 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging;
-using aspnetapp.Dao.RepositoryInterface.Web;
-using aspnetapp.Models;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System;
 using aspnetapp.Controllers.Web;
-using aspnetapp.Controllers.Miniprogram;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
-using aspnetapp.Pages.Admin.Subpages.UserManagement;
 
-namespace aspnetapp.Pages.Admin.Subpages.StoreManagement{
+namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
     public class StoreOverviewModel : PageModel {
         private readonly StoreControllerWeb _storeControllerWeb;
         private readonly ILogger<StoreOverviewModel> _logger;
@@ -28,6 +18,7 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement{
 
         public List<Store> List { get; set; } = new List<Store>();
 
+        public Store NewStore { get; set; } = new Store();
 
         // 用于在页面显示错误信息
         public string ErrorMessage { get; set; }
@@ -122,6 +113,17 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement{
                 return new JsonResult(new { success = false, message });
             }
         }
+
+        /// <summary>
+        /// 添加
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IActionResult> OnPostAddStoreAsync() {
+
+            return await _storeControllerWeb.AddStoreAsync(NewStore);
+        }
+
 
         /// <summary>
         /// 获取文件下载链接
