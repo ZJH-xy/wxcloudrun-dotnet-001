@@ -188,6 +188,7 @@ input.editing {
 @media (min-width: 1500px) {
 
     input, tr, th, td {
+        width: 80px;
         font-size: small;
         transition: font-size 0.3s ease,width 0.3s ease;
     }
@@ -224,8 +225,6 @@ input.editing {
     }
 }
 
-
-
 /* 对中屏设备（平板）进行优化 */
 @media (max-width: 1499px) and (min-width: 1199px) {
     body {
@@ -233,7 +232,7 @@ input.editing {
     }
 
     input, tr, th, td {
-        width: 100px;
+        width: 60px;
         font-size: small;
         transition: font-size 0.3s ease,width 0.3s ease;
     }
@@ -253,10 +252,14 @@ input.editing {
 
     /* 表格整体样式 */
     table {
-
+        margin: 10px 0;
+        width:100%; /* 表格宽度占满父容器 */
+        border-collapse: collapse; /* 合并边框 */
+        white-space: nowrap;
         transition: width 0.3s ease,margin 0.3s ease,border-collapse 0.3s ease,white-space 0.3s ease;
     }
 }
+
 /* 对中小屏设备（小型平板/大屏手机）进行优化 */
 @media (max-width: 1198px) and (min-width: 868px) {
     body {
@@ -264,7 +267,7 @@ input.editing {
     }
 
     input, tr, th, td {
-        width: 100px;
+        width: 40px;
         font-size: small;
         transition: font-size 0.3s ease,width 0.3s ease;
     }
@@ -284,7 +287,7 @@ input.editing {
 
     /* 表格整体样式 */
     table {
-        margin: 0;
+        margin: 10px 0;
         width: 100%; /* 表格宽度占满父容器 */
         border-collapse: collapse; /* 合并边框 */
         white-space: nowrap;
