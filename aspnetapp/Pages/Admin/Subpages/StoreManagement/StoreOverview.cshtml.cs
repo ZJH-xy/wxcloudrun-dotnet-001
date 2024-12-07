@@ -199,11 +199,11 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         /// <returns></returns>
         public async Task<IActionResult> OnPostUpdateUserAsync() {
 
-            if (!ModelState.IsValid) {
-                _logger.LogWarning("表单验证失败。UserId: {UserId}", UpdatedStore.Id);
-                ErrorMessage = "表单验证失败，请检查输入内容";
-                return Page();
-            }
+            //if (!ModelState.IsValid) {
+            //    _logger.LogWarning("表单验证失败。UserId: {UserId}", UpdatedStore.Id);
+            //    ErrorMessage = "表单验证失败，请检查输入内容";
+            //    return Page();
+            //}
 
             var result = await _storeControllerWeb.UpdateStore(UpdatedStore);
             if (result is NotFoundResult) {

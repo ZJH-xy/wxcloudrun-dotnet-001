@@ -112,11 +112,11 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		public async Task<IActionResult> OnPostUpdateOrderAsync() {
 			_logger.LogInformation("正在尝试使用ID更新订单{OrderId}", UpdatedOrder.Id);
 
-			if (!ModelState.IsValid) {
-				_logger.LogWarning("表单验证失败。OrderId: {OrderId}", UpdatedOrder.Id);
-				ErrorMessage = "表单验证失败，请检查输入内容";
-				return Page();
-			}
+			//if (!ModelState.IsValid) {
+			//	_logger.LogWarning("表单验证失败。OrderId: {OrderId}", UpdatedOrder.Id);
+			//	ErrorMessage = "表单验证失败，请检查输入内容";
+			//	return Page();
+			//}
 
 			var result = await _orderController.UpdateOrder(UpdatedOrder);
 			if (result is NotFoundResult) {

@@ -155,11 +155,11 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 		public async Task<IActionResult> OnPostUpdateVehicleAsync() {
 			_logger.LogInformation("正在尝试使用ID更新车辆{VehicleId}", UpdatedVehicle.Id);
 
-			if (!ModelState.IsValid) {
-				_logger.LogWarning("表单验证失败。VehicleId: {VehicleId}", UpdatedVehicle.Id);
-				ErrorMessage = "表单验证失败，请检查输入内容";
-				return Page();
-			}
+			//if (!ModelState.IsValid) {
+			//	_logger.LogWarning("表单验证失败。VehicleId: {VehicleId}", UpdatedVehicle.Id);
+			//	ErrorMessage = "表单验证失败，请检查输入内容";
+			//	return Page();
+			//}
 
 			var result = await _vehicleController.UpdateVehicle(UpdatedVehicle);
 			if (result is NotFoundResult) {
@@ -235,7 +235,6 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 		/// <summary>
 		/// 获取文件下载链接
 		/// </summary>
-		/// <param name="userId"></param>
 		/// <returns></returns>
 		[HttpPost]
 		[IgnoreAntiforgeryToken]

@@ -195,11 +195,11 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 		public async Task<IActionResult> OnPostUpdateUserAsync() {
 			_logger.LogInformation("正在尝试使用ID更新用户{UserId}", UpdatedUser.Id);
 
-			if (!ModelState.IsValid) {
-				_logger.LogWarning("表单验证失败。UserId: {UserId}", UpdatedUser.Id);
-				ErrorMessage = "表单验证失败，请检查输入内容";
-				return Page();
-			}
+			//if (!ModelState.IsValid) {
+			//	_logger.LogWarning("表单验证失败。UserId: {UserId}", UpdatedUser.Id);
+			//	ErrorMessage = "表单验证失败，请检查输入内容";
+			//	return Page();
+			//}
 
 			var result = await _userController.UpdateUser(UpdatedUser);
 			if (result is NotFoundResult) {
