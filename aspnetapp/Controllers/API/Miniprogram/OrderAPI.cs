@@ -102,7 +102,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                     var refundOrder = await _dbContext.RefundOrder.SingleAsync(ro => ro.TheOrder == order.Id);// 退款数据
 
                     BasePayApis basePayApis = new();
-                    RefundReturnJson refundReturnJson = await basePayApis.RefundQueryAsync(new RefundQueryRequestData(order.OutTradeNo));// 查询退款信息
+                    RefundReturnJson refundReturnJson = await basePayApis.RefundQueryAsync(new RefundQueryRequestData(refundOrder.outRefundNo));// 查询退款信息
 
                     if (refundReturnJson.ResultCode.Success != true) {
                         _logger.LogError("请求获取退款信息失败{OrderId}", order.Id);
@@ -189,7 +189,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             } catch (Exception e) {
                 _logger.LogError(e, "用户{UserId}查询订单{order}状态", GetUserIdInt(), orderId);
                 return StatusCode(500);
-
             }
 
             if (orderStatus == null)
@@ -911,6 +910,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             // 新建退款表数据
             RefundOrder refundOrder = new() {
                 TheOrder = order.Id,
+                outRefundNo = string.Concat("Refund_", Guid.NewGuid().ToString("N").AsSpan(0, 20)),
                 RefundId = "",//等待
                 Reason = "直接退款",
                 Status = RefundOrder.Estatus.已创建,//等待
@@ -921,16 +921,14 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 UpdatedAt = now,
             };
 
-            // 生成退款表数据
-            _dbContext.RefundOrder.Add(refundOrder);
-
             try {
+                // 生成退款表数据
+                _dbContext.RefundOrder.Add(refundOrder);
                 await _dbContext.SaveChangesAsync();
 
             } catch (Exception e) {
                 _logger.LogError(e, "新建退款表数据");
                 return StatusCode(500);
-
             }
 
             RefundReturnJson refundReturnJson = await RefundAsync(order, refundOrder);// 调用退款
@@ -957,7 +955,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             } catch (Exception e) {
                 _logger.LogError(e, "退款表更新失败refundOrder：{refundOrder}", refundOrder.ToJson(true));
                 return StatusCode(500);
-
             }
 
             _logger.LogInformation("退款已成功refundReturnJson：{refundReturnJson}", refundReturnJson.ToJson(true));
@@ -971,7 +968,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             } catch (Exception e) {
                 _logger.LogError(e, "订单退款更新失败order：{OrderId}", order.Id);
                 return StatusCode(500);
-
             }
 
             return StatusCode(200);
@@ -1475,7 +1471,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             //【商户订单号】原支付交易对应的商户订单号，与transaction_id二选一
             string out_trade_no = order.OutTradeNo;
             //【商户退款单号】商户系统内部的退款单号，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一退款单号多次请求只退一笔。
-            string out_refund_no = string.Concat("Refund_", Guid.NewGuid().ToString("N").AsSpan(0, 20), refundOrder.Id.ToString());
+            //string out_refund_no = string.Concat("Refund_", Guid.NewGuid().ToString("N").AsSpan(0, 20), refundOrder.Id.ToString());
+            string out_refund_no = refundOrder.outRefundNo;
 
             //【退款原因】若商户传入，会在下发给用户的退款消息中体现退款原因
             string reason = refundOrder.Reason;

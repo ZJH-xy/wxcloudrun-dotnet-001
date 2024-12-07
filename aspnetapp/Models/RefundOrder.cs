@@ -6,15 +6,18 @@
 	[Index(nameof(TheOrder))]
 	public class RefundOrder {
 		/// <summary>
-		/// 【商户退款单号】商户系统内部的退款单号，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一退款单号多次请求只退一笔。
+		/// 编号
 		/// </summary>
 		[Key]
 		public int Id { get; init; }
-
 		/// <summary>
-		/// 商户订单号（原支付交易对应的商户订单号）
+		/// 【商户退款单号】商户系统内部的退款单号，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一退款单号多次请求只退一笔。
 		/// </summary>
-		public int TheOrder { get; set; }
+		public string outRefundNo { get; set; }
+        /// <summary>
+        /// 商户订单号（原支付交易对应的商户订单号）
+        /// </summary>
+        public int TheOrder { get; set; }
 
 		/// <summary>
 		/// 【微信支付退款号】微信支付退款号
