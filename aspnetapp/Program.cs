@@ -1,18 +1,18 @@
-using aspnetapp.Controllers.API.Miniprogram;
+ï»¿using aspnetapp.Controllers.API.Miniprogram;
 using aspnetapp.Controllers.API.StoreAccount;
 using aspnetapp.Controllers.Miniprogram;
 using Senparc.Weixin.TenPayV3;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ×¢Èë DatabaseConfig ÊµÀı
+// æ³¨å…¥ DatabaseConfig å®ä¾‹
 builder.Services.AddSingleton(new DatabaseConfig(builder.Configuration));
 
-// Ê¹ÓÃ AddDbContext ×¢²á MyDbContext
+// ä½¿ç”¨ AddDbContext æ³¨å†Œ MyDbContext
 builder.Services.AddDbContext<MyDbContext>((serviceProvider, options) => {
-    // »ñÈ¡ DatabaseConfig ÊµÀı
+    // è·å– DatabaseConfig å®ä¾‹
     var databaseConfig = serviceProvider.GetRequiredService<DatabaseConfig>();
-    // ÅäÖÃ MySQL Êı¾İ¿â
+    // é…ç½® MySQL æ•°æ®åº“
     databaseConfig.ConfigureMySql(options);
 });
 
@@ -20,17 +20,17 @@ builder.Services.AddDbContext<MyDbContext>((serviceProvider, options) => {
 // Add services to the container.
 builder.Services.AddRazorPages();
 
-// ¼¤»î±¾µØ»º´æ
+// æ¿€æ´»æœ¬åœ°ç¼“å­˜
 builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<MyDbContext>();
-builder.Services.AddScoped<IUserRepository, UserController>();// ÒÀÀµ×¢Èë
+builder.Services.AddScoped<IUserRepository, UserController>();// ä¾èµ–æ³¨å…¥
 builder.Services.AddScoped<IStoreRepository, StoreController>();
 builder.Services.AddScoped<IVehicleRepository, VehicleController>();
 builder.Services.AddScoped<IOrderRepository, OrderController>();
 builder.Services.AddScoped<IStoreAccountRepository, StoreAccountController>();
 builder.Services.AddScoped<IFavoritesStoreRepository, FavoritesStoreController>();
 
-builder.Services.AddScoped<OrderAPI>(); // ×¢²á OrderAPI£¬¶¨Ê±È¡Ïû¶©µ¥
+builder.Services.AddScoped<OrderAPI>(); // æ³¨å†Œ OrderAPIï¼Œå®šæ—¶å–æ¶ˆè®¢å•
 builder.Services.AddHostedService<TimedHostedService>();
 
 
@@ -50,20 +50,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     });
 
 
-//Senparc.Weixin ×¢²á£¨±ØĞë£©
+//Senparc.Weixin æ³¨å†Œï¼ˆå¿…é¡»ï¼‰
 builder.Services.AddSenparcWeixin(builder.Configuration);
-// ÓÃÓÚÍê³É Senparc.Weixin µÄ×¢²á¡£
+// ç”¨äºå®Œæˆ Senparc.Weixin çš„æ³¨å†Œã€‚
 //builder.Services.AddSenparcWeixinServices(builder.Configuration);
+// è¯»å–å¾®ä¿¡é…ç½®
+builder.Services.Configure<WeixinSetting>(builder.Configuration.GetSection("SenparcWeixinSetting"));// WeixinSetting
 
 
-// ÅäÖÃÈÕÖ¾
-builder.Logging.ClearProviders();                    // Çå³ıÄ¬ÈÏÈÕÖ¾Ìá¹©³ÌĞò
-builder.Logging.AddConsole();                        // Ìí¼Ó¿ØÖÆÌ¨ÈÕÖ¾
-//builder.Logging.AddDebug();                          // Ìí¼Ó Debug Êä³öÈÕÖ¾£¨ÊÊºÏµ÷ÊÔ»·¾³£©
-//builder.Logging.AddEventLog();                       // Windows ÊÂ¼şÈÕÖ¾
-builder.Logging.SetMinimumLevel(LogLevel.Information); // ÉèÖÃ×îĞ¡ÈÕÖ¾¼¶±ğ
+// é…ç½®æ—¥å¿—
+builder.Logging.ClearProviders();                    // æ¸…é™¤é»˜è®¤æ—¥å¿—æä¾›ç¨‹åº
+builder.Logging.AddConsole();                        // æ·»åŠ æ§åˆ¶å°æ—¥å¿—
+//builder.Logging.AddDebug();                          // æ·»åŠ  Debug è¾“å‡ºæ—¥å¿—ï¼ˆé€‚åˆè°ƒè¯•ç¯å¢ƒï¼‰
+//builder.Logging.AddEventLog();                       // Windows äº‹ä»¶æ—¥å¿—
+builder.Logging.SetMinimumLevel(LogLevel.Information); // è®¾ç½®æœ€å°æ—¥å¿—çº§åˆ«
 
-// »¹¿ÉÒÔ´Ó appsettings.json ÖĞ¶ÁÈ¡ÅäÖÃ
+// è¿˜å¯ä»¥ä» appsettings.json ä¸­è¯»å–é…ç½®
 builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
 
 
@@ -71,16 +73,16 @@ var app = builder.Build();
 
 
 
-//ÆôÓÃÎ¢ĞÅÅäÖÃ£¨±ØĞë£©
+//å¯ç”¨å¾®ä¿¡é…ç½®ï¼ˆå¿…é¡»ï¼‰
 var registerService = app.UseSenparcWeixin(app.Environment,
-    null /* ²»Îª null Ôò¸²¸Ç appsettings  ÖĞµÄ SenpacSetting ÅäÖÃ*/,
-    null /* ²»Îª null Ôò¸²¸Ç appsettings  ÖĞµÄ SenpacWeixinSetting ÅäÖÃ*/,
+    null /* ä¸ä¸º null åˆ™è¦†ç›– appsettings  ä¸­çš„ SenpacSetting é…ç½®*/,
+    null /* ä¸ä¸º null åˆ™è¦†ç›– appsettings  ä¸­çš„ SenpacWeixinSetting é…ç½®*/,
     register => { },
     (register, weixinSetting) => {
-        //×¢²á¹«ÖÚºÅĞÅÏ¢£¨¿ÉÒÔÖ´ĞĞ¶à´Î£¬×¢²á¶à¸öĞ¡³ÌĞò£©
-        register.RegisterWxOpenAccount(weixinSetting, "ÎÄÂÃĞ¡³ÌĞò");
-		//×¢²áÎ¢ĞÅÖ§¸¶£¨¿ÉÒÔÖ´ĞĞ¶à´Î£¬×¢²á¶à¸öÎ¢ĞÅÖ§¸¶£©
-		register.RegisterTenpayApiV3(weixinSetting, "¡¾Ê¢ÅÉÍøÂçĞ¡ÖúÊÖ¡¿Î¢ĞÅÖ§¸¶£¨ApiV3£©");
+        //æ³¨å†Œå…¬ä¼—å·ä¿¡æ¯ï¼ˆå¯ä»¥æ‰§è¡Œå¤šæ¬¡ï¼Œæ³¨å†Œå¤šä¸ªå°ç¨‹åºï¼‰
+        register.RegisterWxOpenAccount(weixinSetting, "æ–‡æ—…å°ç¨‹åº");
+		//æ³¨å†Œå¾®ä¿¡æ”¯ä»˜ï¼ˆå¯ä»¥æ‰§è¡Œå¤šæ¬¡ï¼Œæ³¨å†Œå¤šä¸ªå¾®ä¿¡æ”¯ä»˜ï¼‰
+		register.RegisterTenpayApiV3(weixinSetting, "ã€ç››æ´¾ç½‘ç»œå°åŠ©æ‰‹ã€‘å¾®ä¿¡æ”¯ä»˜ï¼ˆApiV3ï¼‰");
 	});
 
 
@@ -102,7 +104,7 @@ if (!app.Environment.IsDevelopment()) {
 //}
 
 
-//#region ´Ë²¿·Ö´úÂëÎª Sample ¹²ÏíÎÄ¼şĞèÒª¶øÌí¼Ó£¬Êµ¼ÊÏîÄ¿ÎŞĞèÌí¼Ó
+//#region æ­¤éƒ¨åˆ†ä»£ç ä¸º Sample å…±äº«æ–‡ä»¶éœ€è¦è€Œæ·»åŠ ï¼Œå®é™…é¡¹ç›®æ— éœ€æ·»åŠ 
 //#if DEBUG
 ////app.UseStaticFiles(new StaticFileOptions
 ////{

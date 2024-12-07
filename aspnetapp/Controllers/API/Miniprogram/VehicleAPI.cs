@@ -1,4 +1,6 @@
 ﻿using aspnetapp.Controllers.Miniprogram;
+using aspnetapp.Models;
+using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 
 namespace aspnetapp.Controllers.API.Miniprogram
 {
@@ -9,12 +11,14 @@ namespace aspnetapp.Controllers.API.Miniprogram
         private readonly MyDbContext _dbContext;
         private readonly ILogger<VehicleAPI> _logger;
         private readonly VehicleController _vehicleController;
+		private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;
 
-        public VehicleAPI(MyDbContext dbContext, ILogger<VehicleAPI> logger) {
+		public VehicleAPI(MyDbContext dbContext, ILogger<VehicleAPI> logger, IOptionsSnapshot<WeixinSetting> wxSetting) {
             _dbContext = dbContext;
             _logger = logger;
             _vehicleController = new(_dbContext);
-        }
+			_wxSetting = wxSetting;
+		}
 
         /// <summary>
         /// Id获取门店所有车辆
@@ -31,13 +35,17 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 _logger.LogError(e, "获取门店{StoreId}所有车辆", storeId);
 
                 return StatusCode(500);
-				
 			}
 
             List<VehicleBasic> vehiclesBasicsList = new();
 
             foreach (Vehicle vehicle in vehicleList) {
-                vehiclesBasicsList.Add(new VehicleBasic(vehicle));
+				VehicleBasic vehicleBasic = new(vehicle);
+
+                // 获取图片下载
+				vehicleBasic.Pictures = vehicleBasic.Pictures is not null ? await GetImageDownload(vehicleBasic.Pictures) : null;
+
+				vehiclesBasicsList.Add(vehicleBasic);
             }
 
             return StatusCode(200, vehiclesBasicsList);
@@ -58,7 +66,6 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 _logger.LogError(e, "获取车辆{VehicleId}信息", id);
 
                 return StatusCode(500);
-				
 			}
 
             if (vehicle is null)
@@ -82,7 +89,6 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 _logger.LogError(e, "查询车辆{VehicleId}", id);
 
                 return StatusCode(500);
-				
 			}
 
             if (vehicle is null)
@@ -90,7 +96,33 @@ namespace aspnetapp.Controllers.API.Miniprogram
 
             return StatusCode(200, vehicle);
         }
-    }
+
+		/// <summary>
+		/// 获取图片文件下载链接
+		/// </summary>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		private async Task<string> GetImageDownload(string fileid) {
+			var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+			//var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+			var envId = _wxSetting.Value.Env;
+
+			List<FileItem> fileid_list = new() {
+				new FileItem {
+					fileid = fileid,
+					max_age = 7200
+				}
+				};
+
+			var re = await TcbApi.BatchDownloadFileAsync(appId, envId, fileid_list);
+
+			if (re.errcode != ReturnCode.请求成功) {
+				_logger.LogError("{errmsg},获取下载链接{fileid_list}", re.errmsg, fileid_list.ToJson());
+			}
+
+			return re.file_list.First().download_url;
+		}
+	}
     public struct VehicleBasic {
         public VehicleBasic(Vehicle store) {
             VehicleId = store.Id;
