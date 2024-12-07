@@ -1,15 +1,7 @@
 ﻿@page
 @model aspnetapp.Pages.Admin.Subpages.OrderManagement.OrderOverviewModel
 @{
-	// 创建订单的模拟数据
-	var orderList = new List<dynamic>
-					{
-		new { Index = 1, OrderNumber = "ORD001", UserID = 101, StartTime = "2024-01-10 08:00", ExpectedReturn = "2024-01-15 18:00", ActualReturn = "2024-01-15 16:30", RentPoint = "深圳租车点A", ExchangePoint = "广州换车点B", ReturnPoint = "深圳还车点A", Deposit = 3000, Rent = 500, DispatchFee = 50, OtherCost = 20, AmountPaid = 570, DepositRefunded = 3000, OrderStatus = "已完成", CreatedDate = "2024-01-01", Note = "无" },
-		new { Index = 2, OrderNumber = "ORD002", UserID = 102, StartTime = "2024-01-12 10:00", ExpectedReturn = "2024-01-17 14:00", ActualReturn = "2024-01-17 13:50", RentPoint = "广州租车点C", ExchangePoint = "深圳换车点D", ReturnPoint = "广州还车点C", Deposit = 3000, Rent = 600, DispatchFee = 50, OtherCost = 0, AmountPaid = 650, DepositRefunded = 3000, OrderStatus = "已完成", CreatedDate = "2024-01-05", Note = "正常" },
-		new { Index = 3, OrderNumber = "ORD003", UserID = 103, StartTime = "2024-01-15 09:00", ExpectedReturn = "2024-01-20 17:00", ActualReturn = "", RentPoint = "上海租车点E", ExchangePoint = "", ReturnPoint = "", Deposit = 3000, Rent = 700, DispatchFee = 60, OtherCost = 10, AmountPaid = 0, DepositRefunded = 0, OrderStatus = "进行中", CreatedDate = "2024-01-10", Note = "客户延迟" }
-	};
 }
-<link rel="stylesheet" href="~/css/table.css" />
 
 <head>
 	<meta charset="utf-8" />
@@ -18,7 +10,7 @@
 	<link rel="stylesheet" href="~/css/loading.css" />
 	<script src="~/js/utils/jquery-3.6.0.min.js" defer></script>
 	<script src="~/js/loading.js" defer></script>
-	<script src="~/js/utils/user.js" defer></script>
+	<script src="~/js/utils/order.js" defer></script>
 </head>
 <header>
 	<h3>订单总览</h3>
