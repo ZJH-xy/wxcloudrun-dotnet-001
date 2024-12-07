@@ -959,14 +959,23 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
             _logger.LogInformation("退款已成功refundReturnJson：{refundReturnJson}", refundReturnJson.ToJson(true));
 
+
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
+
             // 更改订单信息
             order.Status = Order.EOrderStatus.退款中;
             order.UpdatedAt = now;
+
+            Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+            vehicle.State = Vehicle.Estates.空闲;
+
             try {
                 await _dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
 
             } catch (Exception e) {
                 _logger.LogError(e, "订单退款更新失败order：{OrderId}", order.Id);
+                await transaction.RollbackAsync();
                 return StatusCode(500);
             }
 

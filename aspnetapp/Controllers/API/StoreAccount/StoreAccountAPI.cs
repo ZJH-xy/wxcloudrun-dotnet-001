@@ -456,127 +456,17 @@ namespace aspnetapp.Controllers.API.StoreAccount
                     UpdatedAt = now
                 };
 
-                /* 订单数据定义 */
-                string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
-                string mchid = Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_MchId;
-                // 商品描述
-                string description = "补全剩余价格";
-                // 商户订单号
-                //string outTradeNo = order.OutTradeNo!;// 创建订单号
-                string outTradeNo = supplementaryOrders.OutTradeNo;// 创建订单号
-                // 交易结束时间（10分钟）
-                string time_expire = supplementaryOrders.CreatedAt.AddMinutes(10).ToString("yyyy-MM-ddTHH:mm:sszzz");
-                // 附加数据
-                string attach = "";
-                // 通知地址
-                const string notifyUrl = "https://wxcloudrun-dotnet-128645-8-1331625129.sh.run.tcloudbase.com/storeAccount/callback/notify";
-                // 订单总金额（分）
-                int total = Order.GetTotal(supplementaryOrders.Total);
-                // 用户Unionid
-                var user = await _dbContext.User.SingleAsync(u => u.Id == order.TheUser);
-                string unionid = user.Unionid;
-                //string secret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
-                //var sessionKey = await Senparc.Weixin.WxOpen.AdvancedAPIs.Sns.SnsApi.JsCode2JsonAsync(appid, secret, data.Code);
-                //string unionid = sessionKey.unionid;
-
-                // 创建请求类
-                TransactionsRequestData requestData = new() {
-                    appid = appid,
-
-                    // 【直连商户号】 直连商户号
-                    mchid = mchid,
-
-                    // 【商品描述】 商品描述
-                    description = description,
-
-                    // 【商户订单号(string(32))】 商户系统内部订单号，只能是数字、大小写字母_-*且在同一个商户号下唯一。
-                    out_trade_no = outTradeNo,
-
-                    /// 选填
-                    /// 【交易结束时间】订单失效时间，遵循rfc3339标准格式，格式为yyyy-MM-DDTHH:mm:ss+TIMEZONE，yyyy-MM-DD表示年月日，
-                    /// T出现在字符串中，表示time元素的开头，HH:mm:ss表示时分秒，TIMEZONE表示时区（+08:00表示东八区时间，领先UTC8小时，即北京时间）。
-                    /// 例如：2015-05-20T13:29:35+08:00表示，北京时间2015年5月20日13点29分35秒。
-                    time_expire = time_expire,
-
-                    /// 选填
-                    /// 【附加数据】 附加数据，在查询API和支付通知中原样返回，可作为自定义参数使用，实际情况下只有支付完成状态才会返回该字段。
-                    attach = attach,
-
-                    // 【通知地址】 异步接收微信支付结果通知的回调地址，通知URL必须为外网可访问的URL，不能携带参数。
-                    // 公网域名必须为HTTPS，如果是走专线接入，使用专线NAT IP或者私有回调域名可使用HTTP
-                    notify_url = notifyUrl,
-
-                    // 【订单优惠标记】 订单优惠标记
-                    goods_tag = "",
-
-                    // 【订单金额】 订单金额信息
-                    amount = new TransactionsRequestData.Amount {
-                        // 【总金额】 订单总金额，单位为分。
-                        total = total,
-                        // 【货币类型】 CNY：人民币，境内商户号仅支持人民币。
-                        currency = "CNY"
-                    },
-
-                    // 【支付者】 支付者信息。
-                    payer = new TransactionsRequestData.Payer {
-                        // 【用户标识】 用户在普通商户AppID下的唯一标识。 下单前需获取到用户的OpenID，详见OpenID获取
-                        openid = unionid
-                    },
-
-                    /// 选填
-                    /// 【优惠功能】 优惠功能
-                    detail = null,
-
-                    /// 选填
-                    /// 【结算信息】 结算信息
-                    settle_info = null,
-
-                    /// 选填
-                    /// 【场景信息】 支付场景描述
-                    scene_info = null,
-
-                    /// 选填
-                    /// 【电子发票入口开放标识】 传入true时，支付成功消息和支付详情页将出现开票入口。需要在微信支付商户平台或微信公众平台开通电子发票功能，传此字段才可生效。
-                    support_fapiao = false
-                };
-
-                // 发起创建订单请求
-                BasePayApis basePayApis = new();
-                JsApiReturnJson result;
                 try {
-                    result = await basePayApis.JsApiAsync(requestData);
-                } catch (Exception ex) {
-                    Console.WriteLine($"下单失败：{ex.Message}");
-                    _logger.LogError(ex, "[商家确认]下单失败");
+                    await _dbContext.AddAsync(supplementaryOrders);
+                    await _dbContext.SaveChangesAsync();
+
+                } catch (Exception e) {
+                    _logger.LogError(e, "创建补充订单{supplementaryOrders}失败", supplementaryOrders.ToJson(true));
                     return StatusCode(500);
                 }
 
-                // 【预支付交易会话标识】 预支付交易会话标识。用于后续接口调用中使用，该值有效期为2小时
-                string prepayId = result.prepay_id;
-
-                #region 加密
-                if (prepayId.IsNullOrEmpty()) {
-                    //_logger.LogError("getdata{}", data);
-                    _logger.LogError("[PayOrder]创建订单错误result:{result}", result.ToJson(true));
-                    _logger.LogError("[PayOrder]订单信息requestData:{requestData}", requestData);
-                    return StatusCode(500);
-                }
-
-                //string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
-                long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                string nonceStr = Guid.NewGuid().ToString("N");
-                string pack = "prepay_id=" + prepayId;
-                string signType = "RSA";
-                String paySign = OrderAPI.GetSign(appid, timestamp, nonceStr, pack);//签名
-
-                if (result.VerifySignSuccess != true) {
-                    _logger.LogError("获取 prepay_id 结果校验出错！");
-                    return StatusCode(403, "获取 prepay_id 结果校验出错！");
-                    throw new WeixinException("获取 prepay_id 结果校验出错！");
-                }
-                #endregion
-
-                return StatusCode(202, new { appid, timestamp, nonceStr, pack, signType, paySign });
+                return StatusCode(200);
+                //return StatusCode(202, new { appid, timestamp, nonceStr, pack, signType, paySign });
             } else {
                 // 进入退款
                 // 退押金金额（金额修改完成后计算！！！）
