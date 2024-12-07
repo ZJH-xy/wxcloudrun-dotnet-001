@@ -1,7 +1,9 @@
-using Microsoft.AspNetCore.Mvc.RazorPages;
+ï»¿using Microsoft.AspNetCore.Mvc.RazorPages;
 using aspnetapp.Controllers.Web;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
+using aspnetapp.Controllers.Miniprogram;
 
 namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 	public class VehicleOverviewModel : PageModel {
@@ -17,13 +19,13 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 
 		public List<Vehicle> List { get; set; } = new List<Vehicle>();
 
-		// ÓÃÓÚÔÚÒ³ÃæÏÔÊ¾´íÎóĞÅÏ¢
+		// ç”¨äºåœ¨é¡µé¢æ˜¾ç¤ºé”™è¯¯ä¿¡æ¯
 		public string ErrorMessage { get; set; }
 
-		// ÓÃÓÚÔÚÒ³ÃæÏÔÊ¾³É¹¦ĞÅÏ¢
+		// ç”¨äºåœ¨é¡µé¢æ˜¾ç¤ºæˆåŠŸä¿¡æ¯
 		public string SuccessMessage { get; set; }
 
-		// ·ÖÒ³²éÑ¯
+		// åˆ†é¡µæŸ¥è¯¢
 		[BindProperty(SupportsGet = true)]
 		public int Limit { get; set; } = 10;
 
@@ -31,17 +33,17 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 		public static int PageIndex { get; set; } = 1;
 		public int PageIndexHtml { get; set; }
 
-		// ¸üĞÂ
+		// æ›´æ–°
 		[BindProperty]
 		public Vehicle UpdatedVehicle { get; set; } = new Vehicle();
 
-		// ²éÑ¯
-		public static List<Vehicle> SearchList { get; set; } = new(); // ²éÑ¯ÓÃList
+		// æŸ¥è¯¢
+		public static List<Vehicle> SearchList { get; set; } = new(); // æŸ¥è¯¢ç”¨List
 
 		[BindProperty(SupportsGet = true)]
-		public int SearchSum { get; set; } = 0; // ²éÑ¯½á¹û×ÜÊı
+		public int SearchSum { get; set; } = 0; // æŸ¥è¯¢ç»“æœæ€»æ•°
 
-		// ²éÑ¯×Ö¶Î
+		// æŸ¥è¯¢å­—æ®µ
 		[BindProperty(SupportsGet = true)]
 		public static string? SearchPlateNumber { get; set; }
 		public string? SearchPlateNumberHtml { get; set; }
@@ -50,22 +52,70 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 		public static string? SearchOwner { get; set; }
 		public string? SearchOwnerHtml { get; set; }
 
-		// ÅÅĞò
+		// æ’åº
 		[BindProperty(SupportsGet = true)]
-		public string? SortField { get; set; } = "Id"; // Ä¬ÈÏÅÅĞò×Ö¶ÎÎª "Id"
+		public string? SortField { get; set; } = "Id"; // é»˜è®¤æ’åºå­—æ®µä¸º "Id"
 
 		[BindProperty(SupportsGet = true)]
-		public string? SortOrder { get; set; } = "asc"; // Ä¬ÈÏÅÅĞòË³ĞòÎªÉıĞò
+		public string? SortOrder { get; set; } = "asc"; // é»˜è®¤æ’åºé¡ºåºä¸ºå‡åº
 
-		// Í¼Æ¬ÉÏ´«
-		public string ImageName { get; set; } // Í¼Æ¬ÎÄ¼şÃû
+		// å›¾ç‰‡ä¸Šä¼ 
+		public string ImageName { get; set; } // å›¾ç‰‡æ–‡ä»¶å
 		public static string FileId { get; set; } = "";
 
-		/// <summary>
-		/// Ä¬ÈÏÒ³Âë²éÑ¯
-		/// </summary>
-		public async Task<IActionResult> OnGetAsync() {
-			_logger.LogInformation("[OnGetAsync]ÕıÔÚ»ñÈ¡ÏŞÖÆÎª{Limit}µÄÒ³Ãæ{PageIndex}µÄ³µÁ¾ÁĞ±í", PageIndex, Limit);
+        /// <summary>
+        /// ç”¨äºæä¾›ç»™å‰ç«¯çš„ API æ–¹æ³•
+        /// </summary>
+        /// <param name="requestData"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<JsonResult> OnPostSayHelloAsync() {
+            Console.WriteLine("æ¥å£å·²è§¦å‘");
+            string message = "æœªå®šä¹‰é”™è¯¯"; // é»˜è®¤é”™è¯¯ä¿¡æ¯
+            try {
+                var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+                var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+                var envId = _wxSetting.Value.Env;
+
+                // æ¨¡æ‹Ÿä¸šåŠ¡é€»è¾‘
+                ImageName = "admin/vehicle/pictures/" + Guid.NewGuid().ToString() + ".jpg";
+                Console.WriteLine($"[97]ImageName: {ImageName}");
+
+                WxUploadFileJsonResult result = TcbApi.UploadFile(appId, envId, ImageName);
+
+                if (result.ErrorCodeValue != 0) {
+                    message = "ä¸Šä¼ å¤±è´¥ï¼Œé”™è¯¯ç ï¼š" + result.ErrorCodeValue;
+                    Console.WriteLine(message);
+                    return new JsonResult(new { success = false, message });
+                }
+
+                FileId = result.file_id;
+#if DEBUG
+                Console.WriteLine($"file_idæ›´æ–°ï¼š{FileId}");
+#endif
+
+                string filePath = ImageName;
+                return new JsonResult(new {
+                    success = true,
+                    ImageUrl = result.url,
+                    FilePath = filePath,
+                    Authorization = result.authorization,
+                    Token = result.token,
+                    Cos_file_id = result.cos_file_id
+                });
+            } catch (Exception ex) {
+                message = "å‘ç”Ÿå¼‚å¸¸ï¼š" + ex.Message;
+                Console.WriteLine(message);
+                return new JsonResult(new { success = false, message });
+            }
+        }
+
+        /// <summary>
+        /// é»˜è®¤é¡µç æŸ¥è¯¢
+        /// </summary>
+        public async Task<IActionResult> OnGetAsync() {
+			_logger.LogInformation("[OnGetAsync]æ­£åœ¨è·å–é™åˆ¶ä¸º{Limit}çš„é¡µé¢{PageIndex}çš„è½¦è¾†åˆ—è¡¨", PageIndex, Limit);
 
 			SearchPlateNumber = "";
 			SearchOwner = "";
@@ -73,26 +123,26 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 			try {
 				List = await _vehicleController.GetTablePage(Limit, PageIndex);
 			} catch (Exception ex) {
-				_logger.LogError(ex, "»ñÈ¡³µÁ¾ÁĞ±íÊ±³ö´í");
-				ModelState.AddModelError(string.Empty, "¼ÓÔØ³µÁ¾ÁĞ±íÊ±·¢Éú´íÎó¡£");
+				_logger.LogError(ex, "è·å–è½¦è¾†åˆ—è¡¨æ—¶å‡ºé”™");
+				ModelState.AddModelError(string.Empty, "åŠ è½½è½¦è¾†åˆ—è¡¨æ—¶å‘ç”Ÿé”™è¯¯ã€‚");
 			}
 
 			return Page();
 		}
 
 		/// <summary>
-		/// ËÑË÷
+		/// æœç´¢
 		/// </summary>
 		public async Task<IActionResult> OnPostSearchAsync() {
-			_logger.LogDebug("[OnPostSearchAsync]ÕıÔÚÌõ¼ş²éÑ¯: PlateNumber: {PlateNumber}, Owner: {Owner}, SortField: {SortField}, SortOrder: {SortOrder}",
+			_logger.LogDebug("[OnPostSearchAsync]æ­£åœ¨æ¡ä»¶æŸ¥è¯¢: PlateNumber: {PlateNumber}, Owner: {Owner}, SortField: {SortField}, SortOrder: {SortOrder}",
 							SearchPlateNumber, SearchOwner, SortField, SortOrder);
 
-			// µ÷ÓÃ VehicleControllerWeb ÖĞµÄ SearchVehicles ·½·¨£¬°üº¬ÅÅĞò×Ö¶ÎºÍË³Ğò
+			// è°ƒç”¨ VehicleControllerWeb ä¸­çš„ SearchVehicles æ–¹æ³•ï¼ŒåŒ…å«æ’åºå­—æ®µå’Œé¡ºåº
 			SearchList = await _vehicleController.SearchVehicles(SearchPlateNumber, SearchOwner, SortField, SortOrder);
 
 			List = SearchList
-				.Skip((PageIndex - 1) * Limit) // Ìø¹ıÇ°ÃæÒ³µÄÊı¾İ
-				.Take(Limit).ToList(); // »ñÈ¡µ±Ç°Ò³µÄÊı¾İ
+				.Skip((PageIndex - 1) * Limit) // è·³è¿‡å‰é¢é¡µçš„æ•°æ®
+				.Take(Limit).ToList(); // è·å–å½“å‰é¡µçš„æ•°æ®
 
 			SearchSum = SearchList.Count;
 
@@ -100,39 +150,39 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 		}
 
 		/// <summary>
-		/// ¸üĞÂ
+		/// æ›´æ–°
 		/// </summary>
 		public async Task<IActionResult> OnPostUpdateVehicleAsync() {
-			_logger.LogInformation("ÕıÔÚ³¢ÊÔÊ¹ÓÃID¸üĞÂ³µÁ¾{VehicleId}", UpdatedVehicle.Id);
+			_logger.LogInformation("æ­£åœ¨å°è¯•ä½¿ç”¨IDæ›´æ–°è½¦è¾†{VehicleId}", UpdatedVehicle.Id);
 
-			if (!ModelState.IsValid) {
-				_logger.LogWarning("±íµ¥ÑéÖ¤Ê§°Ü¡£VehicleId: {VehicleId}", UpdatedVehicle.Id);
-				ErrorMessage = "±íµ¥ÑéÖ¤Ê§°Ü£¬Çë¼ì²éÊäÈëÄÚÈİ";
-				return Page();
-			}
+			//if (!ModelState.IsValid) {
+			//	_logger.LogWarning("è¡¨å•éªŒè¯å¤±è´¥ã€‚VehicleId: {VehicleId}", UpdatedVehicle.Id);
+			//	ErrorMessage = "è¡¨å•éªŒè¯å¤±è´¥ï¼Œè¯·æ£€æŸ¥è¾“å…¥å†…å®¹";
+			//	return Page();
+			//}
 
 			var result = await _vehicleController.UpdateVehicle(UpdatedVehicle);
 			if (result is NotFoundResult) {
-				_logger.LogWarning("ÕÒ²»µ½³µÁ¾¡£VehicleId: {VehicleId}", UpdatedVehicle.Id);
-				ErrorMessage = "ÕÒ²»µ½³µÁ¾";
+				_logger.LogWarning("æ‰¾ä¸åˆ°è½¦è¾†ã€‚VehicleId: {VehicleId}", UpdatedVehicle.Id);
+				ErrorMessage = "æ‰¾ä¸åˆ°è½¦è¾†";
 			} else if (result is StatusCodeResult status && status.StatusCode == 500) {
-				_logger.LogError("¸üĞÂ³µÁ¾Ê±³ö´í¡£VehicleId: {VehicleId}", UpdatedVehicle.Id);
-				ErrorMessage = "¸üĞÂ³µÁ¾Ê±³ö´í¡£";
+				_logger.LogError("æ›´æ–°è½¦è¾†æ—¶å‡ºé”™ã€‚VehicleId: {VehicleId}", UpdatedVehicle.Id);
+				ErrorMessage = "æ›´æ–°è½¦è¾†æ—¶å‡ºé”™ã€‚";
 			} else if (result is ObjectResult objResult && objResult.StatusCode == 409) {
-				_logger.LogWarning("Ê¹ÓÃID¸üĞÂ³µÁ¾Ê±·¢Éú²¢·¢³åÍ»¡£VehicleId: {VehicleId}", UpdatedVehicle.Id);
-				ErrorMessage = $"Äú³¢ÊÔ±à¼­µÄ¼ÇÂ¼ÒÑ±»ÆäËûÓÃ»§ĞŞ¸Ä¡£ÇëÖØĞÂ¼ÓÔØÊı¾İºóÖØÊÔ£¬ID£º{UpdatedVehicle.Id}";
+				_logger.LogWarning("ä½¿ç”¨IDæ›´æ–°è½¦è¾†æ—¶å‘ç”Ÿå¹¶å‘å†²çªã€‚VehicleId: {VehicleId}", UpdatedVehicle.Id);
+				ErrorMessage = $"æ‚¨å°è¯•ç¼–è¾‘çš„è®°å½•å·²è¢«å…¶ä»–ç”¨æˆ·ä¿®æ”¹ã€‚è¯·é‡æ–°åŠ è½½æ•°æ®åé‡è¯•ï¼ŒIDï¼š{UpdatedVehicle.Id}";
 			} else {
-				_logger.LogInformation("IDÎª{VehicleId}µÄ³µÁ¾ÒÑ³É¹¦¸üĞÂ", UpdatedVehicle.Id);
-				SuccessMessage = $"±£´æ³É¹¦£¬ÒÑ¸üĞÂ ID£º{UpdatedVehicle.Id}";
+				_logger.LogInformation("IDä¸º{VehicleId}çš„è½¦è¾†å·²æˆåŠŸæ›´æ–°", UpdatedVehicle.Id);
+				SuccessMessage = $"ä¿å­˜æˆåŠŸï¼Œå·²æ›´æ–° IDï¼š{UpdatedVehicle.Id}";
 			}
 
-			List = await _vehicleController.GetTablePage(Limit, PageIndex); // Ë¢ĞÂ³µÁ¾ÁĞ±í
+			List = await _vehicleController.GetTablePage(Limit, PageIndex); // åˆ·æ–°è½¦è¾†åˆ—è¡¨
 
 			Thread.Sleep(2500);
 
 			if (!FileId.IsNullOrEmpty()) {
-				_logger.LogInformation($"¸üĞÂ³µÁ¾Í¼Æ¬ĞÅÏ¢FileId£º{FileId}");
-				// ¸üĞÂ³µÁ¾Í¼Æ¬ĞÅÏ¢
+				_logger.LogInformation($"æ›´æ–°è½¦è¾†å›¾ç‰‡ä¿¡æ¯FileIdï¼š{FileId}");
+				// æ›´æ–°è½¦è¾†å›¾ç‰‡ä¿¡æ¯
 				await _vehicleController.PutImagePath(UpdatedVehicle.Id, FileId);
 				FileId = "";
 			}
@@ -140,50 +190,101 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 			return Page();
 		}
 
-		/// <summary>
-		/// »ñÈ¡Ò³Âë
-		/// </summary>
-		public async Task<IActionResult> OnGetPageIndexAsync() {
+        /// <summary>
+        /// è¿”å›æ€»é¡µæ•°
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> OnGetPageSumAsync() {
+            try {
+                // è·å–æ‰€æœ‰ç”¨æˆ·æ•°æ®çš„æ€»æ•°ï¼ˆå¯ä»¥é€šè¿‡æœåŠ¡æ–¹æ³•è·å–ï¼‰
+                var sum = await _vehicleController.GetPageSum();
+
+                // è®¡ç®—æ€»é¡µæ•°
+                int totalPages = (sum / Limit) + 1;
+
+                // è¿”å›æ€»é¡µæ•°
+                return new JsonResult(new { totalPages });
+            } catch (Exception ex) {
+                _logger.LogError(ex, "è·å–æ€»é¡µæ•°æ—¶å‘ç”Ÿé”™è¯¯");
+                return BadRequest("æ— æ³•è·å–æ€»é¡µæ•°");
+            }
+        }
+
+        /// <summary>
+        /// è·å–é¡µç 
+        /// </summary>
+        public async Task<IActionResult> OnGetPageIndexAsync() {
 			return new JsonResult(new { success = true, pageIndex = PageIndex });
 		}
 
 		/// <summary>
-		/// ¸ü¸ÄÒ³Âë
+		/// æ›´æ”¹é¡µç 
 		/// </summary>
 		[HttpPost]
 		[IgnoreAntiforgeryToken]
 		public async Task<JsonResult> OnPostChangePageAsync([FromBody] Dictionary<string, int> requestData) {
 			if (requestData == null || !requestData.Any()) {
-				return new JsonResult(new { success = false, message = "ÇëÇóÊı¾İÎª¿Õ£¡" });
+				return new JsonResult(new { success = false, message = "è¯·æ±‚æ•°æ®ä¸ºç©ºï¼" });
 			}
 
 			PageIndex = requestData["PageIndex"];
 
-			return new JsonResult(new { success = true, message = "³É¹¦", pageIndex = PageIndex });
+			return new JsonResult(new { success = true, message = "æˆåŠŸ", pageIndex = PageIndex });
 		}
 
 		/// <summary>
-		/// µ¼³ö¹¦ÄÜ
+		/// è·å–æ–‡ä»¶ä¸‹è½½é“¾æ¥
+		/// </summary>
+		/// <returns></returns>
+		[HttpPost]
+		[IgnoreAntiforgeryToken]
+		public async Task<JsonResult> OnPostImageDownload([FromBody] Dictionary<string, string> requestData) {
+			// ç¡®ä¿æ¥æ”¶åˆ°çš„æ•°æ®è¢«æ­£ç¡®ç»‘å®š
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "è¯·æ±‚æ•°æ®ä¸ºç©ºï¼" });
+			}
+
+			var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+			var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+			var envId = _wxSetting.Value.Env;
+
+			List<FileItem> fileid_list = new() {
+				new FileItem {
+					fileid = requestData["fileid"],
+					max_age = 7200
+				}
+				};
+
+			var re = await TcbApi.BatchDownloadFileAsync(appId, envId, fileid_list);
+			if (re.errcode != ReturnCode.è¯·æ±‚æˆåŠŸ) {
+				_logger.LogError("{errmsg},è·å–ä¸‹è½½é“¾æ¥{fileid_list}", re.errmsg, fileid_list.ToJson());
+			}
+
+			return new JsonResult(new { success = true, message = "è·å–æ–‡ä»¶ä¸‹è½½é“¾æ¥ç»“æŸ", re.file_list });
+		}
+
+		/// <summary>
+		/// å¯¼å‡ºåŠŸèƒ½
 		/// </summary>
 		public async Task<IActionResult> OnGetExportToExcelAsync() {
-			// »ñÈ¡³µÁ¾±í
+			// è·å–è½¦è¾†è¡¨
 			List<Vehicle> excelList = await _vehicleController.GetAllList();
 
-			// ´´½¨Ò»¸öĞÂµÄ¹¤×÷²¾
+			// åˆ›å»ºä¸€ä¸ªæ–°çš„å·¥ä½œç°¿
 			IWorkbook workbook = new XSSFWorkbook();
-			ISheet sheet = workbook.CreateSheet("³µÁ¾Êı¾İ");
+			ISheet sheet = workbook.CreateSheet("è½¦è¾†æ•°æ®");
 
-			// ´´½¨±íÍ·ĞĞ
+			// åˆ›å»ºè¡¨å¤´è¡Œ
 			IRow headerRow = sheet.CreateRow(0);
-			headerRow.CreateCell(0).SetCellValue("ĞòºÅ");
-			headerRow.CreateCell(1).SetCellValue("³µÁ¾ ID");
-			headerRow.CreateCell(2).SetCellValue("³µÅÆºÅ");
-			headerRow.CreateCell(3).SetCellValue("³µÖ÷");
-			headerRow.CreateCell(4).SetCellValue("³µÁ¾ĞÍºÅ");
-			headerRow.CreateCell(5).SetCellValue("´´½¨Ê±¼ä");
-			headerRow.CreateCell(6).SetCellValue("¸üĞÂÊ±¼ä");
+			headerRow.CreateCell(0).SetCellValue("åºå·");
+			headerRow.CreateCell(1).SetCellValue("è½¦è¾† ID");
+			headerRow.CreateCell(2).SetCellValue("è½¦ç‰Œå·");
+			headerRow.CreateCell(3).SetCellValue("è½¦ä¸»");
+			headerRow.CreateCell(4).SetCellValue("è½¦è¾†å‹å·");
+			headerRow.CreateCell(5).SetCellValue("åˆ›å»ºæ—¶é—´");
+			headerRow.CreateCell(6).SetCellValue("æ›´æ–°æ—¶é—´");
 
-			// Ìî³äÊı¾İ
+			// å¡«å……æ•°æ®
 			for (int i = 0; i < excelList.Count; i++) {
 				var row = sheet.CreateRow(i + 1);
 				row.CreateCell(0).SetCellValue(i + 1);
@@ -195,43 +296,43 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 				row.CreateCell(6).SetCellValue(excelList[i].UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
 			}
 
-			// ×Ô¶¯µ÷ÕûÁĞ¿í
+			// è‡ªåŠ¨è°ƒæ•´åˆ—å®½
 			for (int col = 0; col < 7; col++) {
 				sheet.AutoSizeColumn(col);
 			}
 
-			// ½«¹¤×÷²¾±£´æµ½ÄÚ´æÁ÷
+			// å°†å·¥ä½œç°¿ä¿å­˜åˆ°å†…å­˜æµ
 			using (var memoryStream = new MemoryStream()) {
 				workbook.Write(memoryStream);
-				var fileName = "³µÁ¾Êı¾İ.xlsx";
+				var fileName = "è½¦è¾†æ•°æ®.xlsx";
 				var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-				// ·µ»ØÎÄ¼şÁ÷¹©ÏÂÔØ
+				// è¿”å›æ–‡ä»¶æµä¾›ä¸‹è½½
 				return File(memoryStream.ToArray(), contentType, fileName);
 			}
 		}
 
 		/// <summary>
-		/// »ñÈ¡²éÑ¯Êı¾İ
+		/// è·å–æŸ¥è¯¢æ•°æ®
 		/// </summary>
 		public async Task<JsonResult> OnGetSearchDataAsync() {
-			return new JsonResult(new { success = true, message = "³É¹¦", SearchPlateNumber, SearchOwner });
+			return new JsonResult(new { success = true, message = "æˆåŠŸ", SearchPlateNumber, SearchOwner });
 		}
 
 		/// <summary>
-		/// ¸ü¸Ä²éÑ¯Êı¾İ
+		/// æ›´æ”¹æŸ¥è¯¢æ•°æ®
 		/// </summary>
 		[HttpPost]
 		[IgnoreAntiforgeryToken]
 		public async Task<JsonResult> OnPostChangeSearchDataAsync([FromBody] Dictionary<string, string> requestData) {
 			if (requestData == null || !requestData.Any()) {
-				return new JsonResult(new { success = false, message = "ÇëÇóÊı¾İÎª¿Õ£¡" });
+				return new JsonResult(new { success = false, message = "è¯·æ±‚æ•°æ®ä¸ºç©ºï¼" });
 			}
 
 			SearchPlateNumber = requestData["SearchPlateNumber"];
 			SearchOwner = requestData["SearchOwner"];
 
-			return new JsonResult(new { success = true, message = "³É¹¦" });
+			return new JsonResult(new { success = true, message = "æˆåŠŸ" });
 		}
 	}
 }

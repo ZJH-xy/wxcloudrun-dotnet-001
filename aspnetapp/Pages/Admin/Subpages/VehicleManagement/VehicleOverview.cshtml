@@ -5,9 +5,9 @@
 <head>
 	<meta charset="utf-8" />
 	<!-- 引用外部 jQuery -->
-	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<link rel="stylesheet" href="~/css/table.css" />
 	<link rel="stylesheet" href="~/css/loading.css" />
+	<script src="~/js/utils/jquery-3.6.0.min.js" defer></script>
 	<script src="~/js/loading.js" defer></script>
 	<script src="~/js/utils/vehicle.js" defer></script>
 </head>
@@ -56,26 +56,26 @@
 				<button type="submit" onclick="init()">刷新</button>
 			</form>
 
-			<button onclick="exportFile()" class="editBtn">导出为 Excel</button>
+			<button onclick="exportFile()" class="editBtn export">导出为 Excel</button>
 
 		</div>
-		@* 		<form method="post" asp-page-handler="Search">
-		<input asp-for="SearchPhoneHtml" id="SearchPhoneHtml" value="" placeholder="手机号" />
-		<input asp-for="SearchNameHtml" id="SearchNameHtml" value="" placeholder="姓名" />
-		<input asp-for="SearchNicknameHtml" id="SearchNicknameHtml" value="" placeholder="昵称" />
-		<select asp-for="SortField">
-		<option value="Id">ID</option>
-		<option value="Phone">手机号</option>
-		<option value="Name">姓名</option>
-		<option value="CreatedAt">创建时间</option>
-		<option value="UpdatedAt">更新时间</option>
-		</select>
-		<select asp-for="SortOrder">
-		<option value="asc">升序</option>
-		<option value="desc">降序</option>
-		</select>
-		<button type="submit" onclick="confirmChangeSearchData()">搜索</button>
-		</form> *@
+		<form method="post" asp-page-handler="Search">
+			<input asp-for="SearchPlateNumberHtml" id="SearchPlateNumberHtml" value="" placeholder="车牌号" />
+			<input asp-for="SearchOwnerHtml" id="SearchOwnerHtml" value="" placeholder="车主" />
+
+			<select asp-for="SortField">
+				<option value="Id">ID</option>
+				<option value="Phone">手机号</option>
+				<option value="Name">姓名</option>
+				<option value="CreatedAt">创建时间</option>
+				<option value="UpdatedAt">更新时间</option>
+			</select>
+			<select asp-for="SortOrder">
+				<option value="asc">升序</option>
+				<option value="desc">降序</option>
+			</select>
+			<button type="submit" onclick="confirmChangeSearchData()">搜索</button>
+		</form>
 	</div>
 
 	<table id="userTable">
@@ -92,7 +92,6 @@
 			<th>车辆状态</th>
 			<th>车辆图片</th>
 			<th>状态修改</th>
-
 			<th>创建时间</th>
 			<th>更新时间</th>
 			<th>操作</th>
@@ -101,15 +100,16 @@
 			<tr>
 				<form method="post" asp-page-handler="UpdateVehicle" enctype="multipart/form-data">
 				<td>@(i + 1)</td>
-				<td>@Model.List[i].Id<input type="hidden" name="UpdatedVehicle.Id" value="@Model.List[i].Id" /></td>
-				<td><input type="text" name="UpdatedVehicle.PlateNumber" value="@Model.List[i].PlateNumber" placeholder="无" disabled /></td>
-				<td><input type="text" name="UpdatedVehicle.FrameNumber" value="@Model.List[i].FrameNumber" placeholder="无" disabled /></td>
-				<td><input type="text" name="UpdatedVehicle.Certificate" value="@Model.List[i].Certificate" placeholder="无" disabled /></td>
-				<td><input type="text" name="UpdatedVehicle.Drivinglicense" value="@Model.List[i].Drivinglicense" placeholder="无" disabled /></td>
-				<td><input type="text" name="UpdatedVehicle.Invoice" value="@Model.List[i].Invoice" placeholder="无" disabled /></td>
-				<td><input type="date" name="UpdatedVehicle.PurchaseRegistrationTime" value="@Model.List[i].PurchaseRegistrationTime.ToString()" disabled /></td>
-				<td><input type="text" name="UpdatedVehicle.State" value="@Model.List[i].Model" placeholder="无" disabled /></td>
-				<td><input type="text" name="UpdatedVehicle.State" value="@Model.List[i].State" placeholder="无" disabled /></td>
+				<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedVehicle.Id" value="@Model.List[i].Id" /></td>
+				<td><input id="@("plateNumber" + i)" type="text" name="UpdatedVehicle.PlateNumber" value="@Model.List[i].PlateNumber" placeholder="无" disabled /></td>
+				<td><input id="@("frameNumber" + i)" type="text" name="UpdatedVehicle.FrameNumber" value="@Model.List[i].FrameNumber" placeholder="无" disabled /></td>
+				<td><input id="@("certificate" + i)" type="text" name="UpdatedVehicle.Certificate" value="@Model.List[i].Certificate" placeholder="无" disabled /></td>
+				<td><input id="@("drivinglicense" + i)" type="text" name="UpdatedVehicle.Drivinglicense" value="@Model.List[i].Drivinglicense" placeholder="无" disabled /></td>
+				<td><input id="@("invoice" + i)" type="text" name="UpdatedVehicle.Invoice" value="@Model.List[i].Invoice" placeholder="无" disabled /></td>
+				<td><input id="@("purchaseRegistrationTime" + i)" type="date" name="UpdatedVehicle.PurchaseRegistrationTime" value="@Model.List[i].PurchaseRegistrationTime.ToString()" disabled /></td>
+				<td><input id="@("Model" + i)" type="text" name="UpdatedVehicle.Model" value="@Model.List[i].Model" placeholder="无" disabled /></td>
+				<td><input id="@("State" + i)" type="text" name="UpdatedVehicle.State" value="@Model.List[i].State" placeholder="无" disabled /></td>
+
 				<td>
 					<div class="imageContainer" data-id="@Model.List[i].Id">
 						<!-- 常驻显示的图片 -->
@@ -156,9 +156,8 @@
 						<option value="充电中" selected="@(Model.List[i].State == 2 ? "selected" : null)">充电中</option> *@
 					</select>
 				</td>
-				<td>@Model.List[i].CreatedAt</td>
-				<td>@Model.List[i].UpdatedAt</td>
-
+				<td><text id="@("createdAt" + i)">@Model.List[i].CreatedAt</text></td>
+				<td><text id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</text></td>
 				<td>
 					<button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
 					<button type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;" onclick="saveClick(event)">保存</button>
@@ -176,9 +175,9 @@
 		<div class="bottom-item">
 			<text id="page">第 1 页</text>
 			<text>，当前页共 @Model.List.Count 条数据</text>
-			@* 	@if (@Model.SearchSum != 0) {
-			<text>，共搜索到 @Model.SearchSum 条数据，</text>
-			} *@
+			@if (@Model.SearchSum != 0) {
+				<text>，共搜索到 @Model.SearchSum 条数据，</text>
+			}
 
 			<input id="PageCount" value="@Model.List.Count" style="display:none;" />
 			<input id="PageLimit" value="@Model.Limit" style="display:none;" />

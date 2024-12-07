@@ -12,12 +12,12 @@ namespace aspnetapp.Controllers.Web {
 		public OrderControllerWeb(MyDbContext context, ILogger<OrderControllerWeb> logger) {
 			_context = context;
 			_logger = logger;
-		}
+        }
 
-		/// <summary>
-		/// 获取所有订单
-		/// </summary>
-		public async Task<List<Order>> GetAllOrders() {
+        /// <summary>
+        /// 获取所有订单
+        /// </summary>
+        public async Task<List<Order>> GetAllOrders() {
 			return await _context.Order.ToListAsync();
 		}
 

@@ -6,8 +6,8 @@ namespace aspnetapp.Controllers.Web {
 		private readonly MyDbContext _context;
 		private readonly ILogger<VehicleControllerWeb> _logger;
 		private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;
-
-		public VehicleControllerWeb(MyDbContext context, ILogger<VehicleControllerWeb> logger, IOptionsSnapshot<WeixinSetting> wxSetting) {
+        
+        public VehicleControllerWeb(MyDbContext context, ILogger<VehicleControllerWeb> logger, IOptionsSnapshot<WeixinSetting> wxSetting) {
 			_context = context;
 			_logger = logger;
 			_wxSetting = wxSetting;
@@ -30,9 +30,12 @@ namespace aspnetapp.Controllers.Web {
 		public async Task<Vehicle?> GetById(int id) {
 			return await _context.Vehicle.FindAsync(id);
 		}
+        public async Task<int> GetPageSum() {
+            return await _context.Vehicle.CountAsync();
+        }
 
-		// 更新车辆信息
-		public async Task<IActionResult> UpdateVehicle(Vehicle updatedVehicle) {
+        // 更新车辆信息
+        public async Task<IActionResult> UpdateVehicle(Vehicle updatedVehicle) {
 			_logger.LogInformation("正在启动ID为{VehicleId}的车辆更新过程", updatedVehicle.Id);
 
 			var vehicle = await _context.Vehicle.FindAsync(updatedVehicle.Id);

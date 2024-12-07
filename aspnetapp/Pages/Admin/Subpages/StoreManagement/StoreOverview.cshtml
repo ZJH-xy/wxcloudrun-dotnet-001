@@ -1,108 +1,217 @@
 ﻿@page
 @model aspnetapp.Pages.Admin.Subpages.StoreManagement.StoreOverviewModel
 @{
-    // 创建门店的模拟数据
-    var storeList = new List<dynamic>
-    {
-        new { Index = 1, StoreID = "S001", StoreName = "深圳南山店", BusinessHours = "08:00 - 18:00", BusinessStatus = "营业中", ContactPhone = "0755-12345678", WeChat = "nanshan_store", Address = "深圳市南山区科技园路10号", Coordinates = "22.543096, 114.057865", Image = "https://example.com/image1.jpg", Description = "提供豪华车租赁服务", CreatedDate = "2024-01-01", UpdatedDate = "2024-01-15" },
-        new { Index = 2, StoreID = "S002", StoreName = "广州天河店", BusinessHours = "09:00 - 20:00", BusinessStatus = "休息中", ContactPhone = "020-87654321", WeChat = "tianhe_store", Address = "广州市天河区珠江新城10号", Coordinates = "23.129163, 113.264435", Image = "https://example.com/image2.jpg", Description = "专业豪车租赁及维护服务", CreatedDate = "2024-02-01", UpdatedDate = "2024-02-15" },
-        new { Index = 3, StoreID = "S003", StoreName = "上海浦东店", BusinessHours = "10:00 - 22:00", BusinessStatus = "营业中", ContactPhone = "021-65432100", WeChat = "pudong_store", Address = "上海市浦东新区陆家嘴街道5号", Coordinates = "31.230416, 121.473701", Image = "https://example.com/image3.jpg", Description = "豪车租赁与商务接待", CreatedDate = "2024-03-01", UpdatedDate = "2024-03-10" }
-    };
+
 }
-<link rel="stylesheet" href="~/css/table.css" />
-<div>
-    <div class="header">
-        <div class="header-item">
-            <button>刷新</button>
-            <button>添加</button>
-            <button>导出</button>
-        </div>
-        <div class="header-item">
-            <input placeholder="搜索" />
-            <button>搜索</button>
-        </div>
-    </div>
 
-    <table id="userTable">
-        <tr>
-            <th>序号</th>
-            <th>门店ID</th>
-            <th>门店名称</th>
-            <th>营业时间</th>
-            <th>营业状态</th>
-            <th>联系电话</th>
-            <th>微信</th>
-            <th>地址</th>
-            <th>经纬度</th>
-            <th>图片</th>
-            <th>门店介绍</th>
-            <th>创建时间</th>
-            <th>更新时间</th>
-            <th>操作</th>
-        </tr>
 
-        @for (int i = 0; i < storeList.Count; i++)
-        {
-            <tr>
-                <td>@storeList[i].Index</td>
-                <td>@storeList[i].StoreID</td>
-                <td>@storeList[i].StoreName</td>
-                <td>@storeList[i].BusinessHours</td>
-                <td>@storeList[i].BusinessStatus</td>
-                <td>@storeList[i].ContactPhone</td>
-                <td>@storeList[i].WeChat</td>
-                <td>@storeList[i].Address</td>
-                <td>@storeList[i].Coordinates</td>
-                <td><img src="@storeList[i].Image" alt="门店图片" width="60" height="40"></td>
-                <td>@storeList[i].Description</td>
-                <td>@storeList[i].CreatedDate</td>
-                <td>@storeList[i].UpdatedDate</td>
-                <td><button class="modalBtn">编辑</button></td>
-            </tr>
-        }
-    </table>
-    <div class="bottom">
-        <div class="bottom-item">
-            <text>显示第 1 到第 10 条记录，总共 100 条记录</text>
-        </div>
-        <div class="bottom-item">
-            <input placeholder="请输入页数" />
-            <button>跳转</button>
-            <button>上一页</button>
-            <button>下一页</button>
-        </div>
-    </div>
 
-    <!-- 模态窗口 -->
-    <div class="modal" id="myModal">
-        <div class="modal-content">
-            <span class="close" id="closeBtn">&times;</span>
-            <h2>模态窗口</h2>
-            <p>这是一个弹出的模态窗口。</p>
-        </div>
-    </div>
-</div>
-<script>
-    // 获取模态窗口
-    var modal = document.getElementById("myModal");
-    var span = document.getElementById("closeBtn");
+<head>
+	<meta charset="utf-8" />
+	<!-- 引用外部 jQuery -->
+	<link rel="stylesheet" href="~/css/table.css" />
+	<link rel="stylesheet" href="~/css/loading.css" />
+	<script src="/js/utils/jquery-3.6.0.min.js" defer></script>
+	@* https://code.jquery.com/jquery-3.6.0.min.js *@
+	<script src="~/js/loading.js" defer></script>
+	<script src="~/js/utils/store.js" defer></script>
+</head>
+<header>
+	<h3>门店总览</h3>
+</header>
+<body>
 
-    // 使用事件委托
-    document.getElementById("userTable").addEventListener("click", function (event) {
-        if (event.target.classList.contains("modalBtn")) {
-            modal.style.display = "block";
-        }
-    });
+	<!-- 加载动画 -->
+	<div class="box" id="loadding" style="display:none;">
+		<span></span>
+		<span></span>
+		<span></span>
+		<span></span>
+		<span></span>
+	</div>
+	<!-- 锁住页面的遮罩层 -->
+	<div id="overlay" style="display:none;"></div>
 
-    // 点击关闭按钮时关闭模态窗口
-    span.onclick = function () {
-        modal.style.display = "none";
-    }
+	<!-- 显示错误消息 -->
+	@if (!string.IsNullOrEmpty(Model.ErrorMessage)) {
+		<div id="failMessage" class="failMessage">@Model.ErrorMessage</div>
+		@foreach (var error in ModelState.Values.SelectMany(v => v.Errors)) {
+			<div id="failMessage" class="failMessage">@error.ErrorMessage</div>
+		}
+		<script>
+			setTimeout(function () {
+				showMessage("failMessage", 4000);
+			}, 500)
+		</script>
+	}
 
-    // 点击模态窗口外部时关闭模态窗口
-    window.onclick = function (event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
-</script>
+	<!-- 显示成功消息 -->
+	@if (!string.IsNullOrEmpty(Model.SuccessMessage)) {
+		<div id="successMessage" class="message">@Model.SuccessMessage</div>
+		<script>
+			setTimeout(function () {
+				showMessage("successMessage");
+			}, 500)
+		</script>
+	}
+
+	<div class="header">
+		<div class="header">
+			<form method="get">
+				<button type="submit" onclick="init()">刷新</button>
+			</form>
+
+			<button onclick="exportFile()" class="editBtn export">导出为 Excel</button>
+			<button id="addRowBtn">添加</button>
+		</div>
+		<form method="post" asp-page-handler="Search">
+@* 			<input asp-for="SearchPhoneHtml" id="SearchPhoneHtml" value="" placeholder="手机号" />
+			<input asp-for="SearchNameHtml" id="SearchNameHtml" value="" placeholder="姓名" />
+			<input asp-for="SearchNicknameHtml" id="SearchNicknameHtml" value="" placeholder="昵称" /> *@
+			<select asp-for="SortField">
+				<option value="Id">ID</option>
+				<option value="Phone">手机号</option>
+				<option value="Name">姓名</option>
+				<option value="CreatedAt">创建时间</option>
+				<option value="UpdatedAt">更新时间</option>
+			</select>
+			<select asp-for="SortOrder">
+				<option value="asc">升序</option>
+				<option value="desc">降序</option>
+			</select>
+			@* <div id="searchMessage" class="message">搜索成功</div> *@
+			<button type="submit" onclick="confirmChangeSearchData()">搜索</button>
+		</form>
+	</div>
+
+	<table id="userTable">
+		<tr>
+			<th>序号</th>
+			<th>门店ID</th>
+			<th>门店名称</th>
+			<th>营业开始时间</th>
+			<th>营业结束时间</th>
+			<th>营业状态</th>
+			<th>联系电话</th>
+			<th>微信</th>
+			<th>地址</th>
+			<th>经纬度</th>
+			<th>经纬度</th>
+			<th>图片</th>
+			<th>门店介绍</th>
+			<th>创建时间</th>
+			<th>更新时间</th>
+			<th>是否营业</th>
+			<th>操作</th>
+		</tr>
+		@for (int i = 0; i < Model.List.Count; i++) {
+			<tr>
+				<form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data">
+				<td>@(i + 1)</td>
+				<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" /></td>
+				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="无" disabled /></td>
+				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].BusinessHoursStart" placeholder="无" disabled /></td>
+				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].BusinessHoursEnd" placeholder="无" disabled /></td>
+				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].BusinessStatus" placeholder="无" disabled /></td>
+				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Telephone" placeholder="无" disabled /></td>
+				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].WeChat" placeholder="无" disabled /></td>
+				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Address" placeholder="无" disabled /></td>
+				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].GpsLongitude" placeholder="无" disabled /></td>
+				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].GpsLatitude" placeholder="无" disabled /></td>
+				<td>
+					<div class="imageContainer" data-id="@Model.List[i].Id">
+						<!-- 常驻显示的图片 -->
+						<div style="display:flex;align-items: center; justify-content: center; ">
+							<img src="" alt="图片加载失败"
+								 id="imageUrl"
+								 style="width: 100px; height: auto; cursor: pointer;display:none;"
+								 class="thumbnail"
+								 data-id="@Model.List[i].Id"
+								 onclick="openModal(this)">
+
+						</div>
+
+						<!-- 查看图片 -->
+							@if (!@Model.List[i].Pictures.IsNullOrEmpty()) {
+							<a href="#" id="@("getImageUrl" + i)" data-id="@Model.List[i].Pictures" onclick="loadImageUrl(event)">点击加载图片</a>
+							<div id="message" class="message">加载成功</div>
+
+							} else {
+								<text>无图片</text>
+							}
+						<!-- 修改图片 -->
+						<div style="display:flex;align-items: center; justify-content: center; ">
+							<input value="@Model.List[i].Id" id="userId" style="display:none;" />
+							<input type="file" id="@("fileInput"+ i)" value="true" name="file" style="display: none;" class="fileUpload" data-id="@Model.List[i].Id">
+						</div>
+						<div style="display:flex;align-items: center; justify-content: center; ">
+
+							<!-- 编辑的图片预览 -->
+							<img src="" alt="预览图" class="preview" style="display: none; width: 100px; height: auto; margin-top: 10px;">
+
+						</div>
+						<!-- 图片模态窗口 -->
+						<div id="imageModal" class="modal" style="display:none;">
+							<span class="close" onclick="closeModal()">&times;</span>
+							<img class="modal-content" id="modalImage" />
+						</div>
+					</div>
+				</td>
+				<td><input id="@("Introduce" + i)" type="text" name="UpdatedUser.Introduce" value="@Model.List[i].Introduce" placeholder="无" disabled /></td>
+
+				<td><text id="@("createdAt" + i)">@Model.List[i].CreatedAt</text></td>
+				<td><text id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</text></td>
+				<td><text id="@("IsDelete" + i)">@Model.List[i].IsDelete</text></td>
+
+				<td>
+					<button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
+					<button id="@("save" + i)" type="submit" class="saveBtn" data-id="@i" style="display: none;" onclick="saveClick(event)">保存</button>
+				</td>
+
+				<input type="hidden" name="UpdatedUser.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+				</form>
+			</tr>
+		}
+
+
+
+	</table>
+	<div class="bottom">
+		<div class="bottom-item">
+			<text id="page">第 1 页</text>
+			<text>，当前页共 @Model.List.Count 条数据</text>
+			@if (@Model.SearchSum != 0) {
+				<text>，共搜索到 @Model.SearchSum 条数据，</text>
+			}
+			@* <text id="searchData" style="display:none;">，共搜索到 @Model.SearchSum 条数据，</text> *@
+
+			<input id="PageCount" value="@Model.List.Count" style="display:none;" />
+			<input id="PageLimit" value="@Model.Limit" style="display:none;" />
+
+			<text id="pageSum"></text>
+			<a href="#" id="pageSumButton" onclick="loadPageSum()" style="font-size:small;">显示总页数</a>
+		</div>
+
+		<div class="bottom-item">
+
+			<form method="post" asp-page-handler="Search">
+				<input placeholder="请输入页数" id="redirect" />
+				<button onclick="changePage(3)" class="editBtn">跳转</button>
+				<button onclick="changePage(2)" class="editBtn">首页</button>
+				<button onclick="changeEndPage()" class="editBtn">尾页</button>
+				<button onclick="changePage(0)">上一页</button>
+				<button onclick="changePage(1)">下一页</button>
+
+			</form>
+		</div>
+	</div>
+
+	<script>
+		// 页面加载完成后执行函数
+		window.onload = function () {
+			getSearchData();// 获取搜索框数据
+			loadIndexPage();// 加载页码
+			loadButton();// 加载按钮
+		};
+	</script>
+</body>

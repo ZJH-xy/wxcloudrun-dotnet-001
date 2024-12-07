@@ -1,5 +1,5 @@
 ﻿
-const RESPONSEURL = `/Admin/Subpages/UserManagement/UserOverview`;
+const RESPONSEURL = `/Admin/Subpages/OrderManagement/OrderOverview`;
 const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]').value;
 const LENGTH = document.getElementById('PageCount').value;// 显示长度
 var file;
@@ -18,9 +18,6 @@ async function saveClick(event) {
 	loadHTML(); // 显示加载中
 
 	console.log("开始调用接口...");
-	const dataId = button.getAttribute('data-id');
-	const user = document.getElementById('save' + dataId);// 显示长度
-
 
 	const response = await fetch(`${RESPONSEURL}?handler=SayHello`, {
 		method: 'POST',
