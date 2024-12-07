@@ -435,7 +435,14 @@ namespace aspnetapp.Controllers.API.StoreAccount
             // 已付金额小于总金额
             if (order.Paid < order.GetTotalPrice()) {
                 // 要求用户支付剩余金额
+                order.Status = EOrderStatus.侍补余;
+                try {
+                    _dbContext.Order.Update(order);
+                    await _dbContext.SaveChangesAsync();
 
+                } catch (Exception e) {
+                    _logger.LogError(e, "[订单结算]更改订单{OrderId}状态为侍补余", order.Id);
+                }
 
                 // 创建补充订单
                 SupplementaryOrders supplementaryOrders = new() {
@@ -458,7 +465,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 //string outTradeNo = order.OutTradeNo!;// 创建订单号
                 string outTradeNo = supplementaryOrders.OutTradeNo;// 创建订单号
                 // 交易结束时间（10分钟）
-                string time_expire = order.CreatedAt.AddMinutes(10).ToString("yyyy-MM-ddTHH:mm:sszzz");
+                string time_expire = supplementaryOrders.CreatedAt.AddMinutes(10).ToString("yyyy-MM-ddTHH:mm:sszzz");
                 // 附加数据
                 string attach = "";
                 // 通知地址
@@ -466,7 +473,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 // 订单总金额（分）
                 int total = Order.GetTotal(supplementaryOrders.Total);
                 // 用户Unionid
-                var user = await _dbContext.User.SingleAsync(u => u.Id == GetUserIdInt());
+                var user = await _dbContext.User.SingleAsync(u => u.Id == order.TheUser);
                 string unionid = user.Unionid;
                 //string secret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
                 //var sessionKey = await Senparc.Weixin.WxOpen.AdvancedAPIs.Sns.SnsApi.JsCode2JsonAsync(appid, secret, data.Code);
@@ -648,8 +655,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 OrderReturnJson orderReturnJson = await resHandler.DecryptGetObjectAsync<OrderReturnJson>();
 
                 //记录日志
-                _logger.LogInformation("PayNotifyUrl收到微信支付回调：{data}", orderReturnJson.ToJson(true));
-                Senparc.Weixin.WeixinTrace.SendCustomLog("PayNotifyUrl 接收到消息", orderReturnJson.ToJson(true));
+                _logger.LogInformation("SupplementaryOrders收到微信支付回调：{data}", orderReturnJson.ToJson(true));
+                Senparc.Weixin.WeixinTrace.SendCustomLog("SupplementaryOrders 接收到消息", orderReturnJson.ToJson(true));
 
                 //演示记录 transaction_id，实际开发中需要记录到数据库，以便退款和后续跟踪
                 // transaction_id 微信支付系统生成的订单号。
@@ -720,10 +727,12 @@ namespace aspnetapp.Controllers.API.StoreAccount
                                     supplementaryOrders.Paid += orderReturnJson.amount.total / 100m;// 增加已付金额,在代码中将 `total` 转换为元
                                     supplementaryOrders.SuccessTime = orderReturnJson.success_time;
                                     supplementaryOrders.UpdatedAt = now;
-                                    //order.Status = Order.EOrderStatus.待确认;// 更改订单状态
-                                    //order.Paid += orderReturnJson.amount.total;// 增加已付金额
-                                    //order.SuccessTime = orderReturnJson.success_time;
-                                    //order.UpdatedAt = now;
+                                    await _dbContext.SaveChangesAsync();
+
+                                    Order order = await _dbContext.Order.SingleAsync(o => o.Id == supplementaryOrders.TheOrder);
+                                    order.Status = EOrderStatus.已补余;
+                                    //order.Paid += orderReturnJson.amount.total;
+                                    order.UpdatedAt = now;
                                     await _dbContext.SaveChangesAsync();
 
                                     await transaction.CommitAsync();
