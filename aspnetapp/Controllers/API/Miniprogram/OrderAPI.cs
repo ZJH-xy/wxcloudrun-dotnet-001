@@ -910,7 +910,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             // 新建退款表数据
             RefundOrder refundOrder = new() {
                 TheOrder = order.Id,
-                outRefundNo = string.Concat("Refund_", Guid.NewGuid().ToString("N").AsSpan(0, 20)),
+                //outRefundNo = string.Concat("Refund_", Guid.NewGuid().ToString("N").AsSpan(0, 20)),
                 RefundId = "",//等待
                 Reason = "直接退款",
                 Status = RefundOrder.Estatus.已创建,//等待

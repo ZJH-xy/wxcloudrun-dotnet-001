@@ -13,6 +13,7 @@ using Polly.Caching;
 using Senparc.CO2NET.Utilities;
 using Senparc.Weixin.TenPayV3;
 using Senparc.CO2NET.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace aspnetapp.Controllers.API.StoreAccount
 {
@@ -147,13 +148,14 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             DateTime now = DateTime.Now;
 
-
             vehicle.State = Vehicle.Estates.已出租;
             try {/* 确认订单 */
                 order.Status = Order.EOrderStatus.进行中;
                 order.ActualStartingTime = now;
+				await _dbContext.SaveChangesAsync();
 
-                if (order.TheVehicle != getData.TheVehicle) {
+				// 商家选择不同车辆
+				if (order.TheVehicle != getData.TheVehicle) {
                     Vehicle oldV = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
                     oldV.State = Vehicle.Estates.空闲;
                     oldV.UpdatedAt = now;
@@ -444,9 +446,11 @@ namespace aspnetapp.Controllers.API.StoreAccount
             //    order.OvertimeFee = (decimal)(overtime.Hours * 5);// 超时费，一小时5 元
             //}
 
+            // 实际费用
+            var totalPrice = order.GetActualCost();
 
-            // 已付金额小于总金额
-            if (order.Paid < order.GetTotalPrice()) {
+			// 已付金额小于总金额
+			if (order.Paid < order.GetTotalPrice()) {
                 // 要求用户支付剩余金额
                 order.Status = EOrderStatus.侍补余;
                 try {
@@ -481,43 +485,46 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
                 return StatusCode(200);
                 //return StatusCode(202, new { appid, timestamp, nonceStr, pack, signType, paySign });
-            } else {
+            } else if (order.Paid > totalPrice) {
                 // 进入退款
                 // 退押金金额（金额修改完成后计算！！！）
-                var sum = order.Paid - order.GetTotalPrice();
 
                 // 新建退款表数据
                 RefundOrder refundOrder = new() {
                     TheOrder = order.Id,
-                    RefundId = "",//等待
+					//outRefundNo = string.Concat("Refund_", Guid.NewGuid().ToString("N").AsSpan(0, 20)),
+					RefundId = "",//等待
                     Reason = "自动退款",
                     Status = RefundOrder.Estatus.已创建,//等待
                     Total = order.Paid,
-                    Refund = sum,//归还多余费用
+                    Refund = totalPrice,//归还多余费用
                     SuccessTime = null,//等待
                     CreateTime = now,//等待
                     UpdatedAt = now,
                 };
 
                 try {
-                    Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
-                    vehicle.State = Vehicle.Estates.侍确认;
-                    vehicle.StateUpdatedAt = now;
+					// 生成退款表数据
+					_dbContext.RefundOrder.Add(refundOrder);
+					await _dbContext.SaveChangesAsync();
 
-                    // 生成退款表数据
-                    _dbContext.RefundOrder.Add(refundOrder);
-
-                    // 调用退款服务
-                    RefundReturnJson refundReturnJson = await OrderAPI.RefundAsync(order, refundOrder);
+					// 调用退款服务
+					RefundReturnJson refundReturnJson = await OrderAPI.RefundAsync(order, refundOrder);
 
                     order.Status = Order.EOrderStatus.退款中;
                     order.ActualReturnTime = now;// 归还时间
                     order.TheReturnThePoint = GetUserIdInt();
                     order.DepositRefunded += refundOrder.Refund;
                     order.UpdatedAt = now;
+					await _dbContext.SaveChangesAsync();
 
-                    // 营业额统计表
-                    RevenueStatistics revenueStatistics = new() {
+					Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+					vehicle.State = Vehicle.Estates.侍确认;
+					vehicle.StateUpdatedAt = now;
+					await _dbContext.SaveChangesAsync();
+
+					// 营业额统计表
+					RevenueStatistics revenueStatistics = new() {
                         TheStoreA = order.TheRentalLocation,
                         TheStoreB = GetUserIdInt(),
                         TheOrder = order.Id,
@@ -536,7 +543,29 @@ namespace aspnetapp.Controllers.API.StoreAccount
                     await transaction.RollbackAsync();
                     return StatusCode(500);
                 }
-            }
+            } else {
+                try {
+					// 金额相等
+					Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+					vehicle.State = Vehicle.Estates.侍确认;
+					vehicle.StateUpdatedAt = now;
+					await _dbContext.SaveChangesAsync();
+
+					order.Status = Order.EOrderStatus.已完成;
+					order.ActualReturnTime = now;// 归还时间
+					order.TheReturnThePoint = GetUserIdInt();
+					order.UpdatedAt = now;
+					await _dbContext.SaveChangesAsync();
+
+					await transaction.CommitAsync();
+
+				} catch (Exception e) {
+                    _logger.LogError(e, "无退款订单处理失败。订单ID: {OrderId}, 车辆ID: {VehicleId}", order.Id, order.TheVehicle);
+					await transaction.RollbackAsync();
+
+					return StatusCode(500);
+				}
+			}
 
             return StatusCode(200);
         }
