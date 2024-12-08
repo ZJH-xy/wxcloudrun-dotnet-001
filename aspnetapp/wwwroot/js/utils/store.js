@@ -41,12 +41,14 @@ async function saveClick(event) {
 	}
 
 	try {
+		// 创建 FormData 对象，准备上传文件
 		const formData = new FormData();
-		formData.append("key", data["filePath"]);
-		formData.append("Signature", data["authorization"]);
-		formData.append("x-cos-security-token", data["token"]);
-		formData.append("x-cos-meta-fileid", data["cos_file_id"]);
-		formData.append("file", file, file.name);
+
+		formData.append("key", data["filePath"]); // 上传的文件路径
+		formData.append("Signature", data["authorization"]); // 上传的签名
+		formData.append("x-cos-security-token", data["token"]); // 安全令牌
+		formData.append("x-cos-meta-fileid", data["cos_file_id"]); // 文件 ID
+		formData.append("file", file, file.name); // 文件内容
 
 		const uploadResponse = await uploadFile(data["imageUrl"], formData);  // 异步上传文件
 		console.log("Upload success:", uploadResponse);
@@ -347,8 +349,12 @@ function loadButton() {
 			const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
 			inputs.forEach(input => input.disabled = false);
 
+			// 使 textarea 可编辑  
+			const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedStore.Introduce']`);
+			if (textArea) textArea.disabled = false; // 使 textarea 可编辑  
+
 			// 使状态下拉框可以编辑
-			const selectState = container.closest("tr").querySelector("select[name='UpdatedVehicle.Status']");
+			const selectState = container.closest("tr").querySelector("select[name='UpdatedStore.Status']");
 			if (selectState) selectState.disabled = false;
 
 			// 切换按钮状态
@@ -483,17 +489,35 @@ async function getListData() {
 			const list = data.list;
 			for (var i = 0; i < LENGTH; i++) {
 				var id = document.getElementById('id'+i);
-				var nickname = document.getElementById('nickname' + i);
-				var name = document.getElementById('name' + i);
-				var phone = document.getElementById('phone' + i);
-				var identityCard = document.getElementById('identityCard' + i);
+				var Name = document.getElementById('Name' + i);
+				var BusinessHoursStart = document.getElementById('BusinessHoursStart' + i);
+				var BusinessHoursEnd = document.getElementById('BusinessHoursEnd' + i);
+				var BusinessStatus = document.getElementById('BusinessStatus' + i);
+				var Telephone = document.getElementById('Telephone' + i);
+				var WeChat = document.getElementById('WeChat' + i);
+				var Address = document.getElementById('Address' + i);
+				var GpsLongitude = document.getElementById('GpsLongitude' + i);
+				var GpsLatitude = document.getElementById('GpsLatitude' + i);
+				var Pictures = document.getElementById('Pictures' + i);
+				var Introduce = document.getElementById('Introduce' + i);
 				var createdAt = document.getElementById('createdAt' + i);
 				var updatedAt = document.getElementById('updatedAt' + i);
+				var IsDelete = document.getElementById('IsDelete' + i);
 				id.value = list[i].id;
-				nickname.value = list[i].nickname
-				name.value = list[i].name;
-				phone.value = list[i].phone;
-				identityCard.value = list[i].identityCard;
+				Name.value = list[i].Name;
+				BusinessHoursStart.value = list[i].BusinessHoursStart;
+				BusinessHoursEnd.value = list[i].BusinessHoursEnd;
+				BusinessStatus.value = list[i].BusinessStatus;
+				Telephone.value = list[i].Telephone;
+				WeChat.value = list[i].WeChat;
+				Address.value = list[i].Address;
+				GpsLongitude.value = list[i].GpsLongitude;
+				GpsLatitude.value = list[i].GpsLatitude;
+				Pictures.value = list[i].Pictures; 
+				Introduce.value = list[i].Introduce;
+				createdAt.value = list[i].createdAt;
+				updatedAt.value = list[i].updatedAt;
+				IsDelete.value = list[i].IsDelete; 
 				createdAt.value = list[i].createdAt;
 				updatedAt.value = list[i].updatedAt;
 			}

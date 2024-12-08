@@ -83,7 +83,7 @@
 			<button type="submit" onclick="confirmChangeSearchData()">搜索</button>
 		</form>
 	</div>
-
+	
 	<table id="userTable">
 		<tr>
 			<th>序号</th>
@@ -95,8 +95,8 @@
 			<th>联系电话</th>
 			<th>微信</th>
 			<th>地址</th>
-			<th>经纬度</th>
-			<th>经纬度</th>
+			<th>经度</th>
+			<th>纬度</th>
 			<th>图片</th>
 			<th>门店介绍</th>
 			<th>创建时间</th>
@@ -108,16 +108,24 @@
 			<tr>
 				<form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data">
 				<td>@(i + 1)</td>
-				<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" /></td>
-				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="无" disabled /></td>
-				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].BusinessHoursStart" placeholder="无" disabled /></td>
-				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].BusinessHoursEnd" placeholder="无" disabled /></td>
-				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].BusinessStatus" placeholder="无" disabled /></td>
-				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Telephone" placeholder="无" disabled /></td>
-				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].WeChat" placeholder="无" disabled /></td>
-				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Address" placeholder="无" disabled /></td>
-				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].GpsLongitude" placeholder="无" disabled /></td>
-				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].GpsLatitude" placeholder="无" disabled /></td>
+				<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
+				<td><input id="@("Name" + i)" type="text" name="UpdatedStore.Name" value="@Model.List[i].Name" placeholder="无" disabled /></td>
+				<td><input id="@("BusinessHoursStart" + i)" type="text" name="UpdatedStore.BusinessHoursStart" value="@Model.List[i].BusinessHoursStart" placeholder="无" disabled /></td>
+				<td><input id="@("BusinessHoursEnd" + i)" type="text" name="UpdatedStore.BusinessHoursEnd" value="@Model.List[i].BusinessHoursEnd" placeholder="无" disabled /></td>
+				<td>
+						@if (@Model.List[i].BusinessStatus) {
+						<span style="color:#07C160;">正常营业</span>
+
+						} else {
+						<span style="color:red;">未营业</span>
+						}
+					
+				</td>
+				<td><input id="@("Telephone" + i)" type="text" name="UpdatedStore.Telephone" value="@Model.List[i].Telephone" placeholder="无" disabled /></td>
+				<td><input id="@("WeChat" + i)" type="text" name="UpdatedStore.WeChat" value="@Model.List[i].WeChat" placeholder="无" disabled /></td>
+				<td><input id="@("Address" + i)" type="text" name="UpdatedStore.Address" value="@Model.List[i].Address" placeholder="无" disabled /></td>
+				<td><input id="@("GpsLongitude" + i)" type="text" name="UpdatedStore.GpsLongitude" value="@Model.List[i].GpsLongitude" placeholder="无" disabled /></td>
+				<td><input id="@("GpsLatitude" + i)" type="text" name="UpdatedStore.GpsLatitude" value="@Model.List[i].GpsLatitude" placeholder="无" disabled /></td>
 				<td>
 					<div class="imageContainer" data-id="@Model.List[i].Id">
 						<!-- 常驻显示的图片 -->
@@ -137,7 +145,7 @@
 							<div id="message" class="message">加载成功</div>
 
 							} else {
-								<text>无图片</text>
+							<span>无图片</span>
 							}
 						<!-- 修改图片 -->
 						<div style="display:flex;align-items: center; justify-content: center; ">
@@ -157,18 +165,17 @@
 						</div>
 					</div>
 				</td>
-				<td><input id="@("Introduce" + i)" type="text" name="UpdatedUser.Introduce" value="@Model.List[i].Introduce" placeholder="无" disabled /></td>
-
-				<td><text id="@("createdAt" + i)">@Model.List[i].CreatedAt</text></td>
-				<td><text id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</text></td>
-				<td><text id="@("IsDelete" + i)">@Model.List[i].IsDelete</text></td>
+				<td><textarea id="@("Introduce" + i)" type="text" name="UpdatedStore.Introduce" value="@Model.List[i].Introduce" disabled>@Model.List[i].Introduce</textarea></td>
+				<td><span id="@("createdAt" + i)">@Model.List[i].CreatedAt</span></td>
+				<td><span id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</span></td>
+				<td><span id="@("IsDelete" + i)">@Model.List[i].IsDelete</span></td>
 
 				<td>
 					<button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
 					<button id="@("save" + i)" type="submit" class="saveBtn" data-id="@i" style="display: none;" onclick="saveClick(event)">保存</button>
 				</td>
-
-				<input type="hidden" name="UpdatedUser.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+				
+				<input type="hidden" name="UpdatedStore.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
 				</form>
 			</tr>
 		}
