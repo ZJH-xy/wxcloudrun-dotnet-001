@@ -113,18 +113,24 @@
 						@if (@Model.List[i].ActualStartingTime != null) {
 						<span id="@("ActualStartingTime" + i)">@Model.List[i].ActualStartingTime</span>
 						} else {
-						<span>无</span>
+						<span>未开始</span>
 						}
 				</td>
 				<td>
 					@if (@Model.List[i].ActualReturnTime!=null) {
 						<span id="@("ActualReturnTime" + i)">@Model.List[i].ActualReturnTime </span>
 					} else {
-						<span>无</span>
+						<span>未归还</span>
 					}
 				</td>
 				<td><span id="@("TheVehicle" + i)">@Model.List[i].TheVehicle</span></td>
-				<td><span id="@("TheRentalLocation" + i)">@Model.List[i].TheRentalLocation</span></td>
+				<td>
+						@if (@Model.List[i].TheRentalLocation != null) {
+						<span id="@("TheRentalLocation" + i)">@Model.List[i].TheRentalLocation</span>
+						} else {
+						<span>无</span>
+						}
+				</td>
 				<td>
 						@if (@Model.List[i].TheReturnThePoint != null) {
 						<span id="@("ActualStartingTime" + i)">@Model.List[i].TheReturnThePoint</span>

@@ -1,0 +1,9 @@
+[[[ErrorJsonResultException]]]
+[2024/12/08 19:16:06.7942]
+[线程：91]
+	ErrorJsonResultException
+	AccessTokenOrAppId：null
+	URL：https://api.weixin.qq.com/tcb/batchdownloadfile?access_token=87_9SU5v6Bk6hCsEBPtNVg1tPNbArSVvIKhtQgIwBzXH-ilt76TKbLja4TdQV_UdNIpZh8HnDfcll7ePE8ucdHZph4Ckr1WI99B57Dr6Obj9NGXPnsnlCpBNU6qqhkJBFgAEAFXB
+	errcode：获取access_token时AppSecret错误或者access_token无效
+	errmsg：invalid credential, access_token is invalid or not latest, could get access_token by getStableAccessToken, more details at https://mmbizurl.cn/s/JtxxFh33r rid: 67557ff3-6b7260ed-0e26a7a8
+

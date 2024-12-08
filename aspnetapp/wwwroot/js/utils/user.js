@@ -51,6 +51,8 @@ async function saveClick(event) {
 		formData.append("x-cos-meta-fileid", data["cos_file_id"]);
 		formData.append("file", file, file.name);
 
+		console.log("正在上传...", formData);
+
 		const uploadResponse = await uploadFile(data["imageUrl"], formData);  // 异步上传文件
 		console.log("Upload success:", uploadResponse);
 
