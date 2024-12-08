@@ -188,7 +188,17 @@ POST {{localhost}}/order/callback/notify
 
 
 ### 后门
-POST {{localhost}}/admin/refund HTTP/1.1
+POST {{localhost}}/admin/RefundOrderAll HTTP/1.1
+content-type: application/json
+
+{
+    "TheOrder": 65,
+    "Refund": 0.01
+}
+
+
+### 
+POST {{localhost}}/admin/RefundSupplementaryOrders HTTP/1.1
 content-type: application/json
 
 {
