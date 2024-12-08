@@ -211,6 +211,14 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		}
 
 		/// <summary>
+		/// 获取页码
+		/// </summary>
+		/// <returns></returns>
+		public async Task<IActionResult> OnGetPageIndexAsync() {
+			return new JsonResult(new { success = true, pageIndex = PageIndex });
+		}
+
+		/// <summary>
 		/// 更改页码
 		/// </summary>
 		/// <param name="requestData"></param>

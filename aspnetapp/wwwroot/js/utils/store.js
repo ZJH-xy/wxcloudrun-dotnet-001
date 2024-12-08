@@ -350,11 +350,11 @@ function loadButton() {
 			inputs.forEach(input => input.disabled = false);
 
 			// 使 textarea 可编辑  
-			const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedUser.Introduce']`);
+			const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedStore.Introduce']`);
 			if (textArea) textArea.disabled = false; // 使 textarea 可编辑  
 
 			// 使状态下拉框可以编辑
-			const selectState = container.closest("tr").querySelector("select[name='UpdatedVehicle.Status']");
+			const selectState = container.closest("tr").querySelector("select[name='UpdatedStore.Status']");
 			if (selectState) selectState.disabled = false;
 
 			// 切换按钮状态
