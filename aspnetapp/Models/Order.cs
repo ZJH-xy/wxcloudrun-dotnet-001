@@ -12,10 +12,15 @@
 		[Key]
 		public int Id { get; init; }
 
-		/// <summary>
-		/// 微信支付系统生成的订单号
-		/// </summary>
-		public string? TransactionId { get; set; }
+        /// <summary>
+        /// 商户系统内部订单号，可以是数字、大小写字母_-*的任意组合且在同一个商户号下唯一。
+        /// </summary>
+        public string? OutTradeNo { get; set; }
+
+        /// <summary>
+        /// 微信支付系统生成的订单号
+        /// </summary>
+        public string? TransactionId { get; set; }
 
 		/// <summary>
 		/// 逻辑指向用户
@@ -120,7 +125,7 @@
 		public string? Notes { get; set; }
 
 		/// <summary>
-		/// 支付完成时间
+		/// 支付完成时间（微信获取）
 		/// </summary>
 		public DateTime? SuccessTime { get; set; }
 
@@ -151,8 +156,10 @@
 			进行中,
 			已完成,
 			付款中,
-			退款中
-		}
+			退款中,
+			侍补余,
+            已补余
+        }
 
 		/// <summary>
 		/// 获取订单总金额

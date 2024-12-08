@@ -14,6 +14,7 @@
     public DbSet<Store> Store { get; set; } = null!;
     public DbSet<Vehicle> Vehicle { get; set; } = null!;
     public DbSet<Order> Order { get; set; } = null!;
+    public DbSet<SupplementaryOrders> SupplementaryOrders { get; set; } = null!;
     public DbSet<HomepageAd> HomepageAd { get; set; } = null!;
     public DbSet<StoreMenu> StoreMenus { get; set; } = null!;
     public DbSet<VehicleReplacementRecord> VehicleReplacementRecord { get; set; } = null!;

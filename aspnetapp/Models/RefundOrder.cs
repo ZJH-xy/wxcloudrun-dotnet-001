@@ -6,15 +6,18 @@
 	[Index(nameof(TheOrder))]
 	public class RefundOrder {
 		/// <summary>
-		/// 【商户退款单号】商户系统内部的退款单号，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一退款单号多次请求只退一笔。
+		/// 编号
 		/// </summary>
 		[Key]
 		public int Id { get; init; }
-
 		/// <summary>
-		/// 商户订单号（原支付交易对应的商户订单号）
+		/// 【商户退款单号】商户系统内部的退款单号，商户系统内部唯一，只能是数字、大小写字母_-|*@ ，同一退款单号多次请求只退一笔。
 		/// </summary>
-		public int TheOrder { get; set; }
+		public string outRefundNo { get; set; }
+        /// <summary>
+        /// 商户订单号（原支付交易对应的商户订单号）
+        /// </summary>
+        public int TheOrder { get; set; }
 
 		/// <summary>
 		/// 【微信支付退款号】微信支付退款号
@@ -36,15 +39,17 @@
 		/// </summary>
 		public Estatus Status { get; set; }
 
-		/// <summary>
-		/// 【原订单金额】原支付交易的订单总金额，单位为分，只能为整数。
-		/// </summary>
-		public int Total { get; set; }
+        /// <summary>
+        /// 【原订单金额】原支付交易的订单总金额，单位为分，只能为整数。
+        /// </summary>
+        [Precision(10, 2)]
+        public decimal Total { get; set; }
 
-		/// <summary>
-		/// 【退款金额】退款标价金额，单位为分，可以做部分退款
-		/// </summary>
-		public int Refund { get; set; }
+        /// <summary>
+        /// 【退款金额】退款标价金额，单位为分，可以做部分退款
+        /// </summary>
+        [Precision(10, 2)]
+        public decimal Refund { get; set; }
 
 		/// <summary>
 		/// 【退款币种】符合ISO 4217标准的三位字母代码，目前只支持人民币：CNY。

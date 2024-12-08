@@ -38,7 +38,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "Id获取用户{UserId}基础信息", id);
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (user is null)
@@ -62,7 +62,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "手机号获取用户{Phone}基础信息", phone);
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (user is null)
@@ -86,7 +86,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "获取用户{UserId}所有信息", GetUserIdInt());
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (user is null)
@@ -95,6 +95,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             return StatusCode(200, new UserPro(user));
         }
 
+        #region 实名认证
         /// <summary>
         /// 实名认证
         /// </summary>
@@ -111,7 +112,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "获取用户{UserId}", GetUserIdInt());
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (user is null)
@@ -140,13 +141,15 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "用户{UserId}实名认证，更新数据", GetUserIdInt());
 
                 return StatusCode(500);
-				throw;
+				
 			}
             _logger.LogInformation("用户{UserId}实名认证成功，已修改行数{ChangSum}", GetUserIdInt(), changSum);
 
             return StatusCode(200);
         }
+        #endregion
 
+        #region 更新昵称
         /// <summary>
         /// 更新昵称
         /// </summary>
@@ -163,7 +166,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "获取用户{UserId}", GetUserIdInt());
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (user is null)
@@ -185,20 +188,21 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "用户{UserId}修改昵称、手机号", GetUserIdInt());
 
                 return StatusCode(500);
-                throw;
+                
             }
             _logger.LogInformation("用户{UserId}修改昵称、手机号成功，已修改行数{ChangSum}", GetUserIdInt(), changSum);
 
             return StatusCode(200);
         }
+        #endregion
 
-		#region 更改密码
-		/// <summary>
-		/// 更改密码
-		/// </summary>
-		/// <param name="updatePassword"></param>
-		/// <returns></returns>
-		[Authorize]
+        #region 更改密码
+        /// <summary>
+        /// 更改密码
+        /// </summary>
+        /// <param name="updatePassword"></param>
+        /// <returns></returns>
+        [Authorize]
         [HttpPost("update/password")]
         public async Task<IActionResult> UpdatePassword(UpdatePassword updatePassword) {
             User? user;
@@ -209,7 +213,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "获取用户{UserId}", GetUserIdInt());
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (user is null)
@@ -230,7 +234,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "用户{UserId}修改密码", GetUserIdInt());
 
                 return StatusCode(500);
-				throw;
+				
 			}
             _logger.LogInformation("用户{UserId}修改密码成功，已修改行数{ChangSum}", GetUserIdInt(), changSum);
 
@@ -261,7 +265,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "用户{UserId}登录", GetUserIdInt());
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
             if (user is null)
@@ -286,7 +290,15 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		[HttpPost("ql")]
         public async Task<IActionResult> QuickLogin(GetQl data) {
             // 获取手机号
-            var result = await BusinessApi.GetUserPhoneNumberAsync(BaseContainer<AccessTokenBag>.GetFirstOrDefaultAppId(PlatformType.WxOpen), data.Code);
+            Senparc.Weixin.WxOpen.AdvancedAPIs.WxApp.Business.JsonResult.GetUserPhoneNumberJsonResult result;
+            try {
+                var appid = BaseContainer<AccessTokenBag>.GetFirstOrDefaultAppId(PlatformType.WxOpen);
+                result = await BusinessApi.GetUserPhoneNumberAsync(appid, data.Code);
+
+            } catch (Exception e) {
+                _logger.LogError(e, "获取手机号");
+                return StatusCode(500);
+            }
 
 			switch (result.errcode) {
                 case ReturnCode.请求成功:
@@ -317,26 +329,27 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "手机号获取用户{Phone}", result.phone_info.purePhoneNumber);
 
                 return StatusCode(500);
-				throw;
+				
 			}
 
-            List<Claim> claims;
+            //List<Claim> claims;
             // 未注册
             if (user is null) {
 				// code 换取 session_key，支付时使用
 				string appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
-				string secret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
-				var sessionKey = await Senparc.Weixin.WxOpen.AdvancedAPIs.Sns.SnsApi.JsCode2JsonAsync(appid, secret, data.Code);
+                string secret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+                var sessionKey = await Senparc.Weixin.WxOpen.AdvancedAPIs.Sns.SnsApi.JsCode2JsonAsync(appid, secret, data.Unionid);
 
 				int changeSum;
 
                 // 创建新用户
                 user = new() {
                     Phone = result.phone_info.purePhoneNumber,
+                    Unionid = sessionKey.openid,
                     CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-					Unionid = sessionKey.unionid
+                    UpdatedAt = DateTime.Now
 				};
+                _logger.LogInformation("创建新用户{User}", user.ToJson(true));
                 try {
                     changeSum = await _userController.AddUser(user);
                     if (0 == changeSum)
@@ -346,7 +359,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                     _logger.LogError(e, "新用户注册");
 
                     return StatusCode(403, "注册失败，请联系管理员");
-					throw;
+					
 				}
 
                 return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));
@@ -480,6 +493,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 	/// </summary>
 	public class GetQl {
         public string Code { get; set; }// 
+        public string Unionid { get; set; }
     }
 
     public class RealNameAuthentication {

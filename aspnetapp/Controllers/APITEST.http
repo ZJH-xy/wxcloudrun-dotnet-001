@@ -1,9 +1,9 @@
 @localhost = https://localhost:63295
 @id = 0
-@phone = 13000000000
+@phone = 15878175303
 @password = 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
-@authorization = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJ1c2VyIiwiZXhwIjoxNzM0MjUwOTcyfQ.5I0c8wFdnKcJqge1HqR_2V3pX_acIRyrawRsWBo37x4
-@storeAccountauthorization = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJzdG9yZSIsImV4cCI6MTczMzA1NzQxMH0.Kaxj-TmORw6dIskJAfJAxVcSTk4cNYPNwzwJt-H-xrM
+@authorization = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE4IiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoidXNlciIsImV4cCI6MTczNjE0NzMyNH0._sgVo-l7WPzfVXq2b94kvROxcj6Fy_KxKQM_yf04K8I
+@storeAccountauthorization = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJzdG9yZSIsImV4cCI6MTczNjA3NjgzM30._EcXeRtGDXJYwRuWelr8b2wlEjXA9HphtcCCwllh4ko
 
 
 
@@ -16,8 +16,18 @@ GET {{localhost}}/user/p/{{phone}} HTTP/1.1
 
 
 ### phone/password，登录
-GET {{localhost}}/user/login/phone/13000000000/{{password}} HTTP/1.1
+GET {{localhost}}/user/login/phone/15878175303/{{password}} HTTP/1.1
 
+
+
+### 
+Post {{localhost}}/user/ql HTTP/1.1
+content-type: application/json
+
+{
+    "Code": "786db25bf2dfd866d8333feb88b917d32be2722c884c6031a1febcd85ba75b1e",
+    "Unionid": "0e3Gfz1004vFkT1OaT000j4RGC0Gfz1D"
+}
 
 ###
 GET {{localhost}}/user/all/i HTTP/1.1
@@ -106,6 +116,17 @@ GET {{localhost}}/storeAccount/confirm/order/13 HTTP/1.1
 Authorization: Bearer {{storeAccountauthorization}}
 
 
+###
+Post {{localhost}}/storeAccount/confirm/order HTTP/1.1
+Authorization: Bearer {{storeAccountauthorization}}
+content-type: application/json
+
+{
+    "OderId": 62,
+    "TheVehicle": 24
+}
+
+
 ### 确认订单
 POST {{localhost}}/storeAccount/confirm HTTP/1.1
 Authorization: Bearer {{storeAccountauthorization}}
@@ -123,7 +144,7 @@ Authorization: Bearer {{storeAccountauthorization}}
 content-type: application/json
 
 {
-    "OderId": 28
+    "OderId": 57
 }
 
 
@@ -138,12 +159,24 @@ content-type: application/json
 
 
 ###
+Post {{localhost}}/order/test HTTP/1.1
+Authorization: Bearer {{authorization}}
+content-type: application/json
+
+{
+    "orderId": 18,
+    "Code": "0f3Tgc1006GEkT1OzQ000SL85z2Tgc1w"
+}
+
+
+
+###
 Post {{localhost}}/order/refund HTTP/1.1
 Authorization: Bearer {{authorization}}
 content-type: application/json
 
 {
-    "orderId": 13
+    "orderId": 49
 }
 
 ###
@@ -155,3 +188,15 @@ GET https://localhost:63295/callback/notify
 GET https://localhost:63295/callback/Refund
 
 
+###
+GET https://localhost:63295/callback/notify
+
+
+
+###
+GET https://localhost:63295/callback/Refund
+
+
+
+###
+POST {{localhost}}/order/callback/notify

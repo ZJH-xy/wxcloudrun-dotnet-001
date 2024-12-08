@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace aspnetapp.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241205152510_V0.2.5_订单表添加商户系统内部订单号OutTradeNo")]
+    partial class V025_订单表添加商户系统内部订单号OutTradeNo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -185,9 +187,8 @@ namespace aspnetapp.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<decimal>("Refund")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
+                    b.Property<int>("Refund")
+                        .HasColumnType("int");
 
                     b.Property<string>("RefundId")
                         .IsRequired()
@@ -202,16 +203,11 @@ namespace aspnetapp.Migrations
                     b.Property<int>("TheOrder")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Total")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
+                    b.Property<int>("Total")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
-
-                    b.Property<string>("outRefundNo")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -383,51 +379,6 @@ namespace aspnetapp.Migrations
                     b.HasIndex("TheStore");
 
                     b.ToTable("T_StoreMenu");
-                });
-
-            modelBuilder.Entity("aspnetapp.Models.SupplementaryOrders", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("OutTradeNo")
-                        .HasColumnType("longtext");
-
-                    b.Property<decimal>("Paid")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<DateTime>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp(6)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("SuccessTime")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("TheOrder")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Total")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<string>("TransactionId")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SupplementaryOrders");
                 });
 
             modelBuilder.Entity("aspnetapp.Models.User", b =>

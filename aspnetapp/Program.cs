@@ -1,4 +1,4 @@
-using aspnetapp.Controllers.API.Miniprogram;
+﻿using aspnetapp.Controllers.API.Miniprogram;
 using aspnetapp.Controllers.API.StoreAccount;
 using aspnetapp.Controllers.Miniprogram;
 using Senparc.Weixin.TenPayV3;
@@ -38,11 +38,12 @@ builder.Services.AddScoped<IFavoritesStoreRepository, FavoritesStoreController>(
 builder.Services.AddScoped<StatisticsDataControllerWeb>();
 builder.Services.AddScoped<UserControllerWeb>();
 builder.Services.AddScoped<VehicleControllerWeb>();
+builder.Services.AddScoped<OrderControllerWeb>();
 builder.Services.AddScoped<StatisticsControllerWeb>();
 builder.Services.AddScoped<OrderControllerWeb>();
 builder.Services.AddScoped<StoreControllerWeb>();
 
-builder.Services.AddScoped<OrderAPI>();// 注册 OrderAPI，定时取消订单
+builder.Services.AddScoped<OrderAPI>(); // 注册 OrderAPI，定时取消订单
 builder.Services.AddHostedService<TimedHostedService>();
 
 
@@ -70,6 +71,8 @@ builder.Services.Configure<WeixinSetting>(builder.Configuration.GetSection("Senp
 
 // 用于完成 Senparc.Weixin 的注册。
 //builder.Services.AddSenparcWeixinServices(builder.Configuration);
+// 读取微信配置
+builder.Services.Configure<WeixinSetting>(builder.Configuration.GetSection("SenparcWeixinSetting"));// WeixinSetting
 
 
 // 配置日志
