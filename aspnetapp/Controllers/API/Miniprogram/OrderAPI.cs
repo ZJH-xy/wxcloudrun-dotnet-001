@@ -776,22 +776,22 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 							*/
                             using (var transaction = await _dbContext.Database.BeginTransactionAsync()) {
                                 try {
-                                    _logger.LogInformation("开始更改订单状态");
+                                    //_logger.LogInformation("开始更改订单状态");
                                     order.Status = Order.EOrderStatus.待确认;// 更改订单状态
                                     order.Paid += orderReturnJson.amount.total / 100m;// 增加已付金额
                                     order.SuccessTime = orderReturnJson.success_time;
                                     order.UpdatedAt = now;
                                     await _dbContext.SaveChangesAsync();
 
-                                    _logger.LogInformation("开始更改车辆状态");
-                                    Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
-                                    vehicle.State = Vehicle.Estates.已出租;
-                                    vehicle.UpdatedAt = now;
-                                    vehicle.StateUpdatedAt = now;
-                                    await _dbContext.SaveChangesAsync();
+                                    //_logger.LogInformation("开始更改车辆状态");
+                                    //Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+                                    //vehicle.State = Vehicle.Estates.已出租;
+                                    //vehicle.UpdatedAt = now;
+                                    //vehicle.StateUpdatedAt = now;
+                                    //await _dbContext.SaveChangesAsync();
 
                                     await transaction.CommitAsync();
-                                    _logger.LogInformation("更改完毕");
+                                    _logger.LogInformation("更改订单状态完毕");
                                 } catch (Exception e) {
                                     _logger.LogCritical(e, "支付回调{orderReturnJson}", orderReturnJson.ToJson(true));
                                     await transaction.RollbackAsync();

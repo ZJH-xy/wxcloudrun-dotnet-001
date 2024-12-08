@@ -139,7 +139,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (vehicle.TheCurrentStore != storeId)// 车辆当前所在门店
                 return StatusCode(403, "车辆不在当前门店");
 
-            if ((vehicle.State != Vehicle.Estates.锁定) || (vehicle.State != Vehicle.Estates.空闲))
+			// 车辆状态不为锁定或空闲
+			if (vehicle.State is not Vehicle.Estates.锁定 and not Vehicle.Estates.空闲)
                 return StatusCode(403, "车辆状态异常");
 
             using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
