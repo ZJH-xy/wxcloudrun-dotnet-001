@@ -34,8 +34,28 @@ namespace aspnetapp.Controllers.Web {
             return await _context.Vehicle.CountAsync();
         }
 
-        // 更新车辆信息
-        public async Task<IActionResult> UpdateVehicle(Vehicle updatedVehicle) {
+		// 添加
+		public async Task<IActionResult> AddVehicleAsync(Vehicle newVehicle) {
+			if (!ModelState.IsValid) {
+				return BadRequest("车辆信息无效");
+			}
+
+			try {
+				newVehicle.CreatedAt = DateTime.Now;
+				newVehicle.UpdatedAt = DateTime.Now;
+
+				// 这里保存车辆到数据库
+				_context.Vehicle.Add(newVehicle);
+				await _context.SaveChangesAsync();
+
+				return Ok("车辆添加成功");
+			} catch (Exception ex) {
+				return StatusCode(500, $"添加车辆时发生错误: {ex.Message}");
+			}
+		}
+
+		// 更新车辆信息
+		public async Task<IActionResult> UpdateVehicle(Vehicle updatedVehicle) {
 			_logger.LogInformation("正在启动ID为{VehicleId}的车辆更新过程", updatedVehicle.Id);
 
 			var vehicle = await _context.Vehicle.FindAsync(updatedVehicle.Id);

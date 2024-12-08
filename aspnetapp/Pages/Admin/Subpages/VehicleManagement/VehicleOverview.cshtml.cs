@@ -17,7 +17,9 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 			_wxSetting = wxSetting;
 		}
 
-		public List<Vehicle> List { get; set; } = new List<Vehicle>();
+		public List<Vehicle> List { get; set; } = new();
+
+		public Vehicle NewVehicle { get; set; } = new();
 
 		// 用于在页面显示错误信息
 		public string ErrorMessage { get; set; }
@@ -111,10 +113,23 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
             }
         }
 
-        /// <summary>
-        /// 默认页码查询
-        /// </summary>
-        public async Task<IActionResult> OnGetAsync() {
+		/// <summary>
+		/// 添加
+		/// </summary>
+		/// <returns></returns>
+		[HttpPost]
+		public async Task<IActionResult> OnPostAddStoreAsync() {
+			await _vehicleController.AddVehicleAsync(NewVehicle);
+			SuccessMessage = $"添加成功";
+			List = await _vehicleController.GetTablePage(Limit, PageIndex); // 刷新列表
+
+			return Page();
+		}
+
+		/// <summary>
+		/// 默认页码查询
+		/// </summary>
+		public async Task<IActionResult> OnGetAsync() {
 			_logger.LogInformation("[OnGetAsync]正在获取限制为{Limit}的页面{PageIndex}的车辆列表", PageIndex, Limit);
 
 			SearchPlateNumber = "";
