@@ -71,8 +71,12 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 		/// <returns></returns>
 		[HttpPost]
 		public async Task<IActionResult> OnPostAddStoreAsync() {
+			await _storeControllerWeb.AddStoreAsync(NewStore);
+			SuccessMessage = $"添加成功";
+			List = await _storeControllerWeb.GetTablePage(Limit, PageIndex); // 刷新用户列表
 
-			return await _storeControllerWeb.AddStoreAsync(NewStore);
+			return Page();
+			//return await _storeControllerWeb.AddStoreAsync(NewStore);
 		}
 
 		/// <summary>

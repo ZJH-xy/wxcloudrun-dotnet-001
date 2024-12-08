@@ -12,6 +12,7 @@ header {
     margin: -20px; /* 通过负边距来抵消 padding */
     margin-bottom:20px;
 }
+
 /* 表格整体样式 */
 table {
     margin: 20px 0;
@@ -34,7 +35,6 @@ td {
     border: 1px solid #ddd; /* 单元格边框 */
     padding: 8px; /* 内边距 */
 }
-
 /* 奇数行背景色 */
 tr:nth-child(odd) {
     background-color: #ffffff; /* 奇数行背景颜色 */
@@ -169,8 +169,15 @@ input.editing {
     color: #07C160;
     background-color: #f2f2f2;
 }
+.deleteBtn {
+    color: white;
+    background-color: #FA5151;
+}
+    .deleteBtn:hover {
+        background-color: #db4646; /* 悬停时的背景颜色 */
+    }
 /* 悬停效果 */
-.editBtn:hover{
+.editBtn:hover {
     background-color: #cfcfcf; /* 悬停时的背景颜色 */
 }
 .otherBtn {

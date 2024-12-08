@@ -17,6 +17,7 @@
   <ItemGroup>
     <Content Remove="wwwroot\js\orderUtils.js" />
     <Content Remove="wwwroot\js\UserUtils.js" />
+    <Content Remove="wwwroot\js\utils\statisticsData.js" />
     <Content Remove="wwwroot\js\utils\store.js" />
     <Content Remove="wwwroot\js\vehicleUtils.js" />
   </ItemGroup>
@@ -44,6 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="wwwroot\js\utils\statisticsData.js" />
     <None Include="wwwroot\js\utils\store.js" />
     <None Include="wwwroot\js\utils\order.js" />
     <None Include="wwwroot\js\utils\vehicle.js" />
