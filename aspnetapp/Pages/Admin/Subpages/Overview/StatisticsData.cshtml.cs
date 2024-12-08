@@ -69,7 +69,7 @@ namespace aspnetapp.Pages.Admin.Subpages.Overview {
 
 				return new JsonResult(new { success = false, e.Message });
 			}
-			return new JsonResult(new { success = true, OrderTrends });
+			return new JsonResult(new { success = true, OrderTrends = OrderTrends.ToJson() });
 		}
 
 		public async Task<IActionResult> OnGetUserTrendsAsync() {
@@ -80,7 +80,7 @@ namespace aspnetapp.Pages.Admin.Subpages.Overview {
 
 				return new JsonResult(new { success = false, e.Message });
 			}
-			return new JsonResult(new { success = true, UserTrends });
+			return new JsonResult(new { success = true, UserTrends = UserTrends.ToJson() });
 		}
 
 		public async Task<IActionResult> OnGetVehicleStateDistributionAsync() {
@@ -91,7 +91,7 @@ namespace aspnetapp.Pages.Admin.Subpages.Overview {
 
 				return new JsonResult(new { success = false, e.Message });
 			}
-			return new JsonResult(new { success = true, VehicleStateDistribution });
+			return new JsonResult(new { success = true, VehicleStateDistribution = VehicleStateDistribution.ToJson() });
 		}
 	}
 }
