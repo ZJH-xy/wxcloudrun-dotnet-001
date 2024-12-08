@@ -182,3 +182,16 @@ content-type: application/json
 
 ###
 POST {{localhost}}/order/callback/notify
+
+
+
+
+
+### 后门
+POST {{localhost}}/admin/refund HTTP/1.1
+content-type: application/json
+
+{
+    "TheOrder": 65,
+    "Refund": 0.01
+}
