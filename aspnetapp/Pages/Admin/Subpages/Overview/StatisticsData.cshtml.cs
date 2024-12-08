@@ -1,35 +1,63 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using aspnetapp.Controllers.Web;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace aspnetapp.Pages.Admin.Subpages.Overview
-{
-    public class StatisticsDataModel : PageModel
-    {
-        public struct User
-        {
-            public int UserId;
-            public string Nickname;
-            public string UserName;
-            public string IdentityCard;
-            public string Phone;
+namespace aspnetapp.Pages.Admin.Subpages.Overview {
+	public class StatisticsDataModel : PageModel {
+		private readonly StatisticsDataControllerWeb _statisticsDataController;
+		private readonly ILogger<StatisticsDataModel> _logger;
 
-        }
-        public List<User> List { get; set; } = new List<User>();
-        public IActionResult OnGet()
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                List.Add(new User
-                {
-                    UserId = i,
-                    Nickname = "a",
-                    UserName = "b",
-                    IdentityCard = "450000000000000123",
-                    Phone = "13000000000"
-                });
-            }
+		public StatisticsDataModel(StatisticsDataControllerWeb statisticsDataController, ILogger<StatisticsDataModel> logger) {
+			_statisticsDataController = statisticsDataController;
+			_logger = logger;
+		}
 
-            return Page();
-        }
-    }
+		/// <summary>
+		/// 用户总数
+		/// </summary>
+		public int UserSum { get; set; }
+
+		/// <summary>
+		/// 车辆总数
+		/// </summary>
+		public int VehicleSum { get; set; }
+
+		/// <summary>
+		/// 门店总数
+		/// </summary>
+		public int StoreSum { get; set; }
+
+		/// <summary>
+		/// 订单总数
+		/// </summary>
+		public int OrderSum { get; set; }
+
+		/// <summary>
+		/// 最近任意个月的订单趋势
+		/// </summary>
+		public List<(string Month, int OrderCount)> OrderTrends { get; set; }
+
+		/// <summary>
+		/// 最近任意个月的新增用户趋势
+		/// </summary>
+		public List<(string Month, int UserCount)> UserTrends { get; set; }
+
+		/// <summary>
+		/// 车辆状态分布(饼图)
+		/// </summary>
+		public List<(string State, int VehicleCount)> VehicleStateDistribution { get; set; }
+
+		public async Task<IActionResult> OnGetAsync() {
+			UserSum = await _statisticsDataController.GetUserSumAsync();
+			VehicleSum = await _statisticsDataController.GetVehicleSumAsync();
+			StoreSum = await _statisticsDataController.GetStoreSumAsync();
+			OrderSum = await _statisticsDataController.GetOrderSumAsync();
+
+			OrderTrends = await _statisticsDataController.GetOrderTrendsAsync(6);
+			UserTrends = await _statisticsDataController.GetUserTrendsAsync(6);
+
+			VehicleStateDistribution = await _statisticsDataController.GetVehicleStateDistributionAsync();
+
+			return Page();
+		}
+	}
 }

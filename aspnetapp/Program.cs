@@ -35,6 +35,7 @@ builder.Services.AddScoped<IStoreAccountRepository, StoreAccountController>();
 builder.Services.AddScoped<IFavoritesStoreRepository, FavoritesStoreController>();
 
 // Web相关
+builder.Services.AddScoped<StatisticsDataControllerWeb>();
 builder.Services.AddScoped<UserControllerWeb>();
 builder.Services.AddScoped<VehicleControllerWeb>();
 builder.Services.AddScoped<StatisticsControllerWeb>();
