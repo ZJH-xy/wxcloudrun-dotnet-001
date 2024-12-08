@@ -82,6 +82,16 @@ GET {{localhost}}/order/a HTTP/1.1
 Authorization: Bearer {{authorization}}
 
 
+### 取消订单
+Post {{localhost}}/order/cancel HTTP/1.1
+Authorization: Bearer {{authorization}}
+content-type: application/json
+
+{
+    "OrderId": 69
+}
+
+
 ### Id 查询单个订单
 GET {{localhost}}/order/i/19 HTTP/1.1
 Authorization: Bearer {{authorization}}
