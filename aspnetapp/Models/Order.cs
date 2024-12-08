@@ -162,11 +162,19 @@
         }
 
 		/// <summary>
-		/// 获取订单总金额
+		/// 获取订单总金额（带押金）
 		/// </summary>
 		/// <returns></returns>
 		public decimal GetTotalPrice() {
 			return Deposit + Rent + DispatchFee + OvertimeFee + OtherFees;
+		}
+
+		/// <summary>
+		/// 获取实际费用（无押金）
+		/// </summary>
+		/// <returns></returns>
+		public decimal GetActualCost() {
+			return Rent + DispatchFee + OvertimeFee + OtherFees;
 		}
 
 		/// <summary>

@@ -903,14 +903,13 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             //if (await _dbContext.RefundOrder.AnyAsync(ro => ro.TheOrder == order.Id))
             //    return StatusCode(403, "请勿重复请求");
 
-            #region 退款
             /* 退款流程 */
             var now = DateTime.Now;
 
             // 新建退款表数据
             RefundOrder refundOrder = new() {
                 TheOrder = order.Id,
-                outRefundNo = string.Concat("Refund_", Guid.NewGuid().ToString("N").AsSpan(0, 20)),
+                //outRefundNo = string.Concat("Refund_", Guid.NewGuid().ToString("N").AsSpan(0, 20)),
                 RefundId = "",//等待
                 Reason = "直接退款",
                 Status = RefundOrder.Estatus.已创建,//等待
@@ -921,25 +920,24 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 UpdatedAt = now,
             };
 
-            try {
-                // 生成退款表数据
-                _dbContext.RefundOrder.Add(refundOrder);
-                await _dbContext.SaveChangesAsync();
-
-            } catch (Exception e) {
-                _logger.LogError(e, "新建退款表数据");
-                return StatusCode(500);
-            }
-
             RefundReturnJson refundReturnJson = await RefundAsync(order, refundOrder);// 调用退款
-            #endregion
 
             if (refundReturnJson.ResultCode.Success != true) {
                 _logger.LogError("退款请求失败{ResultCode}", refundReturnJson.ResultCode.ToJson(true));
                 return StatusCode(403, "退款请求失败，请稍后再试");
-            }
+			}
 
-            refundOrder.RefundId = refundReturnJson.refund_id;
+			try {
+				// 生成退款表数据
+				_dbContext.RefundOrder.Add(refundOrder);
+				await _dbContext.SaveChangesAsync();
+
+			} catch (Exception e) {
+				_logger.LogError(e, "新建退款表数据失败{data}", refundOrder.ToJson(true));
+				return StatusCode(500);
+			}
+
+			refundOrder.RefundId = refundReturnJson.refund_id;
 
             now = DateTime.Now;
             refundOrder.Status = (RefundOrder.Estatus)RefundOrderEstatusHashtable[refundReturnJson.status]!;// 获取对应枚举值
