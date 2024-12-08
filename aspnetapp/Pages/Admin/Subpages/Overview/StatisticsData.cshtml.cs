@@ -52,12 +52,46 @@ namespace aspnetapp.Pages.Admin.Subpages.Overview {
 			StoreSum = await _statisticsDataController.GetStoreSumAsync();
 			OrderSum = await _statisticsDataController.GetOrderSumAsync();
 
-			OrderTrends = await _statisticsDataController.GetOrderTrendsAsync(6);
-			UserTrends = await _statisticsDataController.GetUserTrendsAsync(6);
+			//OrderTrends = await _statisticsDataController.GetOrderTrendsAsync(6);
+			//UserTrends = await _statisticsDataController.GetUserTrendsAsync(6);
 
-			VehicleStateDistribution = await _statisticsDataController.GetVehicleStateDistributionAsync();
+			//VehicleStateDistribution = await _statisticsDataController.GetVehicleStateDistributionAsync();
 
 			return Page();
+		}
+
+
+		public async Task<IActionResult> OnGetOrderTrendsAsync() {
+			try {
+				OrderTrends = await _statisticsDataController.GetOrderTrendsAsync(6);
+
+			} catch (Exception e) {
+
+				return new JsonResult(new { success = false, e.Message });
+			}
+			return new JsonResult(new { success = true, OrderTrends });
+		}
+
+		public async Task<IActionResult> OnGetUserTrendsAsync() {
+			try {
+				UserTrends = await _statisticsDataController.GetUserTrendsAsync(6);
+
+			} catch (Exception e) {
+
+				return new JsonResult(new { success = false, e.Message });
+			}
+			return new JsonResult(new { success = true, UserTrends });
+		}
+
+		public async Task<IActionResult> OnGetVehicleStateDistributionAsync() {
+			try {
+				VehicleStateDistribution = await _statisticsDataController.GetVehicleStateDistributionAsync();
+
+			} catch (Exception e) {
+
+				return new JsonResult(new { success = false, e.Message });
+			}
+			return new JsonResult(new { success = true, VehicleStateDistribution });
 		}
 	}
 }
