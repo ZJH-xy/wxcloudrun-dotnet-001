@@ -19,7 +19,8 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 
 		public List<Vehicle> List { get; set; } = new();
 
-		public Vehicle NewVehicle { get; set; } = new();
+        [BindProperty]
+        public Vehicle NewVehicle { get; set; } = new();
 
 		// 用于在页面显示错误信息
 		public string ErrorMessage { get; set; }

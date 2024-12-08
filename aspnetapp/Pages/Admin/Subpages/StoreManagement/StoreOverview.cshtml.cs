@@ -18,6 +18,7 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 
         public List<Store> List { get; set; } = new();
 
+        [BindProperty]
         public Store NewStore { get; set; } = new();
 
         // 用于在页面显示错误信息
