@@ -138,14 +138,13 @@ namespace aspnetapp.Controllers.API.Admin {
 	}
 }
 
-	public class GetData1 {
-		/// <summary>
-		/// 指向订单
-		/// </summary>
-		public int TheOrder { get; set; }
-		/// <summary>
-		/// 【退款金额】退款标价金额，单位为分，可以做部分退款
-		/// </summary>
-		public decimal Refund { get; set; }
-	}
+public class GetData1 {
+	/// <summary>
+	/// 指向订单
+	/// </summary>
+	public int TheOrder { get; set; }
+	/// <summary>
+	/// 【退款金额】退款标价金额，单位为分，可以做部分退款
+	/// </summary>
+	public decimal Refund { get; set; }
 }

@@ -192,7 +192,7 @@ POST {{localhost}}/admin/RefundOrderAll HTTP/1.1
 content-type: application/json
 
 {
-    "TheOrder": 65,
+    "TheOrder": 67,
     "Refund": 0.01
 }
 
@@ -202,6 +202,6 @@ POST {{localhost}}/admin/RefundSupplementaryOrders HTTP/1.1
 content-type: application/json
 
 {
-    "TheOrder": 65,
+    "TheOrder": 67,
     "Refund": 0.01
 }
