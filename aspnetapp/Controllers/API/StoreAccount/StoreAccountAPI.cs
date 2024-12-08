@@ -504,14 +504,19 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 };
 
                 try {
+					// 调用退款服务
+					RefundReturnJson refundReturnJson = await OrderAPI.RefundAsync(order, refundOrder);
+
+					if (refundReturnJson.ResultCode.Success != true) {
+						_logger.LogError("退款请求失败{ResultCode}", refundReturnJson.ResultCode.ToJson(true));
+						return StatusCode(403, "退款请求失败，请稍后再试");
+					}
+
 					// 生成退款表数据
 					_dbContext.RefundOrder.Add(refundOrder);
 					await _dbContext.SaveChangesAsync();
 
-					// 调用退款服务
-					RefundReturnJson refundReturnJson = await OrderAPI.RefundAsync(order, refundOrder);
-
-                    order.Status = Order.EOrderStatus.退款中;
+					order.Status = Order.EOrderStatus.退款中;
                     order.ActualReturnTime = now;// 归还时间
                     order.TheReturnThePoint = GetUserIdInt();
                     order.DepositRefunded += refundOrder.Refund;
@@ -523,6 +528,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
 					vehicle.StateUpdatedAt = now;
 					await _dbContext.SaveChangesAsync();
 
+
 					// 营业额统计表
 					RevenueStatistics revenueStatistics = new() {
                         TheStoreA = order.TheRentalLocation,
@@ -532,12 +538,18 @@ namespace aspnetapp.Controllers.API.StoreAccount
                         UpdatedAt = now,
                     };
 
-                    await _dbContext.RevenueStatistic.AddAsync(revenueStatistics);
-                    await _dbContext.SaveChangesAsync();
+                    try {
+						await _dbContext.RevenueStatistic.AddAsync(revenueStatistics);
+						await _dbContext.SaveChangesAsync();
 
-                    // 如果退款成功，提交事务
-                    await transaction.CommitAsync();
-                } catch (Exception ex) {
+					} catch (Exception ex) {
+                        _logger.LogCritical(ex, "营业额统计表添加失败{data}", revenueStatistics.ToJson(true));
+					}
+
+					// 如果退款成功，提交事务
+					await transaction.CommitAsync();
+
+				} catch (Exception ex) {
                     _logger.LogError(ex, "订单处理失败。订单ID: {OrderId}, 车辆ID: {VehicleId}, 退款金额: {RefundAmount}",
                         order.Id, order.TheVehicle, refundOrder.Refund);
                     await transaction.RollbackAsync();
