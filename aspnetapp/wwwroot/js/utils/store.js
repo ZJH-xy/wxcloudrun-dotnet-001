@@ -33,7 +33,7 @@ async function confirmDelete(event) {
         console.log("requestData...", requestData);
 
         try {
-            const response = await fetch(`${RESPONSEURL}?handler=shanchu`, {
+            const response = await fetch(`${RESPONSEURL}?handler=delete`, {
                 method: 'Post',
                 headers: {
                     'Content-Type': 'application/json',
