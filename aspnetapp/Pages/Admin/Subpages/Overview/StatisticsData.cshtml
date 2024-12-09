@@ -20,13 +20,13 @@
 	</header>
 	<!-- 数据统计展示 -->
 	<div class="statistics">
-		<div class="stat-item">
+@* 		<div class="stat-item">
 			<i class="fas fa-dollar-sign"></i>
 			<div>
 				<span>销售额</span>
 				<span>¥ 9999999</span>
 			</div>
-		</div>
+		</div> *@
 		<div class="stat-item">
 			<i class="fas fa-store"></i>
 			<div>
@@ -55,21 +55,21 @@
 				<span>@Model.OrderSum</span>
 			</div>
 		</div>
-		<div class="stat-item">
+@* 		<div class="stat-item">
 			<i class="fas fa-check-circle"></i>
 			<div>
 				<span>交易完成数量</span>
 				<span>9999999</span>
 			</div>
-		</div>
-		<div class="stat-item">
+		</div> *@
+@* 		<div class="stat-item">
 			<i class="fas fa-times-circle"></i>
 			<div>
 				<span>订单取消数量</span>
 				<span>9999999</span>
 			</div>
-		</div>
-		<div class="stat-item">
+		</div> *@
+		@* <div class="stat-item">
 			<i class="fas fa-credit-card"></i>
 			<div>
 				<span>支付成功数量</span>
@@ -89,7 +89,7 @@
 				<span>活跃用户</span>
 				<span>9999999</span>
 			</div>
-		</div>
+		</div> *@
 	</div>
 
 	<div class="loading" id="loading">
@@ -98,7 +98,7 @@
 
 	<div class="statistics" id="content">
 		<!-- 销售统计卡片 -->
-		<div class="card">
+		@* <div class="card">
 			<div class="card-header">销售统计</div>
 			<div class="stat-card">
 				<i class="fas fa-dollar-sign"></i>
@@ -107,7 +107,7 @@
 			<div class="chart-container">
 				<canvas id="salesChart"></canvas>
 			</div>
-		</div>
+		</div> *@
 		<!-- 订单趋势分析 -->
 		<div class="card">
 			<div class="card-header">订单趋势分析</div>
@@ -132,24 +132,24 @@
 		</div>
 
 		<!-- 门店营业情况 -->
-		<div class="card">
+		 <div class="card">
 			<div class="card-header">门店营业情况</div>
 			<div class="stat-card">
 				<i class="fas fa-store"></i>
-				<span>9999999</span>
+				<span>@Model.StoreSum</span>
 			</div>
 			<div class="chart-container">
 				<canvas id="storePerformanceChart"></canvas>
 			</div>
 		</div>
-
+		@*
 		<!-- 订单状态分布 -->
 		<div class="card">
 			<div class="card-header">订单状态分布</div>
 			<div class="chart-container">
 				<canvas id="orderStatusChart"></canvas>
 			</div>
-		</div>
+		</div> *@
 		<!-- 车辆状态分布 -->
 		<div class="card">
 			<div class="card-header">车辆状态分布</div>
@@ -161,12 +161,12 @@
 
 
 		<!-- 退款统计 -->
-		<div class="card">
+		@* <div class="card">
 			<div class="card-header">退款统计</div>
 			<div class="chart-container">
 				<canvas id="refundChart"></canvas>
 			</div>
-		</div>
+		</div> *@
 
 
 
