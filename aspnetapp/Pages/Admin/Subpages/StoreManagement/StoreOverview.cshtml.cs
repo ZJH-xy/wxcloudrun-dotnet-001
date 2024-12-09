@@ -80,19 +80,19 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 			//return await _storeControllerWeb.AddStoreAsync(NewStore);
 		}
 
-		/// <summary>
-		/// 删除
-		/// </summary>
-		/// <returns></returns>
-		[HttpPost]
-		[IgnoreAntiforgeryToken]
-		public async Task<IActionResult> OnDeletedeleteAsync([FromBody] Dictionary<string, string> requestData) {
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <returns></returns>
+        [HttpDelete]
+        [IgnoreAntiforgeryToken]
+        public async Task<JsonResult> OnDeleteDelAsync([FromBody] Dictionary<string, int> requestData) {
 			// 确保接收到的数据被正确绑定
 			if (requestData == null || !requestData.Any()) {
 				return new JsonResult(new { success = false, message = "请求数据为空！" });
 			}
 
-            int id = int.Parse(requestData["id"]);
+            int id = requestData["id"];
             if (id == 0)
                 return new JsonResult(new { success = false, message = "ID不能为0"});
 

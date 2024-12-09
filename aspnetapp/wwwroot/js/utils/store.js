@@ -33,8 +33,8 @@ async function confirmDelete(event) {
         console.log("requestData...", requestData);
 
         try {
-            const response = await fetch(`${RESPONSEURL}?handler=delete`, {
-                method: 'Post',
+            const response = await fetch(`${RESPONSEURL}?handler=Del`, {
+                method: 'Delete',
                 headers: {
                     'Content-Type': 'application/json',
                     'RequestVerificationToken': TOKEN // 添加 CSRF Token
