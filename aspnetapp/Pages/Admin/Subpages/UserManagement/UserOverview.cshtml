@@ -7,8 +7,6 @@
     <!-- 引用外部 jQuery -->
     <link rel="stylesheet" href="~/css/table.css" />
     <link rel="stylesheet" href="~/css/loading.css" />
-    	<!-- 引入 FontAwesome 图标库 -->
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <script src="/js/utils/jquery-3.6.0.min.js" defer></script>
     @* https://code.jquery.com/jquery-3.6.0.min.js *@
     <script src="~/js/loading.js" defer></script>
@@ -174,7 +172,6 @@
             {
                 <text>，共搜索到 @Model.SearchSum 条数据，</text>
             }
-            @* <text id="searchData" style="display:none;">，共搜索到 @Model.SearchSum 条数据，</text> *@
 
             <input id="PageCount" value="@Model.List.Count" style="display:none;" />
             <input id="PageLimit" value="@Model.Limit" style="display:none;" />
