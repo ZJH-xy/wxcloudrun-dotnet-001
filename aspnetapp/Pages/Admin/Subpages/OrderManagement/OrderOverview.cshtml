@@ -151,10 +151,10 @@
                             <span>未归还</span>
                             }
                     </td>
-                    <td><input id="@("Deposit" + i)" type="text" name="UpdatedUser.Deposit" value="@Model.List[i].Deposit" placeholder="无" disabled /></td>
-                    <td><input id="@("Rent" + i)" type="text" name="UpdatedUser.Rent" value="@Model.List[i].Rent" placeholder="无" disabled /></td>
-                    <td><input id="@("DispatchFee" + i)" type="text" name="UpdatedUser.DispatchFee" value="@Model.List[i].DispatchFee" placeholder="无" disabled /></td>
-                    <td><input id="@("OvertimeFee" + i)" type="text" name="UpdatedUser.OvertimeFee" value="@Model.List[i].OvertimeFee" placeholder="无" disabled /></td>
+                    <td><span id="@("Deposit" + i)">@Model.List[i].Deposit</span></td>
+                    <td><span id="@("Rent" + i)">@Model.List[i].Rent</span></td>
+                    <td><span id="@("DispatchFee" + i)">@Model.List[i].DispatchFee</span></td>
+                    <td><span id="@("OvertimeFee" + i)">@Model.List[i].OvertimeFee</span></td>
                     <td><input id="@("OtherFees" + i)" type="text" name="UpdatedUser.OtherFees" value="@Model.List[i].OtherFees" placeholder="无" disabled /></td>
                     <td><span id="@("Paid" + i)">@Model.List[i].Paid</span></td>
                     <td><span id="@("DepositRefunded" + i)">@Model.List[i].DepositRefunded</span></td>

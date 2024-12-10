@@ -2,10 +2,7 @@
     e.preventDefault(); // 阻止默认行为
     e.returnValue = ''; // Chrome 要求的操作
 });
-// 加载默认界面
-window.onload = function () {
-    loadPage("统计数据", document.querySelector('.menu > li > ul > li > a'));
-};
+
 function loadPage(pageName, clickedLink) {
     const frame = document.getElementById('contentFrame');
 
@@ -62,6 +59,8 @@ function loadPage(pageName, clickedLink) {
 
 // 页面加载时获取上次访问的页面
 window.onload = function () {
+    loadPage("统计数据", document.querySelector('.menu > li > ul > li > a'));
+
     const lastVisitedPage = localStorage.getItem('lastVisitedPage');
     if (lastVisitedPage) {
         const frame = document.getElementById('contentFrame');
