@@ -162,9 +162,7 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 
 			SearchSum = SearchList.Count;
 
-            Thread.Sleep(500);
-
-            return Page();
+			return Page();
 		}
 
 		/// <summary>
