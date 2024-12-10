@@ -139,6 +139,9 @@ namespace aspnetapp.Controllers.Web {
                 _ => sortOrder == "asc" ? query.OrderBy(u => u.Id) : query.OrderByDescending(u => u.Id),
             };
 
+            // 过滤掉已删除的记录
+            query = query.Where(s => !s.IsDelete);
+
             List<StoreMenu> results = await query.ToListAsync();
             _logger.LogInformation("Found {Count} StoreMenus with given filters and sorting", results.Count);
 

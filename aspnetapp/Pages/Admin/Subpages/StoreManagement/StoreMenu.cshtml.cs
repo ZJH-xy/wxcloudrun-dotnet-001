@@ -159,7 +159,7 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 
             List = await _storeMenuControllerWeb.GetTablePage(Limit, PageIndex); // 刷新门店列表
 
-            //Thread.Sleep(2500);
+            Thread.Sleep(1500);//
 
             return Page();
         }
