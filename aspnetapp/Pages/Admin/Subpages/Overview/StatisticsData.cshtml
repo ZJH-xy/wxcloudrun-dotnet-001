@@ -184,6 +184,7 @@
 			await getOrderData();
 			await getUserData();
 			await getVehicleStateDistributionData();
+			await getStoreData();
 			cancelloadHTML();// 取消显示加载中
 
 		};
@@ -329,7 +330,7 @@
 
 		}
 
-		// 获取用户数据
+		// 获取车辆状态数据
 		async function getVehicleStateDistributionData(event) {
 			// loadHTML(); // 显示加载中
 			console.log("开始调用接口...");
@@ -391,6 +392,123 @@
 
 		}
 
+		// 获取门店数据
+		async function getStoreData(event) {
+			// 门店营业情况柱状图
+			var ctx10 = document.getElementById('storePerformanceChart').getContext('2d');
+			var storePerformanceChart = new Chart(ctx10, {
+				type: 'bar',
+				data: {
+					labels: ['门店A', '门店B', '门店C', '门店D', '门店E'], // 门店名称
+					datasets: [{
+						label: '营业额 (¥)',
+						data: [100000, 150000, 120000, 130000, 110000], // 对应门店的营业额
+						backgroundColor: '#66BB6A', // 条形图颜色
+						borderColor: '#388E3C', // 条形图边框颜色
+						borderWidth: 1
+					}, {
+						label: '订单数量',
+						data: [200, 300, 250, 280, 220], // 对应门店的订单数量
+						backgroundColor: '#FF7043', // 条形图颜色
+						borderColor: '#D32F2F', // 条形图边框颜色
+						borderWidth: 1
+					}]
+				},
+				options: {
+					responsive: true,
+					scales: {
+						y: {
+							beginAtZero: true // y轴从0开始
+						}
+					},
+					plugins: {
+						tooltip: {
+							backgroundColor: 'rgba(0, 0, 0, 0.8)',
+							titleColor: '#fff',
+							bodyColor: '#fff',
+							borderColor: 'rgba(75, 192, 192, 1)',
+							borderWidth: 2
+						},
+						legend: {
+							display: true, // 显示图例
+							position: 'top'
+						}
+					}
+				}
+			});
+			// loadHTML(); // 显示加载中
+			// console.log("开始调用接口...");
+			// const response = await fetch(`${RESPONSEURL}?handler=VehicleStateDistribution`, {
+			// 	method: 'GET',
+			// 	headers: {
+			// 		'Content-Type': 'application/json',
+
+			// 	},
+			// });
+
+			// if (!response.ok) {
+			// 	throw new Error(`HTTP 错误！状态码: ${response.status}`);
+			// }
+
+			// const data = await response.json();  // 等待接口返回数据
+
+			// if (data.success) {
+			// 	// cancelloadHTML();// 取消显示加载中
+			// 	const sourceData = JSON.parse(data.vehicleStateDistribution)
+			// 	console.log("接口返回数据:", sourceData);
+			// 	const data1 = [];
+			// 	const data2 = [];
+			// 	sourceData.forEach(item => {
+			// 		data1.push(item.Item1);
+			// 		data2.push(item.Item2);
+			// 	});
+
+			// 	// 门店营业情况柱状图
+			// 	var ctx10 = document.getElementById('storePerformanceChart').getContext('2d');
+			// 	var storePerformanceChart = new Chart(ctx10, {
+			// 		type: 'bar',
+			// 		data: {
+			// 			labels: ['门店A', '门店B', '门店C', '门店D', '门店E'], // 门店名称
+			// 			datasets: [{
+			// 				label: '营业额 (¥)',
+			// 				data: [100000, 150000, 120000, 130000, 110000], // 对应门店的营业额
+			// 				backgroundColor: '#66BB6A', // 条形图颜色
+			// 				borderColor: '#388E3C', // 条形图边框颜色
+			// 				borderWidth: 1
+			// 			}, {
+			// 				label: '订单数量',
+			// 				data: [200, 300, 250, 280, 220], // 对应门店的订单数量
+			// 				backgroundColor: '#FF7043', // 条形图颜色
+			// 				borderColor: '#D32F2F', // 条形图边框颜色
+			// 				borderWidth: 1
+			// 			}]
+			// 		},
+			// 		options: {
+			// 			responsive: true,
+			// 			scales: {
+			// 				y: {
+			// 					beginAtZero: true // y轴从0开始
+			// 				}
+			// 			},
+			// 			plugins: {
+			// 				tooltip: {
+			// 					backgroundColor: 'rgba(0, 0, 0, 0.8)',
+			// 					titleColor: '#fff',
+			// 					bodyColor: '#fff',
+			// 					borderColor: 'rgba(75, 192, 192, 1)',
+			// 					borderWidth: 2
+			// 				},
+			// 				legend: {
+			// 					display: true, // 显示图例
+			// 					position: 'top'
+			// 				}
+			// 			}
+			// 		}
+			// 	});
+			// }
+
+		}
+		
 		// 销售统计折线图
 		var ctx1 = document.getElementById('salesChart').getContext('2d');
 		var salesChart = new Chart(ctx1, {
@@ -490,48 +608,7 @@
 		});
 
 
-		// 门店营业情况柱状图
-		var ctx10 = document.getElementById('storePerformanceChart').getContext('2d');
-		var storePerformanceChart = new Chart(ctx10, {
-			type: 'bar',
-			data: {
-				labels: ['门店A', '门店B', '门店C', '门店D', '门店E'], // 门店名称
-				datasets: [{
-					label: '营业额 (¥)',
-					data: [100000, 150000, 120000, 130000, 110000], // 对应门店的营业额
-					backgroundColor: '#66BB6A', // 条形图颜色
-					borderColor: '#388E3C', // 条形图边框颜色
-					borderWidth: 1
-				}, {
-					label: '订单数量',
-					data: [200, 300, 250, 280, 220], // 对应门店的订单数量
-					backgroundColor: '#FF7043', // 条形图颜色
-					borderColor: '#D32F2F', // 条形图边框颜色
-					borderWidth: 1
-				}]
-			},
-			options: {
-				responsive: true,
-				scales: {
-					y: {
-						beginAtZero: true // y轴从0开始
-					}
-				},
-				plugins: {
-					tooltip: {
-						backgroundColor: 'rgba(0, 0, 0, 0.8)',
-						titleColor: '#fff',
-						bodyColor: '#fff',
-						borderColor: 'rgba(75, 192, 192, 1)',
-						borderWidth: 2
-					},
-					legend: {
-						display: true, // 显示图例
-						position: 'top'
-					}
-				}
-			}
-		});
+		
 
 	</script>
 
