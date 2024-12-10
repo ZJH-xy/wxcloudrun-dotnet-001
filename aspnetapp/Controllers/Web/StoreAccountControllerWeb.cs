@@ -3,7 +3,7 @@ using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 
 namespace aspnetapp.Controllers.Web {
     /// <summary>
-    /// 套餐
+    /// 商家账号
     /// </summary>
     public class StoreAccountControllerWeb : Controller {
         private readonly MyDbContext _context;
