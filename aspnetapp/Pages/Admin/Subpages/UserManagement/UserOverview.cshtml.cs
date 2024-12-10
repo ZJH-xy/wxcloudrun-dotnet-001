@@ -185,7 +185,9 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 
 			SearchSum = SearchList.Count;
 
-			return Page();
+            Thread.Sleep(500);
+
+            return Page();
 		}
 
 		/// <summary>
@@ -330,7 +332,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 
 			PageIndex = requestData["PageIndex"];
 
-			return new JsonResult(new { success = true, message = "成功", pageIndex = PageIndex });
+            return new JsonResult(new { success = true, message = "成功", pageIndex = PageIndex });
 		}
 
 		/// <summary>
