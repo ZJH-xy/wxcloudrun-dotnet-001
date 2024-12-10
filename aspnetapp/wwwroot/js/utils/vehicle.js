@@ -254,7 +254,7 @@ async function changePage(index) {
 			}
 
 			confirmChangePage(pageIndex);
-			cancelloadHTML();
+			//cancelloadHTML();
 
 		} else {
 			alert("失败： " + (data.message || "未知错误"));
@@ -298,7 +298,7 @@ async function confirmChangePage(pageIndex) {
 		if (!response.ok) {
 			throw new Error(`HTTP 错误！状态码: ${response.status}`);
 		}
-		cancelloadHTML()
+		//cancelloadHTML()
 
 	} catch (error) {
 		cancelloadHTML()
