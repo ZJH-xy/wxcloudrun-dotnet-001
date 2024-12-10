@@ -60,9 +60,6 @@
             <form method="get">
                 <button type="submit" onclick="init()">刷新</button>
             </form>
-
-            <button onclick="exportFile()" class="editBtn export">导出为 Excel</button>
-
         </div>
         @* <form method="post" asp-page-handler="Search">
             <input asp-for="SearchPhoneHtml" id="SearchPhoneHtml" value="" placeholder="手机号" />
@@ -86,12 +83,10 @@
         <table id="userTable">
             <tr>
                 <th>序号</th>
-                <th>ID</th>
-                <th>昵称</th>
-                <th>姓名</th>
-                <th>手机号</th>
-                <th>身份证号</th>
-                <th>身份证照片</th>
+                <th>发布人</th>
+                <th>标题</th>
+                <th>内容</th>
+                <th>发布状态</th>
                 <th>创建时间</th>
                 <th>更新时间</th>
                 <th>操作</th>

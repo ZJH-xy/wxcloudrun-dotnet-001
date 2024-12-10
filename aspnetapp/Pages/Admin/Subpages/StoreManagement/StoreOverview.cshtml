@@ -10,6 +10,8 @@
     <meta charset="utf-8" />
     <link rel="stylesheet" href="~/css/loading.css" />
     <link rel="stylesheet" href="~/css/table.css" />
+    <!-- 引入 FontAwesome 图标库 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <!-- 引用外部 jQuery -->
     <script src="/js/utils/jquery-3.6.0.min.js" defer></script>
     @* https://code.jquery.com/jquery-3.6.0.min.js *@
@@ -64,7 +66,7 @@
                 <button type="submit" onclick="init()">刷新</button>
             </form>
 
-            <button onclick="exportFile()" class="editBtn export">导出为 Excel</button>
+            <button onclick="exportFile()" class="editBtn export">导出</button>
             <button onclick="showAddRowDataBtn()">添加</button>
         </div>
         <form method="post" asp-page-handler="Search">

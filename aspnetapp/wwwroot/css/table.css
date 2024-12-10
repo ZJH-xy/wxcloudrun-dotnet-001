@@ -61,6 +61,9 @@ td, th {
 }
 
 button {
+    display: inline-flex; /* 使用 Flex 布局让图标和文字水平对齐 */
+    align-items: center; /* 垂直居中对齐 */
+    justify-content: center; /* 水平居中对齐 */
     background-color: #07C160; /* 按钮背景颜色 */
     color: rgb(255, 255, 255); /* 按钮文字颜色 */
     padding: 0 20px; /* 内边距 */
@@ -74,7 +77,7 @@ button {
     border-radius: 5px; /* 圆角 */
     transition: background-color 0.3s; /* 过渡效果 */
     height: 30px;
-    white-space: nowrap;
+    white-space: nowrap; /* 确保按钮中的文字和图标不换行 */
 }
 
     /* 悬停效果 */
