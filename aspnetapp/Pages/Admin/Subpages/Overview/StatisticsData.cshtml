@@ -10,6 +10,11 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 	<link rel="stylesheet" href="~/css/statisticsData.css" />
+	<link rel="stylesheet" href="~/css/loading.css" />
+
+	<script src="~/js/utils/statisticsData.js" defer></script>
+	<script src="~/js/loading.js" defer></script>
+
 </head>
 <body>
 
@@ -18,13 +23,13 @@
 	</header>
 	<!-- 数据统计展示 -->
 	<div class="statistics">
-		<div class="stat-item">
+@* 		<div class="stat-item">
 			<i class="fas fa-dollar-sign"></i>
 			<div>
 				<span>销售额</span>
-				<span>¥ 320,000</span>
+				<span>¥ 9999999</span>
 			</div>
-		</div>
+		</div> *@
 		<div class="stat-item">
 			<i class="fas fa-store"></i>
 			<div>
@@ -53,65 +58,63 @@
 				<span>@Model.OrderSum</span>
 			</div>
 		</div>
-		<div class="stat-item">
+@* 		<div class="stat-item">
 			<i class="fas fa-check-circle"></i>
 			<div>
 				<span>交易完成数量</span>
-				<span>1,200</span>
+				<span>9999999</span>
 			</div>
-		</div>
-		<div class="stat-item">
+		</div> *@
+@* 		<div class="stat-item">
 			<i class="fas fa-times-circle"></i>
 			<div>
 				<span>订单取消数量</span>
-				<span>50</span>
+				<span>9999999</span>
 			</div>
-		</div>
-		<div class="stat-item">
+		</div> *@
+		@* <div class="stat-item">
 			<i class="fas fa-credit-card"></i>
 			<div>
 				<span>支付成功数量</span>
-				<span>1,400</span>
+				<span>9999999</span>
 			</div>
 		</div>
 		<div class="stat-item">
 			<i class="fas fa-clock"></i>
 			<div>
 				<span>待处理订单</span>
-				<span>100</span>
+				<span>9999999</span>
 			</div>
 		</div>
 		<div class="stat-item">
 			<i class="fas fa-users-cog"></i>
 			<div>
 				<span>活跃用户</span>
-				<span>1,000</span>
+				<span>9999999</span>
 			</div>
-		</div>
+		</div> *@
 	</div>
 
-	<div class="loading" id="loading">
-		加载中...
-	</div>
+
 
 	<div class="statistics" id="content">
 		<!-- 销售统计卡片 -->
-		<div class="card">
+@* 		<div class="card">
 			<div class="card-header">销售统计</div>
 			<div class="stat-card">
 				<i class="fas fa-dollar-sign"></i>
-				<span>¥ 320,000</span>
+				<span>¥ 9999999</span>
 			</div>
 			<div class="chart-container">
 				<canvas id="salesChart"></canvas>
 			</div>
-		</div>
+		</div> *@
 		<!-- 订单趋势分析 -->
 		<div class="card">
 			<div class="card-header">订单趋势分析</div>
 			<div class="stat-card">
 				<i class="fas fa-credit-card"></i>
-				<span>1500</span>
+				<span>@Model.OrderSum</span>
 			</div>
 			<div class="chart-container">
 				<canvas id="orderTrendChart"></canvas>
@@ -122,7 +125,7 @@
 			<div class="card-header">用户增长</div>
 			<div class="stat-card">
 				<i class="fas fa-users"></i>
-				<span>2,400</span>
+				<span>@Model.UserSum</span>
 			</div>
 			<div class="chart-container">
 				<canvas id="userGrowthChart"></canvas>
@@ -130,31 +133,24 @@
 		</div>
 
 		<!-- 门店营业情况 -->
-		<div class="card">
+		 <div class="card">
 			<div class="card-header">门店营业情况</div>
 			<div class="stat-card">
 				<i class="fas fa-store"></i>
-				<span>12</span>
+				<span>@Model.StoreSum</span>
 			</div>
 			<div class="chart-container">
 				<canvas id="storePerformanceChart"></canvas>
 			</div>
 		</div>
-		<!-- 商品分类比例 -->
-		<div class="card">
-			<div class="card-header">商品分类比例</div>
-			<div class="chart-container">
-				<canvas id="categoryChart"></canvas>
-			</div>
-		</div>
-
+		@*
 		<!-- 订单状态分布 -->
 		<div class="card">
 			<div class="card-header">订单状态分布</div>
 			<div class="chart-container">
 				<canvas id="orderStatusChart"></canvas>
 			</div>
-		</div>
+		</div> *@
 		<!-- 车辆状态分布 -->
 		<div class="card">
 			<div class="card-header">车辆状态分布</div>
@@ -166,12 +162,12 @@
 
 
 		<!-- 退款统计 -->
-		<div class="card">
+		@* <div class="card">
 			<div class="card-header">退款统计</div>
 			<div class="chart-container">
 				<canvas id="refundChart"></canvas>
 			</div>
-		</div>
+		</div> *@
 
 
 
@@ -183,11 +179,336 @@
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	<script>
 		// 等待数据加载完成
-		window.onload = function () {
-			document.getElementById('loading').style.display = 'none';
-			// document.getElementById('content').style.display = 'grid';
-		};
+		window.onload = async function () {
+			loadHTML(); // 显示加载中
+			await getOrderData();
+			await getUserData();
+			await getVehicleStateDistributionData();
+			await getStoreData();
+			cancelloadHTML();// 取消显示加载中
 
+		};
+		const RESPONSEURL = `/Admin/Subpages/Overview/StatisticsData`;
+		// 获取订单数据
+		async function getOrderData(event) {
+			// loadHTML(); // 显示加载中
+			console.log("开始调用接口...");
+			const response = await fetch(`${RESPONSEURL}?handler=OrderTrends`, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json', 
+
+				},
+			});
+
+			if (!response.ok) {
+				throw new Error(`HTTP 错误！状态码: ${response.status}`);
+			}
+
+			const data = await response.json();  // 等待接口返回数据
+
+			if (data.success) {
+				// cancelloadHTML();// 取消显示加载中
+				const sourceData = JSON.parse(data.orderTrends)
+				console.log("接口返回数据:", sourceData);
+				const data1 = [];
+				const data2 = [];
+				sourceData.forEach(item => {
+					data1.push(item.Item1);
+					data2.push(item.Item2);
+				});
+				var reversedLabels = data1.reverse(); // 反转时间标签
+				var reversedData = data2.reverse(); // 反转用户增长数据
+				// 订单趋势分析折线图
+				var ctx8 = document.getElementById('orderTrendChart').getContext('2d');
+				var orderTrendChart = new Chart(ctx8, {
+					type: 'line',
+					data: {
+						labels: reversedLabels,
+						datasets: [{
+							label: '订单数量',
+							data: reversedData,
+							borderColor: 'rgba(75, 192, 192, 1)',
+							backgroundColor: 'rgba(75, 192, 192, 0.2)',
+							fill: true,
+							tension: 0.4,
+							pointRadius: 5,
+							pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+							borderWidth: 2
+						}]
+					},
+					options: {
+						responsive: true,
+						plugins: {
+							tooltip: {
+								backgroundColor: 'rgba(0, 0, 0, 0.8)',
+								titleColor: '#fff',
+								bodyColor: '#fff',
+								borderColor: 'rgba(75, 192, 192, 1)',
+								borderWidth: 2
+							},
+							legend: {
+								display: true,
+								position: 'top'
+							}
+						}
+					}
+				});
+
+			} 
+
+		}
+
+		// 获取用户数据
+		async function getUserData(event) {
+			// loadHTML(); // 显示加载中
+			console.log("开始调用接口...");
+			const response = await fetch(`${RESPONSEURL}?handler=UserTrends`, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+
+				},
+			});
+
+			if (!response.ok) {
+				throw new Error(`HTTP 错误！状态码: ${response.status}`);
+			}
+
+			const data = await response.json();  // 等待接口返回数据
+
+			if (data.success) {
+				// cancelloadHTML();// 取消显示加载中
+				const sourceData = JSON.parse(data.userTrends)
+				console.log("接口返回数据:", sourceData);
+				const data1 = [];
+				const data2 = [];
+				sourceData.forEach(item => {
+					data1.push(item.Item1);
+					data2.push(item.Item2);
+				});
+				// 反转数据
+				var reversedLabels = data1.reverse(); // 反转时间标签
+				var reversedData = data2.reverse(); // 反转用户增长数据
+				// 用户增长折线图
+				var ctx2 = document.getElementById('userGrowthChart').getContext('2d');
+				var userGrowthChart = new Chart(ctx2, {
+					type: 'line',
+					data: {
+						labels: reversedLabels,
+						datasets: [{
+							label: '新增用户',
+							data: reversedData,
+							borderColor: 'rgba(54, 162, 235, 1)',
+							backgroundColor: 'rgba(54, 162, 235, 0.2)',
+							fill: true,
+							tension: 0.4,
+							pointRadius: 5,
+							pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+							borderWidth: 2
+						}]
+					},
+					options: {
+						responsive: true,
+						plugins: {
+							tooltip: {
+								backgroundColor: 'rgba(0, 0, 0, 0.8)',
+								titleColor: '#fff',
+								bodyColor: '#fff',
+								borderColor: 'rgba(54, 162, 235, 1)',
+								borderWidth: 2
+							},
+							legend: {
+								display: true,
+								position: 'top'
+							}
+						}
+					}
+				});
+
+			}
+
+		}
+
+		// 获取车辆状态数据
+		async function getVehicleStateDistributionData(event) {
+			// loadHTML(); // 显示加载中
+			console.log("开始调用接口...");
+			const response = await fetch(`${RESPONSEURL}?handler=VehicleStateDistribution`, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+
+				},
+			});
+
+			if (!response.ok) {
+				throw new Error(`HTTP 错误！状态码: ${response.status}`);
+			}
+
+			const data = await response.json();  // 等待接口返回数据
+
+			if (data.success) {
+				// cancelloadHTML();// 取消显示加载中
+				const sourceData = JSON.parse(data.vehicleStateDistribution)
+				console.log("接口返回数据:", sourceData);
+				const data1 = [];
+				const data2 = [];
+				sourceData.forEach(item => {
+					data1.push(item.Item1);
+					data2.push(item.Item2);
+				});
+				
+				// 车辆状态分布饼图
+				var ctx5 = document.getElementById('vehicleStatusChart').getContext('2d');
+				var vehicleStatusChart = new Chart(ctx5, {
+					type: 'pie',
+					data: {
+						labels: data1,
+						datasets: [{
+							data: data2,
+							backgroundColor: ['#FF0000', '#FFA500', '#07C160', '#0000FF'],
+							hoverBackgroundColor: ['#FF7373', '#FFD580', '#66CDAA', '#87CEFA']
+						}]
+					},
+					options: {
+						responsive: true,
+						plugins: {
+							tooltip: {
+								backgroundColor: 'rgba(0, 0, 0, 0.8)',
+								titleColor: '#fff',
+								bodyColor: '#fff',
+								borderColor: 'rgba(75, 192, 192, 1)',
+								borderWidth: 2
+							},
+							legend: {
+								display: true,
+								position: 'top'
+							}
+						}
+					}
+				});
+			}
+
+		}
+
+		// 获取门店数据
+		async function getStoreData(event) {
+			// 门店营业情况柱状图
+			var ctx10 = document.getElementById('storePerformanceChart').getContext('2d');
+			var storePerformanceChart = new Chart(ctx10, {
+				type: 'bar',
+				data: {
+					labels: ['门店A', '门店B', '门店C', '门店D', '门店E'], // 门店名称
+					datasets: [{
+						label: '营业额 (¥)',
+						data: [100000, 150000, 120000, 130000, 110000], // 对应门店的营业额
+						backgroundColor: '#66BB6A', // 条形图颜色
+						borderColor: '#388E3C', // 条形图边框颜色
+						borderWidth: 1
+					}, {
+						label: '订单数量',
+						data: [200, 300, 250, 280, 220], // 对应门店的订单数量
+						backgroundColor: '#FF7043', // 条形图颜色
+						borderColor: '#D32F2F', // 条形图边框颜色
+						borderWidth: 1
+					}]
+				},
+				options: {
+					responsive: true,
+					scales: {
+						y: {
+							beginAtZero: true // y轴从0开始
+						}
+					},
+					plugins: {
+						tooltip: {
+							backgroundColor: 'rgba(0, 0, 0, 0.8)',
+							titleColor: '#fff',
+							bodyColor: '#fff',
+							borderColor: 'rgba(75, 192, 192, 1)',
+							borderWidth: 2
+						},
+						legend: {
+							display: true, // 显示图例
+							position: 'top'
+						}
+					}
+				}
+			});
+			// loadHTML(); // 显示加载中
+			// console.log("开始调用接口...");
+			// const response = await fetch(`${RESPONSEURL}?handler=VehicleStateDistribution`, {
+			// 	method: 'GET',
+			// 	headers: {
+			// 		'Content-Type': 'application/json',
+
+			// 	},
+			// });
+
+			// if (!response.ok) {
+			// 	throw new Error(`HTTP 错误！状态码: ${response.status}`);
+			// }
+
+			// const data = await response.json();  // 等待接口返回数据
+
+			// if (data.success) {
+			// 	// cancelloadHTML();// 取消显示加载中
+			// 	const sourceData = JSON.parse(data.vehicleStateDistribution)
+			// 	console.log("接口返回数据:", sourceData);
+			// 	const data1 = [];
+			// 	const data2 = [];
+			// 	sourceData.forEach(item => {
+			// 		data1.push(item.Item1);
+			// 		data2.push(item.Item2);
+			// 	});
+
+			// 	// 门店营业情况柱状图
+			// 	var ctx10 = document.getElementById('storePerformanceChart').getContext('2d');
+			// 	var storePerformanceChart = new Chart(ctx10, {
+			// 		type: 'bar',
+			// 		data: {
+			// 			labels: ['门店A', '门店B', '门店C', '门店D', '门店E'], // 门店名称
+			// 			datasets: [{
+			// 				label: '营业额 (¥)',
+			// 				data: [100000, 150000, 120000, 130000, 110000], // 对应门店的营业额
+			// 				backgroundColor: '#66BB6A', // 条形图颜色
+			// 				borderColor: '#388E3C', // 条形图边框颜色
+			// 				borderWidth: 1
+			// 			}, {
+			// 				label: '订单数量',
+			// 				data: [200, 300, 250, 280, 220], // 对应门店的订单数量
+			// 				backgroundColor: '#FF7043', // 条形图颜色
+			// 				borderColor: '#D32F2F', // 条形图边框颜色
+			// 				borderWidth: 1
+			// 			}]
+			// 		},
+			// 		options: {
+			// 			responsive: true,
+			// 			scales: {
+			// 				y: {
+			// 					beginAtZero: true // y轴从0开始
+			// 				}
+			// 			},
+			// 			plugins: {
+			// 				tooltip: {
+			// 					backgroundColor: 'rgba(0, 0, 0, 0.8)',
+			// 					titleColor: '#fff',
+			// 					bodyColor: '#fff',
+			// 					borderColor: 'rgba(75, 192, 192, 1)',
+			// 					borderWidth: 2
+			// 				},
+			// 				legend: {
+			// 					display: true, // 显示图例
+			// 					position: 'top'
+			// 				}
+			// 			}
+			// 		}
+			// 	});
+			// }
+
+		}
+		
 		// 销售统计折线图
 		var ctx1 = document.getElementById('salesChart').getContext('2d');
 		var salesChart = new Chart(ctx1, {
@@ -223,110 +544,7 @@
 				}
 			}
 		});
-		// 订单趋势分析折线图
-		var ctx8 = document.getElementById('orderTrendChart').getContext('2d');
-		var orderTrendChart = new Chart(ctx8, {
-			type: 'line',
-			data: {
-				labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
-				datasets: [{
-					label: '订单数量',
-					data: [150, 200, 180, 220, 250, 280],
-					borderColor: 'rgba(75, 192, 192, 1)',
-					backgroundColor: 'rgba(75, 192, 192, 0.2)',
-					fill: true,
-					tension: 0.4,
-					pointRadius: 5,
-					pointBackgroundColor: 'rgba(75, 192, 192, 1)',
-					borderWidth: 2
-				}]
-			},
-			options: {
-				responsive: true,
-				plugins: {
-					tooltip: {
-						backgroundColor: 'rgba(0, 0, 0, 0.8)',
-						titleColor: '#fff',
-						bodyColor: '#fff',
-						borderColor: 'rgba(75, 192, 192, 1)',
-						borderWidth: 2
-					},
-					legend: {
-						display: true,
-						position: 'top'
-					}
-				}
-			}
-		});
-
-
-
-		// 用户增长折线图
-		var ctx2 = document.getElementById('userGrowthChart').getContext('2d');
-		var userGrowthChart = new Chart(ctx2, {
-			type: 'line',
-			data: {
-				labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
-				datasets: [{
-					label: '新增用户',
-					data: [200, 400, 600, 800, 1000, 1200],
-					borderColor: 'rgba(54, 162, 235, 1)',
-					backgroundColor: 'rgba(54, 162, 235, 0.2)',
-					fill: true,
-					tension: 0.4,
-					pointRadius: 5,
-					pointBackgroundColor: 'rgba(54, 162, 235, 1)',
-					borderWidth: 2
-				}]
-			},
-			options: {
-				responsive: true,
-				plugins: {
-					tooltip: {
-						backgroundColor: 'rgba(0, 0, 0, 0.8)',
-						titleColor: '#fff',
-						bodyColor: '#fff',
-						borderColor: 'rgba(54, 162, 235, 1)',
-						borderWidth: 2
-					},
-					legend: {
-						display: true,
-						position: 'top'
-					}
-				}
-			}
-		});
-
-		// 商品分类饼图
-		var ctx3 = document.getElementById('categoryChart').getContext('2d');
-		var categoryChart = new Chart(ctx3, {
-			type: 'pie',
-			data: {
-				labels: ['电子产品', '服装', '家居用品', '书籍', '食品'],
-				datasets: [{
-					data: [35, 25, 15, 10, 15],
-					backgroundColor: ['#FF5733', '#33FF57', '#3357FF', '#F3FF33', '#FF33A8'],
-					hoverBackgroundColor: ['#FF4500', '#32CD32', '#1E90FF', '#FFD700', '#FF1493']
-				}]
-			},
-			options: {
-				responsive: true,
-				plugins: {
-					tooltip: {
-						backgroundColor: 'rgba(0, 0, 0, 0.8)',
-						titleColor: '#fff',
-						bodyColor: '#fff',
-						borderColor: 'rgba(75, 192, 192, 1)',
-						borderWidth: 2
-					},
-					legend: {
-						display: true,
-						position: 'top'
-					}
-				}
-			}
-		});
-
+		
 		// 订单状态饼图
 		var ctx4 = document.getElementById('orderStatusChart').getContext('2d');
 		var orderStatusChart = new Chart(ctx4, {
@@ -356,35 +574,7 @@
 				}
 			}
 		});
-		// 车辆状态分布饼图
-		var ctx5 = document.getElementById('vehicleStatusChart').getContext('2d');
-		var vehicleStatusChart = new Chart(ctx5, {
-			type: 'pie',
-			data: {
-				labels: ['可租用', '维修中', '已租出'],
-				datasets: [{
-					data: [70, 20, 10],
-					backgroundColor: ['#33FF57', '#FF5733', '#FF33A8'],
-					hoverBackgroundColor: ['#32CD32', '#FF4500', '#FF1493']
-				}]
-			},
-			options: {
-				responsive: true,
-				plugins: {
-					tooltip: {
-						backgroundColor: 'rgba(0, 0, 0, 0.8)',
-						titleColor: '#fff',
-						bodyColor: '#fff',
-						borderColor: 'rgba(75, 192, 192, 1)',
-						borderWidth: 2
-					},
-					legend: {
-						display: true,
-						position: 'top'
-					}
-				}
-			}
-		});
+		
 
 
 		// 退款统计饼图
@@ -418,48 +608,7 @@
 		});
 
 
-		// 门店营业情况柱状图
-		var ctx10 = document.getElementById('storePerformanceChart').getContext('2d');
-		var storePerformanceChart = new Chart(ctx10, {
-			type: 'bar',
-			data: {
-				labels: ['门店A', '门店B', '门店C', '门店D', '门店E'], // 门店名称
-				datasets: [{
-					label: '营业额 (¥)',
-					data: [100000, 150000, 120000, 130000, 110000], // 对应门店的营业额
-					backgroundColor: '#66BB6A', // 条形图颜色
-					borderColor: '#388E3C', // 条形图边框颜色
-					borderWidth: 1
-				}, {
-					label: '订单数量',
-					data: [200, 300, 250, 280, 220], // 对应门店的订单数量
-					backgroundColor: '#FF7043', // 条形图颜色
-					borderColor: '#D32F2F', // 条形图边框颜色
-					borderWidth: 1
-				}]
-			},
-			options: {
-				responsive: true,
-				scales: {
-					y: {
-						beginAtZero: true // y轴从0开始
-					}
-				},
-				plugins: {
-					tooltip: {
-						backgroundColor: 'rgba(0, 0, 0, 0.8)',
-						titleColor: '#fff',
-						bodyColor: '#fff',
-						borderColor: 'rgba(75, 192, 192, 1)',
-						borderWidth: 2
-					},
-					legend: {
-						display: true, // 显示图例
-						position: 'top'
-					}
-				}
-			}
-		});
+		
 
 	</script>
 

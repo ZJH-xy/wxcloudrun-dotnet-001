@@ -92,15 +92,13 @@ namespace aspnetapp.Controllers.Web {
 				return NotFound("Order not found.");
 			}
 
-			// 更新订单属性
-			order.UserName = updatedOrder.UserName;
-			order.UserPhone = updatedOrder.UserPhone;
-			order.IdentityCard = updatedOrder.IdentityCard;
-			order.Status = updatedOrder.Status;
-			order.UpdatedAt = DateTime.Now;
+            // 更新订单属性
+            order.OtherFees = updatedOrder.OtherFees;
+            order.Notes = updatedOrder.Notes;
+            order.UpdatedAt = DateTime.Now;
 
-			// 设置并发标记
-			_context.Entry(order).Property("RowVersion").OriginalValue = updatedOrder.RowVersion;
+            // 设置并发标记
+            _context.Entry(order).Property("RowVersion").OriginalValue = updatedOrder.RowVersion;
 
 			try {
 				_context.Order.Update(order);

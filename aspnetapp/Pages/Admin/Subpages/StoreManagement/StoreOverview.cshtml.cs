@@ -16,9 +16,10 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
             _wxSetting = wxSetting;
         }
 
-        public List<Store> List { get; set; } = new List<Store>();
+        public List<Store> List { get; set; } = new();
 
-        public Store NewStore { get; set; } = new Store();
+        [BindProperty]
+        public Store NewStore { get; set; } = new();
 
         // 用于在页面显示错误信息
         public string ErrorMessage { get; set; }
@@ -71,8 +72,32 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 		/// <returns></returns>
 		[HttpPost]
 		public async Task<IActionResult> OnPostAddStoreAsync() {
+			await _storeControllerWeb.AddStoreAsync(NewStore);
+			SuccessMessage = $"添加成功";
+			List = await _storeControllerWeb.GetTablePage(Limit, PageIndex); // 刷新用户列表
 
-			return await _storeControllerWeb.AddStoreAsync(NewStore);
+			return Page();
+			//return await _storeControllerWeb.AddStoreAsync(NewStore);
+		}
+
+        /// <summary>
+        /// 删除
+        /// </summary>
+        /// <returns></returns>
+        [HttpDelete]
+        [IgnoreAntiforgeryToken]
+        public async Task<JsonResult> OnDeleteDelAsync([FromBody] Dictionary<string, int> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+            int id = requestData["id"];
+            if (id == 0)
+                return new JsonResult(new { success = false, message = "ID不能为0"});
+
+			
+			return new JsonResult(new { success = true, message = $"已删除行数：{await _storeControllerWeb.DeleteStore(id)}"});
 		}
 
 		/// <summary>

@@ -332,23 +332,27 @@ function loadButton() {
 		button.addEventListener("click", function () {
 			const id = this.dataset.id;
 			console.log('id', id)
-			const container = document.querySelector(`.imageContainer[data-id="${id}"]`);
-			const img = container.querySelector(".thumbnail");
-			const fileInput = container.querySelector(".fileUpload");
+			const container = document.querySelector(`.saveBtn[data-id="${id}"]`);
+			//const img = container.querySelector(".thumbnail");
+			//const fileInput = container.querySelector(".fileUpload");
 
 			// 隐藏旧图片
-			if (img) img.style.display = "none";
+			//if (img) img.style.display = "none";
 
 			// 显示文件上传控件
-			fileInput.style.display = "block";
+			//fileInput.style.display = "block";
 
 			// 切换其他字段为可编辑状态
 			const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
 			inputs.forEach(input => input.disabled = false);
 
+			// 使 textarea 可编辑  
+			const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedOrder.Notes']`);
+			if (textArea) textArea.disabled = false; // 使 textarea 可编辑  
+
 			// 使状态下拉框可以编辑
-			const selectState = container.closest("tr").querySelector("select[name='UpdatedVehicle.Status']");
-			if (selectState) selectState.disabled = false;
+			//const selectState = container.closest("tr").querySelector("select[name='UpdatedVehicle.Status']");
+			//if (selectState) selectState.disabled = false;
 
 			// 切换按钮状态
 			this.style.display = "none"; // 隐藏编辑按钮
@@ -424,13 +428,11 @@ async function getSearchData() {
 // 确认搜索
 async function confirmChangeSearchData() {
 	loadHTML(); // 显示加载中
-	const SearchPhone = document.getElementById('SearchPhoneHtml').value;
-	const SearchName = document.getElementById('SearchNameHtml').value;
-	const SearchNickname = document.getElementById('SearchNicknameHtml').value;
+	const SearchUserPhoneHtml = document.getElementById('SearchUserPhoneHtml').value;
+	const SearchStatusHtml = document.getElementById('SearchStatusHtml').value;
 	const requestData = {
-		"SearchPhone": SearchPhone,
-		"SearchName": SearchName,
-		"SearchNickname": SearchNickname
+		"SearchUserPhoneHtml": SearchUserPhoneHtml,
+		"SearchStatusHtml": SearchStatusHtml,
 	};
 	console.log("requestData", requestData);
 	try {

@@ -3,209 +3,277 @@
 @{
 }
 <head>
-	<meta charset="utf-8" />
-	<!-- 引用外部 jQuery -->
-	<link rel="stylesheet" href="~/css/table.css" />
-	<link rel="stylesheet" href="~/css/loading.css" />
-	<script src="~/js/utils/jquery-3.6.0.min.js" defer></script>
-	<script src="~/js/loading.js" defer></script>
-	<script src="~/js/utils/vehicle.js" defer></script>
+    <meta charset="utf-8" />
+    <!-- 引用外部 jQuery -->
+    <link rel="stylesheet" href="~/css/table.css" />
+    <link rel="stylesheet" href="~/css/loading.css" />
+    <script src="~/js/utils/jquery-3.6.0.min.js" defer></script>
+    <script src="~/js/loading.js" defer></script>
+    <script src="~/js/utils/vehicle.js" defer></script>
 </head>
 <header>
-	<h3>车辆总览</h3>
+    <h3>车辆总览</h3>
 </header>
 <body>
 
-	<!-- 加载动画 -->
-	<div class="box" id="loadding" style="display:none;">
-		<span></span>
-		<span></span>
-		<span></span>
-		<span></span>
-		<span></span>
-	</div>
-	<!-- 锁住页面的遮罩层 -->
-	<div id="overlay" style="display:none;"></div>
+    <!-- 加载动画 -->
+    <div class="box" id="loadding" style="display:none;">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <!-- 锁住页面的遮罩层 -->
+    <div id="overlay" style="display:none;"></div>
 
-	<!-- 显示错误消息 -->
-	@if (!string.IsNullOrEmpty(Model.ErrorMessage)) {
-		<div id="failMessage" class="failMessage">@Model.ErrorMessage</div>
-		@foreach (var error in ModelState.Values.SelectMany(v => v.Errors)) {
-			<div id="failMessage" class="failMessage">@error.ErrorMessage</div>
-		}
-		<script>
-			setTimeout(function () {
-				showMessage("failMessage", 4000);
-			}, 500)
-		</script>
-	}
+    <!-- 显示错误消息 -->
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div id="failMessage" class="failMessage">@Model.ErrorMessage</div>
+        @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div id="failMessage" class="failMessage">@error.ErrorMessage</div>
+        }
+        <script>
+            setTimeout(function () {
+                showMessage("failMessage", 4000);
+            }, 500)
+        </script>
+    }
 
-	<!-- 显示成功消息 -->
-	@if (!string.IsNullOrEmpty(Model.SuccessMessage)) {
-		<div id="successMessage" class="message">@Model.SuccessMessage</div>
-		<script>
-			setTimeout(function () {
-				showMessage("successMessage");
-			}, 500)
-		</script>
-	}
+    <!-- 显示成功消息 -->
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div id="successMessage" class="message">@Model.SuccessMessage</div>
+        <script>
+            setTimeout(function () {
+                showMessage("successMessage");
+            }, 500)
+        </script>
+    }
 
-	<div class="header">
-		<div class="header">
-			<form method="get">
-				<button type="submit" onclick="init()">刷新</button>
-			</form>
+    <div class="header">
+        <div class="header">
+            <form method="get">
+                <button type="submit" onclick="init()">刷新</button>
+            </form>
 
-			<button onclick="exportFile()" class="editBtn export">导出为 Excel</button>
+            <button onclick="exportFile()" class="editBtn export">导出</button>
+            <button onclick="showAddRowDataBtn()">添加</button>
 
-		</div>
-		<form method="post" asp-page-handler="Search">
-			<input asp-for="SearchPlateNumberHtml" id="SearchPlateNumberHtml" value="" placeholder="车牌号" />
-			<input asp-for="SearchOwnerHtml" id="SearchOwnerHtml" value="" placeholder="车主" />
+        </div>
+        <form method="post" asp-page-handler="Search">
+            <input asp-for="SearchPlateNumberHtml" id="SearchPlateNumberHtml" value="" placeholder="车牌号" />
+            <input asp-for="SearchOwnerHtml" id="SearchOwnerHtml" value="" placeholder="车主" />
 
-			<select asp-for="SortField">
-				<option value="Id">ID</option>
-				<option value="Phone">手机号</option>
-				<option value="Name">姓名</option>
-				<option value="CreatedAt">创建时间</option>
-				<option value="UpdatedAt">更新时间</option>
-			</select>
-			<select asp-for="SortOrder">
-				<option value="asc">升序</option>
-				<option value="desc">降序</option>
-			</select>
-			<button type="submit" onclick="confirmChangeSearchData()">搜索</button>
-		</form>
-	</div>
+            <select asp-for="SortField">
+                <option value="Id">ID</option>
+                <option value="Phone">手机号</option>
+                <option value="Name">姓名</option>
+                <option value="CreatedAt">创建时间</option>
+                <option value="UpdatedAt">更新时间</option>
+            </select>
+            <select asp-for="SortOrder">
+                <option value="asc">升序</option>
+                <option value="desc">降序</option>
+            </select>
+            <button type="submit" onclick="confirmChangeSearchData()">搜索</button>
+        </form>
+    </div>
+    <div class="table-container">
+        <table id="userTable">
+            <tr>
+                <th>序号</th>
+                <th>ID</th>
+                <th>车牌号</th>
+                <th>车架号</th>
+                <th>合格证</th>
+                <th>行驶证</th>
+                <th>发票</th>
+                <th>购入登记时间</th>
+                <th>车辆型号</th>
+                <th>车辆状态</th>
+                <th>车辆图片</th>
+                <th>状态修改</th>
+                <th>创建时间</th>
+                <th>更新时间</th>
+                <th>操作</th>
+            </tr>
+            <form method="post" asp-page-handler="AddVehicle">
+            <td style="display:none;" id="autoGenerated1">自动生成</td>
+            <td style="display:none;" id="autoGenerated2">自动生成</td>
+            <td style="display:none;" id="PlateNumber">
+                <input asp-for="NewVehicle.PlateNumber" />
+                <span asp-validation-for="NewVehicle.PlateNumber"></span>
+            </td>
+            <td style="display:none;" id="FrameNumber">
+                <input asp-for="NewVehicle.FrameNumber"/>
+                <span asp-validation-for="NewVehicle.FrameNumber"></span>
+            </td>
+            <td style="display:none;" id="Certificate">
+                <input asp-for="NewVehicle.Certificate" />
+                <span asp-validation-for="NewVehicle.Certificate"></span>
+            </td>
+            <td style="display:none;" id="Drivinglicense">
+                <input asp-for="NewVehicle.Drivinglicense" />
+                <span asp-validation-for="NewVehicle.Drivinglicense"></span>
+            </td>
+            <td style="display:none;" id="Invoice">
+                <input asp-for="NewVehicle.Invoice" />
+                <span asp-validation-for="NewVehicle.Invoice"></span>
+            </td>
+            <td style="display:none;" id="PurchaseRegistrationTime">
+                <input asp-for="NewVehicle.PurchaseRegistrationTime" />
+                <span asp-validation-for="NewVehicle.PurchaseRegistrationTime"></span>
+            </td>
+            <td style="display:none;" id="Model">
+                <input asp-for="NewVehicle.Model" />
+                <span asp-validation-for="NewVehicle.Model"></span>
+            </td>
+            <td style="display:none;" id="State">
+                <input asp-for="NewVehicle.State" />
+                <span asp-validation-for="NewVehicle.State"></span>
+            </td>
+            <td style="display:none;" id="uploadStatus">添加成功后上传</td>
+            <td style="display:none;" id="autoGenerated3">自动生成</td>
+            <td style="display:none;" id="autoGenerated4">自动生成</td>
+            <td style="display:none;" id="submitButton">
+                <button type="submit">添加</button>
+            </td>
+            </form>
+            @for (int i = 0; i < Model.List.Count; i++)
+            {
+                <tr>
+                    <form method="post" asp-page-handler="UpdateVehicle" enctype="multipart/form-data">
+                    <td>@(i + 1)</td>
+                    <td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedVehicle.Id" value="@Model.List[i].Id" /></td>
+                    <td><input id="@("plateNumber" + i)" type="text" name="UpdatedVehicle.PlateNumber" value="@Model.List[i].PlateNumber" placeholder="无" disabled /></td>
+                    <td><input id="@("frameNumber" + i)" type="text" name="UpdatedVehicle.FrameNumber" value="@Model.List[i].FrameNumber" placeholder="无" disabled /></td>
+                    <td><input id="@("certificate" + i)" type="text" name="UpdatedVehicle.Certificate" value="@Model.List[i].Certificate" placeholder="无" disabled /></td>
+                    <td><input id="@("drivinglicense" + i)" type="text" name="UpdatedVehicle.Drivinglicense" value="@Model.List[i].Drivinglicense" placeholder="无" disabled /></td>
+                    <td><input id="@("invoice" + i)" type="text" name="UpdatedVehicle.Invoice" value="@Model.List[i].Invoice" placeholder="无" disabled /></td>
+                    <td><input id="@("purchaseRegistrationTime" + i)" type="date" name="UpdatedVehicle.PurchaseRegistrationTime" value="@Model.List[i].PurchaseRegistrationTime.ToString()" disabled /></td>
+                    <td><input id="@("Model" + i)" type="text" name="UpdatedVehicle.Model" value="@Model.List[i].Model" placeholder="无" disabled /></td>
+                    <td><input id="@("State" + i)" type="text" name="UpdatedVehicle.State" value="@Model.List[i].State" placeholder="无" disabled /></td>
 
-	<table id="userTable">
-		<tr>
-			<th>序号</th>
-			<th>ID</th>
-			<th>车牌号</th>
-			<th>车架号</th>
-			<th>合格证</th>
-			<th>行驶证</th>
-			<th>发票</th>
-			<th>购入登记时间</th>
-			<th>车辆型号</th>
-			<th>车辆状态</th>
-			<th>车辆图片</th>
-			<th>状态修改</th>
-			<th>创建时间</th>
-			<th>更新时间</th>
-			<th>操作</th>
-		</tr>
-		@for (int i = 0; i < Model.List.Count; i++) {
-			<tr>
-				<form method="post" asp-page-handler="UpdateVehicle" enctype="multipart/form-data">
-				<td>@(i + 1)</td>
-				<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedVehicle.Id" value="@Model.List[i].Id" /></td>
-				<td><input id="@("plateNumber" + i)" type="text" name="UpdatedVehicle.PlateNumber" value="@Model.List[i].PlateNumber" placeholder="无" disabled /></td>
-				<td><input id="@("frameNumber" + i)" type="text" name="UpdatedVehicle.FrameNumber" value="@Model.List[i].FrameNumber" placeholder="无" disabled /></td>
-				<td><input id="@("certificate" + i)" type="text" name="UpdatedVehicle.Certificate" value="@Model.List[i].Certificate" placeholder="无" disabled /></td>
-				<td><input id="@("drivinglicense" + i)" type="text" name="UpdatedVehicle.Drivinglicense" value="@Model.List[i].Drivinglicense" placeholder="无" disabled /></td>
-				<td><input id="@("invoice" + i)" type="text" name="UpdatedVehicle.Invoice" value="@Model.List[i].Invoice" placeholder="无" disabled /></td>
-				<td><input id="@("purchaseRegistrationTime" + i)" type="date" name="UpdatedVehicle.PurchaseRegistrationTime" value="@Model.List[i].PurchaseRegistrationTime.ToString()" disabled /></td>
-				<td><input id="@("Model" + i)" type="text" name="UpdatedVehicle.Model" value="@Model.List[i].Model" placeholder="无" disabled /></td>
-				<td><input id="@("State" + i)" type="text" name="UpdatedVehicle.State" value="@Model.List[i].State" placeholder="无" disabled /></td>
+                    <td>
+                        <div class="imageContainer" data-id="@Model.List[i].Id">
+                            <!-- 常驻显示的图片 -->
+                            <div style="display:flex;align-items: center; justify-content: center; ">
+                                <img src="" alt="图片加载失败"
+                                     id="imageUrl"
+                                     style="width: 100px; height: auto; cursor: pointer;display:none;"
+                                     class="thumbnail"
+                                     data-id="@Model.List[i].Id"
+                                     onclick="openModal(this)">
 
-				<td>
-					<div class="imageContainer" data-id="@Model.List[i].Id">
-						<!-- 常驻显示的图片 -->
-						<div style="display:flex;align-items: center; justify-content: center; ">
-							<img src="" alt="图片加载失败"
-								 id="imageUrl"
-								 style="width: 100px; height: auto; cursor: pointer;display:none;"
-								 class="thumbnail"
-								 data-id="@Model.List[i].Id"
-								 onclick="openModal(this)">
+                            </div>
 
-						</div>
+                            <!-- 查看图片 -->
+                                @if (!@Model.List[i].Pictures.IsNullOrEmpty())
+                                {
+                                <a href="#" id="@("getImageUrl" + i)" data-id="@Model.List[i].Pictures" onclick="loadImageUrl(event)">点击加载图片</a>
+                                <div id="message" class="message">加载成功</div>
 
-						<!-- 查看图片 -->
-							@if (!@Model.List[i].Pictures.IsNullOrEmpty()) {
-							<a href="#" id="@("getImageUrl" + i)" data-id="@Model.List[i].Pictures" onclick="loadImageUrl(event)">点击加载图片</a>
-							<div id="message" class="message">加载成功</div>
+                                }
+                                else
+                                {
+                                    <text>无图片</text>
+                                }
+                            <!-- 修改图片 -->
+                            <div style="display:flex;align-items: center; justify-content: center; ">
+                                <input value="@Model.List[i].Id" id="userId" style="display:none;" />
+                                <input type="file" id="@("fileInput"+ i)" value="true" name="file" style="display: none;" class="fileUpload" data-id="@Model.List[i].Id">
+                            </div>
+                            <div style="display:flex;align-items: center; justify-content: center; ">
 
-							} else {
-								<text>无图片</text>
-							}
-						<!-- 修改图片 -->
-						<div style="display:flex;align-items: center; justify-content: center; ">
-							<input value="@Model.List[i].Id" id="userId" style="display:none;" />
-							<input type="file" id="@("fileInput"+ i)" value="true" name="file" style="display: none;" class="fileUpload" data-id="@Model.List[i].Id">
-						</div>
-						<div style="display:flex;align-items: center; justify-content: center; ">
+                                <!-- 编辑的图片预览 -->
+                                <img src="" alt="预览图" class="preview" style="display: none; width: 100px; height: auto; margin-top: 10px;">
 
-							<!-- 编辑的图片预览 -->
-							<img src="" alt="预览图" class="preview" style="display: none; width: 100px; height: auto; margin-top: 10px;">
+                            </div>
+                            <!-- 图片模态窗口 -->
+                            <div id="imageModal" class="modal" style="display:none;">
+                                <span class="close" onclick="closeModal()">&times;</span>
+                                <img class="modal-content" id="modalImage" />
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <select id="selectState" name="UpdatedVehicle.Status" disabled>
+                            <option value="空闲" selected="@(Model.List[i].State == 0 ? "selected" : null)">@Model.List[i].State</option> @* 
+                             <option value="已出租" selected="@(Model.List[i].State == 1 ? "selected" : null)">已出租</option>
+                            <option value="充电中" selected="@(Model.List[i].State == 2 ? "selected" : null)">充电中</option>  *@
+                            <!-- 空闲状态 -->@* 
+                            <option value="0">空闲</option>
+                            <!-- 已出租状态 -->
+                            <option value="1">已出租</option>
+                            <!-- 充电中状态 -->
+                            <option value="2">充电中</option>
+                            <!-- 故障状态 -->
+                            <option value="3">故障</option>
+                            <!-- 锁定状态 -->
+                            <option value="4">锁定</option>
+                            <!-- 待确认状态-->
+                            <option value="5">待确认</option> *@
+                        </select>
 
-						</div>
-						<!-- 图片模态窗口 -->
-						<div id="imageModal" class="modal" style="display:none;">
-							<span class="close" onclick="closeModal()">&times;</span>
-							<img class="modal-content" id="modalImage" />
-						</div>
-					</div>
-				</td>
-				<td>
-					<select id="selectState" name="UpdatedVehicle.Status" disabled>
-						<option value="空闲" selected="@(Model.List[i].State == 0 ? "selected" : null)">空闲</option>@* 
-						<option value="已出租" selected="@(Model.List[i].State == 1 ? "selected" : null)">已出租</option>
-						<option value="充电中" selected="@(Model.List[i].State == 2 ? "selected" : null)">充电中</option> *@
-					</select>
-				</td>
-				<td><text id="@("createdAt" + i)">@Model.List[i].CreatedAt</text></td>
-				<td><text id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</text></td>
-				<td>
-					<button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
-					<button type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;" onclick="saveClick(event)">保存</button>
-				</td>
-				<input type="hidden" name="UpdatedVehicle.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+                    </td>
+                    <td><text id="@("createdAt" + i)">@Model.List[i].CreatedAt</text></td>
+                    <td><text id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</text></td>
+                    <td>
+                        <button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
+                        <button id="@("save" + i)" type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;" onclick="saveClick(event)">保存</button>
+                        <button id="@("delete" + i)" type="button" class="deleteBtn" data-id="@Model.List[i].Id" style="display: none;" onclick="confirmDelete(event)">删除</button>
 
-				</form>
-			</tr>
-		}
+                    </td>
+                    <input type="hidden" name="UpdatedVehicle.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+
+                    </form>
+                </tr>
+            }
 
 
 
-	</table>
-	<div class="bottom">
-		<div class="bottom-item">
-			<text id="page">第 1 页</text>
-			<text>，当前页共 @Model.List.Count 条数据</text>
-			@if (@Model.SearchSum != 0) {
-				<text>，共搜索到 @Model.SearchSum 条数据，</text>
-			}
+        </table>
 
-			<input id="PageCount" value="@Model.List.Count" style="display:none;" />
-			<input id="PageLimit" value="@Model.Limit" style="display:none;" />
+    </div>
+    <div class="bottom">
+        <div class="bottom-item">
+            <text id="page">第 1 页</text>
+            <text>，当前页共 @Model.List.Count 条数据</text>
+            @if (@Model.SearchSum != 0)
+            {
+                <text>，共搜索到 @Model.SearchSum 条数据，</text>
+            }
 
-			<text id="pageSum"></text>
-			<a href="#" id="pageSumButton" onclick="loadPageSum()" style="font-size:small;">显示总页数</a>
-		</div>
+            <input id="PageCount" value="@Model.List.Count" style="display:none;" />
+            <input id="PageLimit" value="@Model.Limit" style="display:none;" />
 
-		<div class="bottom-item">
+            <text id="pageSum"></text>
+            <a href="#" id="pageSumButton" onclick="loadPageSum()" style="font-size:small;">显示总页数</a>
+        </div>
 
-			<form method="post" asp-page-handler="Search">
-				<input placeholder="请输入页数" id="redirect" />
-				<button onclick="changePage(3)" class="editBtn">跳转</button>
-				<button onclick="changePage(2)" class="editBtn">首页</button>
-				<button onclick="changeEndPage()" class="editBtn">尾页</button>
-				<button onclick="changePage(0)">上一页</button>
-				<button onclick="changePage(1)">下一页</button>
+        <div class="bottom-item">
 
-			</form>
-		</div>
-	</div>
+            <form method="post" asp-page-handler="Search">
+                <input placeholder="请输入页数" id="redirect" />
+                <button onclick="changePage(3)" class="editBtn">跳转</button>
+                <button onclick="changePage(2)" class="editBtn">首页</button>
+                <button onclick="changeEndPage()" class="editBtn">尾页</button>
+                <button onclick="changePage(0)">上一页</button>
+                <button onclick="changePage(1)">下一页</button>
 
-	<script>
-		// 页面加载完成后执行函数
-		window.onload = function () {
-			getSearchData();// 获取搜索框数据
-			loadIndexPage();// 加载页码
-			loadButton();// 加载按钮
-		};
-	</script>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后执行函数
+        window.onload = function () {
+            getSearchData();// 获取搜索框数据
+            loadIndexPage();// 加载页码
+            loadButton();// 加载按钮
+        };
+    </script>
 </body>

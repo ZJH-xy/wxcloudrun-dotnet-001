@@ -1,8 +1,8 @@
 ﻿body {
     background-color: white;
     padding: 20px;
-
 }
+
 header {
     background-color: #07C160;
     color: white;
@@ -10,8 +10,9 @@ header {
     text-align: center;
     box-sizing: border-box;
     margin: -20px; /* 通过负边距来抵消 padding */
-    margin-bottom:20px;
+    margin-bottom: 20px;
 }
+
 /* 表格整体样式 */
 table {
     margin: 20px 0;
@@ -35,10 +36,14 @@ td {
     padding: 8px; /* 内边距 */
 }
 
+/* 使列可调整宽度 */
+th {
+    resize: horizontal;
+    overflow: auto;
+}
 /* 奇数行背景色 */
 tr:nth-child(odd) {
     background-color: #ffffff; /* 奇数行背景颜色 */
-
 }
 
 /* 鼠标悬停效果 */
@@ -51,11 +56,14 @@ td, th {
     font-family: Arial, sans-serif; /* 字体 */
     font-size: 14px; /* 字体大小 */
     justify-content: center;
-    align-items: center; 
+    align-items: center;
     text-align: center; /* 文本居中 */
-
 }
+
 button {
+    display: inline-flex; /* 使用 Flex 布局让图标和文字水平对齐 */
+    align-items: center; /* 垂直居中对齐 */
+    justify-content: center; /* 水平居中对齐 */
     background-color: #07C160; /* 按钮背景颜色 */
     color: rgb(255, 255, 255); /* 按钮文字颜色 */
     padding: 0 20px; /* 内边距 */
@@ -69,20 +77,20 @@ button {
     border-radius: 5px; /* 圆角 */
     transition: background-color 0.3s; /* 过渡效果 */
     height: 30px;
-    white-space: nowrap;
+    white-space: nowrap; /* 确保按钮中的文字和图标不换行 */
 }
 
-/* 悬停效果 */
-button:hover {
-    background-color: #009107; /* 悬停时的背景颜色 */
-}
-/* 点击效果 */
-button:active {
-    transform: scale(0.95); /* 按下时缩小 */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* 添加阴影 */
-}
+    /* 悬停效果 */
+    button:hover {
+        background-color: #009107; /* 悬停时的背景颜色 */
+    }
+    /* 点击效果 */
+    button:active {
+        transform: scale(0.95); /* 按下时缩小 */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* 添加阴影 */
+    }
 /* 设置输入框的基本样式 */
-input{
+input {
     border: 1px solid rgb(194, 194, 194); /* 边框颜色 */
     border-radius: 5px; /* 圆角 */
     font-size: 16px; /* 字体大小 */
@@ -100,6 +108,7 @@ input{
     text-align: center; /* 文本居中 */
     white-space: nowrap;
 }
+
 .header {
     display: flex;
     align-items: center;
@@ -162,17 +171,29 @@ input.editing {
     background-color: transparent; /* 背景透明 */
     outline: none; /* 移除聚焦时的轮廓 */
 }
-.saveBtn  {
+
+.saveBtn {
     display: none; /* 默认隐藏保存按钮 */
 }
-.editBtn{
+
+.editBtn {
     color: #07C160;
     background-color: #f2f2f2;
 }
+
+.deleteBtn {
+    color: white;
+    background-color: #FA5151;
+}
+
+    .deleteBtn:hover {
+        background-color: #db4646; /* 悬停时的背景颜色 */
+    }
 /* 悬停效果 */
-.editBtn:hover{
+.editBtn:hover {
     background-color: #cfcfcf; /* 悬停时的背景颜色 */
 }
+
 .otherBtn {
     color: #07C160;
     background-color: #f2f2f2;
@@ -188,10 +209,11 @@ input.editing {
 @media (min-width: 1500px) {
 
     input, tr, th, td {
-        width: 80px;
+        width: 100px;
         font-size: small;
         transition: font-size 0.3s ease,width 0.3s ease;
     }
+
     input {
         font-size: small;
         height: 30px;
@@ -231,8 +253,14 @@ input.editing {
         font-size: small;
     }
 
-    input, tr, th, td {
+    tr, th, td {
         width: 60px;
+        font-size: small;
+        transition: font-size 0.3s ease,width 0.3s ease;
+    }
+
+    input {
+        width: 80px;
         font-size: small;
         transition: font-size 0.3s ease,width 0.3s ease;
     }
@@ -253,7 +281,7 @@ input.editing {
     /* 表格整体样式 */
     table {
         margin: 10px 0;
-        width:100%; /* 表格宽度占满父容器 */
+        width: 100%; /* 表格宽度占满父容器 */
         border-collapse: collapse; /* 合并边框 */
         white-space: nowrap;
         transition: width 0.3s ease,margin 0.3s ease,border-collapse 0.3s ease,white-space 0.3s ease;
@@ -266,8 +294,14 @@ input.editing {
         font-size: small;
     }
 
-    input, tr, th, td {
+    tr, th, td {
         width: 40px;
+        font-size: small;
+        transition: font-size 0.3s ease,width 0.3s ease;
+    }
+
+    input {
+        width: 80px;
         font-size: small;
         transition: font-size 0.3s ease,width 0.3s ease;
     }
@@ -297,7 +331,7 @@ input.editing {
 
 /* 对小屏设备（手机）进行优化 */
 @media (max-width: 867px) {
-    body,a {
+    body, a {
         font-size: 10px;
     }
 
@@ -308,6 +342,7 @@ input.editing {
         font-size: small;
         white-space: normal; /* 默认值，允许换行 */
     }
+
     input {
         width: 80px;
         overflow-y: auto; /* 允许垂直滚动 */
@@ -339,3 +374,16 @@ input.editing {
     }
 }
 
+/* 表格容器样式 */
+.table-container {
+    width: 100%; /* 表格容器的宽度设置为100% */
+    overflow-x: auto; /* 启用水平滚动条 */
+    max-width: 100%; /* 最大宽度为100% */
+    margin: 0 auto; /* 居中显示 */
+}
+
+/* 如果需要可以调整表格的宽度，确保内容不超出页面 */
+#orderTable, #userTable {
+    width: 100%; /* 表格宽度为100%，自适应内容 */
+    table-layout: auto; /* 自动调整列宽 */
+}
