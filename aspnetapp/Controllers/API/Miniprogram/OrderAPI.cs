@@ -1113,7 +1113,14 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
                 await transaction.CommitAsync();
 
-            } catch (Exception e) {
+                // 关闭订单
+				BasePayApis basePayApis = new();
+
+                CloseRequestData closeRequestData = new(Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_MchId, order.OutTradeNo);
+
+                var re = await basePayApis.CloseOrderAsync(closeRequestData);
+
+			} catch (Exception e) {
                 _logger.LogError("取消订单{OrderId}", getData.OrderId);
                 await transaction.RollbackAsync();
                 return StatusCode(500);
