@@ -102,7 +102,9 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 
 			SearchSum = SearchList.Count;
 
-			return Page();
+            Thread.Sleep(500);
+
+            return Page();
 		}
 
 		/// <summary>
