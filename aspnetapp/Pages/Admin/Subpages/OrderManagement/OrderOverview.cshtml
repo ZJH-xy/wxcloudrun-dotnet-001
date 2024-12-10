@@ -108,7 +108,7 @@
                 <tr>
                     <form method="post" asp-page-handler="UpdateOrder" enctype="multipart/form-data">
                     <td>@(i + 1)</td>
-                    <td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" /></td>
+                    <td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedOrder.Id" value="@Model.List[i].Id" /></td>
                     <td><span id="@("TheUser" + i)">@Model.List[i].TheUser</span></td>
                     <td>
                             @if (@Model.List[i].ActualStartingTime != null)
@@ -155,7 +155,7 @@
                     <td><span id="@("Rent" + i)">@Model.List[i].Rent</span></td>
                     <td><span id="@("DispatchFee" + i)">@Model.List[i].DispatchFee</span></td>
                     <td><span id="@("OvertimeFee" + i)">@Model.List[i].OvertimeFee</span></td>
-                    <td><input id="@("OtherFees" + i)" type="text" name="UpdatedUser.OtherFees" value="@Model.List[i].OtherFees" placeholder="无" disabled /></td>
+                    <td><input id="@("OtherFees" + i)" type="text" name="UpdatedOrder.OtherFees" value="@Model.List[i].OtherFees" placeholder="无" disabled /></td>
                     <td><span id="@("Paid" + i)">@Model.List[i].Paid</span></td>
                     <td><span id="@("DepositRefunded" + i)">@Model.List[i].DepositRefunded</span></td>
                     <td><span id="@("Status" + i)">@Model.List[i].Status</span></td>
@@ -169,7 +169,7 @@
                             <span>无</span>
                             }
                     </td>
-                    <td><textarea id="@("Notes" + i)" type="text" name="UpdatedStore.Notes" value="@Model.List[i].Notes" disabled>@Model.List[i].Notes</textarea></td>
+                    <td><textarea id="@("Notes" + i)" type="text" name="UpdatedOrder.Notes" value="@Model.List[i].Notes" disabled>@Model.List[i].Notes</textarea></td>
 
                     <td><span id="@("createdAt" + i)">@Model.List[i].CreatedAt</span></td>
                     <td><span id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</span></td>
@@ -178,7 +178,7 @@
                         <button id="@("save" + i)" type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;" onclick="saveClick(event)">保存</button>
                     </td>
 
-                    <input type="hidden" name="UpdatedUser.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+                    <input type="hidden" name="UpdatedOrder.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
                     </form>
                 </tr>
             }

@@ -347,7 +347,7 @@ function loadButton() {
 			inputs.forEach(input => input.disabled = false);
 
 			// 使 textarea 可编辑  
-			const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedStore.Notes']`);
+			const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedOrder.Notes']`);
 			if (textArea) textArea.disabled = false; // 使 textarea 可编辑  
 
 			// 使状态下拉框可以编辑
