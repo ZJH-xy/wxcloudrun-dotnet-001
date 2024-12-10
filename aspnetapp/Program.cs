@@ -42,6 +42,7 @@ builder.Services.AddScoped<OrderControllerWeb>();
 builder.Services.AddScoped<StatisticsControllerWeb>();
 builder.Services.AddScoped<OrderControllerWeb>();
 builder.Services.AddScoped<StoreControllerWeb>();
+builder.Services.AddScoped<StoreMenuControllerWeb>();
 
 builder.Services.AddScoped<OrderAPI>(); // 注册 OrderAPI，定时取消订单
 builder.Services.AddHostedService<TimedHostedService>();
@@ -49,18 +50,18 @@ builder.Services.AddHostedService<TimedHostedService>();
 
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
-	opt => {
-		var jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>();
-		byte[] keyBytes = Encoding.UTF8.GetBytes(jwtSettings.SecKey);
-		var secKey = new SymmetricSecurityKey(keyBytes);
-		opt.TokenValidationParameters = new() {
-			ValidateIssuer = false,
-			ValidateAudience = false,
-			ValidateLifetime = true,
-			ValidateIssuerSigningKey = true,
-			IssuerSigningKey = secKey
-		};
-	});
+    opt => {
+        var jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>();
+        byte[] keyBytes = Encoding.UTF8.GetBytes(jwtSettings.SecKey);
+        var secKey = new SymmetricSecurityKey(keyBytes);
+        opt.TokenValidationParameters = new() {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = secKey
+        };
+    });
 
 
 //Senparc.Weixin 注册（必须）
@@ -95,12 +96,12 @@ var registerService = app.UseSenparcWeixin(app.Environment,
     null /* 不为 null 则覆盖 appsettings  中的 SenpacSetting 配置*/,
     null /* 不为 null 则覆盖 appsettings  中的 SenpacWeixinSetting 配置*/,
     register => { },
-	(register, weixinSetting) => {
+    (register, weixinSetting) => {
         //注册公众号信息（可以执行多次，注册多个小程序）
         register.RegisterWxOpenAccount(weixinSetting, "文旅小程序");
         //注册微信支付（可以执行多次，注册多个微信支付）
         register.RegisterTenpayApiV3(weixinSetting, "【盛派网络小助手】微信支付（ApiV3）");
-	});
+    });
 
 
 //var registerService = app.UseSenparcWeixin(app.Environment, null, null,
@@ -108,9 +109,9 @@ var registerService = app.UseSenparcWeixin(app.Environment,
 //    (register, weixinSetting) => { });
 
 if (!app.Environment.IsDevelopment()) {
-	app.UseExceptionHandler("/Error");
-	// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-	//app.UseHsts();
+    app.UseExceptionHandler("/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    //app.UseHsts();
 }
 //app.UseHttpsRedirection();
 
