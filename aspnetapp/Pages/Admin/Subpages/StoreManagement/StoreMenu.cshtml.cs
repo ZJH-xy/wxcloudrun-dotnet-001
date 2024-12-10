@@ -125,8 +125,6 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 
             SearchSum = SearchList.Count;
 
-            Thread.Sleep(500);
-
             return Page();
         }
 
