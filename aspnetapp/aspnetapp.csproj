@@ -21,7 +21,7 @@
     <Content Remove="wwwroot\js\utils\applyForReview.js" />
     <Content Remove="wwwroot\js\utils\statisticsData.js" />
     <Content Remove="wwwroot\js\utils\store.js" />
-    <Content Remove="wwwroot\js\utils\storeRentalPackage.js" />
+    <Content Remove="wwwroot\js\utils\storeMenu.js" />
     <Content Remove="wwwroot\js\vehicleUtils.js" />
   </ItemGroup>
 
@@ -53,7 +53,7 @@
     <None Include="wwwroot\js\utils\order.js" />
     <None Include="wwwroot\js\utils\applyForReview.js" />
     <None Include="wwwroot\js\utils\announcementOverview.js" />
-    <None Include="wwwroot\js\utils\storeRentalPackage.js" />
+    <None Include="wwwroot\js\utils\storeMenu.js" />
     <None Include="wwwroot\js\utils\vehicle.js" />
     <None Include="wwwroot\js\utils\user.js" />
   </ItemGroup>

@@ -9,9 +9,8 @@ window.onload = function () {
 function loadPage(pageName, clickedLink) {
     const frame = document.getElementById('contentFrame');
 
-
     // 更新 selectedPage 变量
-    //这里修改switch的selectedPage的页面代码
+    let selectedPage = '';
     switch (pageName) {
         case "统计数据":
             selectedPage = "Subpages/Overview/StatisticsData";
@@ -27,10 +26,10 @@ function loadPage(pageName, clickedLink) {
             break;
         case "套餐总览":
             selectedPage = "Subpages/StoreManagement/StoreMenu";
-            break; 
+            break;
         case "申请审核":
             selectedPage = "Subpages/StoreManagement/ApplyForReview";
-            break; 
+            break;
         case "用户总览":
             selectedPage = "Subpages/UserManagement/UserOverview";
             break;
@@ -45,7 +44,12 @@ function loadPage(pageName, clickedLink) {
             break;
     }
 
-    frame.src = selectedPage; // 设置 iframe 的 src
+    // 存储当前页面路径到 localStorage
+    localStorage.setItem('lastVisitedPage', selectedPage);
+    console.log('selectedPage:',selectedPage)
+    // 设置 iframe 的 src
+    frame.src = selectedPage;
+
     // 移除所有子菜单项的选中状态
     const allMenuItems = document.querySelectorAll('.menu > li > ul > li > a');
     allMenuItems.forEach(function (menuItem) {
@@ -56,6 +60,14 @@ function loadPage(pageName, clickedLink) {
     clickedLink.classList.add('submenuSelected');
 }
 
+// 页面加载时获取上次访问的页面
+window.onload = function () {
+    const lastVisitedPage = localStorage.getItem('lastVisitedPage');
+    if (lastVisitedPage) {
+        const frame = document.getElementById('contentFrame');
+        frame.src = lastVisitedPage; // 设置 iframe 的 src 为上次访问的页面
+    }
+};
 
 function toggleSubMenu(event) {
     event.preventDefault(); // 阻止默认点击行为  
