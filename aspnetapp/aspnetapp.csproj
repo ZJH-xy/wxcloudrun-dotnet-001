@@ -17,6 +17,7 @@
   <ItemGroup>
     <Content Remove="wwwroot\js\orderUtils.js" />
     <Content Remove="wwwroot\js\UserUtils.js" />
+    <Content Remove="wwwroot\js\utils\applyForReview.js" />
     <Content Remove="wwwroot\js\utils\statisticsData.js" />
     <Content Remove="wwwroot\js\utils\store.js" />
     <Content Remove="wwwroot\js\vehicleUtils.js" />
@@ -48,6 +49,7 @@
     <None Include="wwwroot\js\utils\statisticsData.js" />
     <None Include="wwwroot\js\utils\store.js" />
     <None Include="wwwroot\js\utils\order.js" />
+    <None Include="wwwroot\js\utils\applyForReview.js" />
     <None Include="wwwroot\js\utils\vehicle.js" />
     <None Include="wwwroot\js\utils\user.js" />
   </ItemGroup>

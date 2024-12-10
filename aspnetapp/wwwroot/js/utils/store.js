@@ -50,6 +50,8 @@ async function confirmDelete(event) {
 
             if (data.success) {
                 console.log("删除成功，message:", data.message);
+                location.reload();  
+
             } else {
                 console.log("删除失败，message:", data.message);
             }

@@ -10,7 +10,10 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 	<link rel="stylesheet" href="~/css/statisticsData.css" />
+	<link rel="stylesheet" href="~/css/loading.css" />
+
 	<script src="~/js/utils/statisticsData.js" defer></script>
+	<script src="~/js/loading.js" defer></script>
 
 </head>
 <body>
@@ -92,9 +95,7 @@
 		</div> *@
 	</div>
 
-	<div class="loading" id="loading">
-		加载中...
-	</div>
+
 
 	<div class="statistics" id="content">
 		<!-- 销售统计卡片 -->
@@ -179,10 +180,12 @@
 	<script>
 		// 等待数据加载完成
 		window.onload = async function () {
+			loadHTML(); // 显示加载中
 			await getOrderData();
 			await getUserData();
 			await getVehicleStateDistributionData();
-			document.getElementById('loading').style.display = 'none';
+			cancelloadHTML();// 取消显示加载中
+
 		};
 		const RESPONSEURL = `/Admin/Subpages/Overview/StatisticsData`;
 		// 获取订单数据

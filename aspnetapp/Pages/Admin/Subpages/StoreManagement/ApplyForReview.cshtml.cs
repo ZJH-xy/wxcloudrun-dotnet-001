@@ -5,31 +5,11 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement
 {
     public class ApplyForReviewModel : PageModel
     {
-        public struct User
-        {
-            public int UserId;
-            public string Nickname;
-            public string UserName;
-            public string IdentityCard;
-            public string Phone;
+		// 用于在页面显示错误信息
+		public string ErrorMessage { get; set; }
 
-        }
-        public List<User> List { get; set; } = new List<User>();
-        public IActionResult OnGet()
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                List.Add(new User
-                {
-                    UserId = i,
-                    Nickname = "a",
-                    UserName = "b",
-                    IdentityCard = "450000000000000123",
-                    Phone = "13000000000"
-                });
-            }
+		// 用于在页面显示成功信息
+		public string SuccessMessage { get; set; }
 
-            return Page();
-        }
     }
 }

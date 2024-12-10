@@ -2,90 +2,151 @@
 @model aspnetapp.Pages.Admin.Subpages.StoreManagement.ApplyForReviewModel
 @{
 }
-<link rel="stylesheet" href="~/css/table.css" />
-<div>
-    <div class="header">
-        <div class="header-item">
-            <button>刷新</button>
-            <button>添加</button>
-            <button>导出</button>
-        </div>
-        <div class="header-item">
-            <input placeholder="搜索" />
-            <button>搜索</button>
-        </div>
-    </div>
+<head>
+	<meta charset="utf-8" />
+	<!-- 引用外部 jQuery -->
+	<link rel="stylesheet" href="~/css/table.css" />
+	<link rel="stylesheet" href="~/css/loading.css" />
+	<script src="/js/utils/jquery-3.6.0.min.js" defer></script>
+	@* https://code.jquery.com/jquery-3.6.0.min.js *@
+	<script src="~/js/loading.js" defer></script>
+	<script src="~/js/utils/user.js" defer></script>
+</head>
+<header>
+	<h3>用户总览</h3>
+</header>
+<body>
 
-    <table id="userTable">
-        <tr>
-            <th>序号</th>
-            <th>ID</th>
-            <th>昵称</th>
-            <th>姓名</th>
-            <th>手机号</th>
-            <th>身份证号</th>
-            <th>创建时间</th>
-            <th>操作</th>
+	<!-- 加载动画 -->
+	<div class="box" id="loadding" style="display:none;">
+		<span></span>
+		<span></span>
+		<span></span>
+		<span></span>
+		<span></span>
+	</div>
+	<!-- 锁住页面的遮罩层 -->
+	<div id="overlay" style="display:none;"></div>
 
-        </tr>
-        @for (int i = 0; i < @Model.List.Count; i++)
-        {
-            <tr>
-                <td>@i</td>
-                <td>@Model.List[i].UserId</td>
-                <td>@Model.List[i].Nickname</td>
-                <td>@Model.List[i].UserName</td>
-                <td>@Model.List[i].Phone</td>
-                <td>@Model.List[i].IdentityCard</td>
-                <td>2024-01-01</td>
-                <td>
-                    <button class="modalBtn">编辑</button>
-                </td>
-            </tr>
-        }
-    </table>
-    <div class="bottom">
-        <div class="bottom-item">
-            <text>显示第 1 到第 10 条记录，总共 100 条记录</text>
-        </div>
-        <div class="bottom-item">
-            <input placeholder="请输入页数" />
-            <button>跳转</button>
-            <button>上一页</button>
-            <button>下一页</button>
-        </div>
-    </div>
+	<!-- 显示错误消息 -->
+	@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+	{
+		<div id="failMessage" class="failMessage">@Model.ErrorMessage</div>
+		@foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+		{
+			<div id="failMessage" class="failMessage">@error.ErrorMessage</div>
+		}
+		<script>
+			setTimeout(function () {
+				showMessage("failMessage", 4000);
+			}, 500)
+		</script>
+	}
 
-    <!-- 模态窗口 -->
-    <div class="modal" id="myModal">
-        <div class="modal-content">
-            <span class="close" id="closeBtn">&times;</span>
-            <h2>模态窗口</h2>
-            <p>这是一个弹出的模态窗口。</p>
-        </div>
-    </div>
-</div>
-<script>
-    // 获取模态窗口
-    var modal = document.getElementById("myModal");
-    var span = document.getElementById("closeBtn");
+	<!-- 显示成功消息 -->
+	@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+	{
+		<div id="successMessage" class="message">@Model.SuccessMessage</div>
+		<script>
+			setTimeout(function () {
+				showMessage("successMessage");
+			}, 500)
+		</script>
+	}
 
-    // 使用事件委托
-    document.getElementById("userTable").addEventListener("click", function (event) {
-        if (event.target.classList.contains("modalBtn")) {
-            modal.style.display = "block";
-        }
-    });
+	<div class="header">
+		<div class="header">
+			<form method="get">
+				<button type="submit" onclick="init()">刷新</button>
+			</form>
+		</div>
+	</div>
 
-    // 点击关闭按钮时关闭模态窗口
-    span.onclick = function () {
-        modal.style.display = "none";
-    }
+	<table id="userTable">
+		<tr>
+			<th>序号</th>
+			<th>ID</th>
+			<th>昵称</th>
+			<th>姓名</th>
+			<th>手机号</th>
+			<th>身份证号</th>
+			<th>身份证照片</th>
+			<th>创建时间</th>
+			<th>更新时间</th>
+			<th>操作</th>
+		</tr>
+	@* 	@for (int i = 0; i < Model.List.Count; i++)
+		{
+			<tr>
+				<form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data">
+				<td>@(i + 1)</td>
+				<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" /></td>
+				<td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="无" disabled /></td>
+				<td><input id="@("name" + i)" type="text" name="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="无" disabled /></td>
+				<td><input id="@("phone" + i)" type="text" name="UpdatedUser.Phone" value="@Model.List[i].Phone" placeholder="无" disabled /></td>
+				<td><input id="@("identityCard" + i)" type="text" name="UpdatedUser.IdentityCard" value="@Model.List[i].IdentityCard" placeholder="无" disabled /></td>
+				<td>
+					<div class="imageContainer" data-id="@Model.List[i].Id">
+						<!-- 常驻显示的图片 -->
+						<div style="display:flex;align-items: center; justify-content: center; ">
+							<img src="" alt="图片加载失败"
+								 id="imageUrl"
+								 style="width: 100px; height: auto; cursor: pointer;display:none;"
+								 class="thumbnail"
+								 data-id="@Model.List[i].Id"
+								 onclick="openModal(this)">
 
-    // 点击模态窗口外部时关闭模态窗口
-    window.onclick = function (event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
-</script>
+						</div>
+
+						<!-- 查看图片 -->
+							@if (!@Model.List[i].IdentityCardPictures.IsNullOrEmpty())
+							{
+							<a href="#" id="@("getImageUrl" + i)" data-id="@Model.List[i].IdentityCardPictures" onclick="loadImageUrl(event)">点击加载图片</a>
+							<div id="message" class="message">加载成功</div>
+
+							}
+							else
+							{
+								<text>无图片</text>
+							}
+						<!-- 修改图片 -->
+						<div style="display:flex;align-items: center; justify-content: center; ">
+							<input value="@Model.List[i].Id" id="userId" style="display:none;" />
+							<input type="file" id="@("fileInput"+ i)" value="true" name="file" style="display: none;" class="fileUpload" data-id="@Model.List[i].Id">
+						</div>
+						<div style="display:flex;align-items: center; justify-content: center; ">
+
+							<!-- 编辑的图片预览 -->
+							<img src="" alt="预览图" class="preview" style="display: none; width: 100px; height: auto; margin-top: 10px;">
+
+						</div>
+						<!-- 图片模态窗口 -->
+						<div id="imageModal" class="modal" style="display:none;">
+							<span class="close" onclick="closeModal()">&times;</span>
+							<img class="modal-content" id="modalImage" />
+						</div>
+					</div>
+				</td>
+				<td><text id="@("createdAt" + i)">@Model.List[i].CreatedAt</text></td>
+				<td><text id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</text></td>
+				<td>
+					<button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
+					<button id="@("save" + i)" type="submit" class="saveBtn" data-id="@i" style="display: none;" onclick="saveClick(event)">保存</button>
+				</td>
+
+				<input type="hidden" name="UpdatedUser.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+				</form>
+			</tr>
+		}
+
+ *@
+
+	</table>
+
+	<script>
+		// 页面加载完成后执行函数
+		window.onload = function () {
+			loadButton();// 加载按钮
+		};
+	</script>
+</body>

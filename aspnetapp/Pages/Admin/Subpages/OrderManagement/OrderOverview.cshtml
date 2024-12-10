@@ -4,207 +4,222 @@
 }
 
 <head>
-	<meta charset="utf-8" />
-	<!-- 引用外部 jQuery -->
-	<link rel="stylesheet" href="~/css/table.css" />
-	<link rel="stylesheet" href="~/css/loading.css" />
-	<script src="~/js/utils/jquery-3.6.0.min.js" defer></script>
-	<script src="~/js/loading.js" defer></script>
-	<script src="~/js/utils/order.js" defer></script>
+    <meta charset="utf-8" />
+    <!-- 引用外部 jQuery -->
+    <link rel="stylesheet" href="~/css/table.css" />
+    <link rel="stylesheet" href="~/css/loading.css" />
+    <script src="~/js/utils/jquery-3.6.0.min.js" defer></script>
+    <script src="~/js/loading.js" defer></script>
+    <script src="~/js/utils/order.js" defer></script>
 </head>
 <header>
-	<h3>订单总览</h3>
+    <h3>订单总览</h3>
 </header>
 <body>
 
-	<!-- 加载动画 -->
-	<div class="box" id="loadding" style="display:none;">
-		<span></span>
-		<span></span>
-		<span></span>
-		<span></span>
-		<span></span>
-	</div>
-	<!-- 锁住页面的遮罩层 -->
-	<div id="overlay" style="display:none;"></div>
+    <!-- 加载动画 -->
+    <div class="box" id="loadding" style="display:none;">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <!-- 锁住页面的遮罩层 -->
+    <div id="overlay" style="display:none;"></div>
 
-	<!-- 显示错误消息 -->
-	@if (!string.IsNullOrEmpty(Model.ErrorMessage)) {
-		<div id="failMessage" class="failMessage">@Model.ErrorMessage</div>
-		@foreach (var error in ModelState.Values.SelectMany(v => v.Errors)) {
-			<div id="failMessage" class="failMessage">@error.ErrorMessage</div>
-		}
-		<script>
-			setTimeout(function () {
-				showMessage("failMessage", 4000);
-			}, 500)
-		</script>
-	}
+    <!-- 显示错误消息 -->
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div id="failMessage" class="failMessage">@Model.ErrorMessage</div>
+        @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div id="failMessage" class="failMessage">@error.ErrorMessage</div>
+        }
+        <script>
+            setTimeout(function () {
+                showMessage("failMessage", 4000);
+            }, 500)
+        </script>
+    }
 
-	<!-- 显示成功消息 -->
-	@if (!string.IsNullOrEmpty(Model.SuccessMessage)) {
-		<div id="successMessage" class="message">@Model.SuccessMessage</div>
-		<script>
-			setTimeout(function () {
-				showMessage("successMessage");
-			}, 500)
-		</script>
-	}
+    <!-- 显示成功消息 -->
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div id="successMessage" class="message">@Model.SuccessMessage</div>
+        <script>
+            setTimeout(function () {
+                showMessage("successMessage");
+            }, 500)
+        </script>
+    }
 
-	<div class="header">
-		<div class="header">
-			<form method="get">
-				<button type="submit" onclick="init()">刷新</button>
-			</form>
+    <div class="header">
+        <div class="header">
+            <form method="get">
+                <button type="submit" onclick="init()">刷新</button>
+            </form>
 
-			<button onclick="exportFile()" class="editBtn export">导出为 Excel</button>
+            <button onclick="exportFile()" class="editBtn export">导出为 Excel</button>
 
-		</div>
-@* 				<form method="post" asp-page-handler="search">
-		<input asp-for="searchphonehtml" id="searchphonehtml" value="" placeholder="手机号" />
-		<input asp-for="searchnamehtml" id="searchnamehtml" value="" placeholder="姓名" />
-		<input asp-for="searchnicknamehtml" id="searchnicknamehtml" value="" placeholder="昵称" />
-		<select asp-for="sortfield">
-		<option value="id">id</option>
-		<option value="phone">手机号</option>
-		<option value="name">姓名</option>
-		<option value="createdat">创建时间</option>
-		<option value="updatedat">更新时间</option>
-		</select>
-		<select asp-for="sortorder">
-		<option value="asc">升序</option>
-		<option value="desc">降序</option>
-		</select>
-		<button type="submit" onclick="confirmchangesearchdata()">搜索</button>
-		</form> *@
-	</div>
+        </div>
+        <form method="post" asp-page-handler="Search">
+            <input asp-for="SearchUserPhoneHtml" id="SearchPhoneHtml" value="" placeholder="手机号" />
+            <input asp-for="SearchStatusHtml" id="SearchNameHtml" value="" placeholder="订单状态" />
+            <select asp-for="SortField">
+                <option value="Id">ID</option>
+                <option value="CreatedAt">创建时间</option>
+                <option value="UpdatedAt">更新时间</option>
+            </select>
+            <select asp-for="SortOrder">
+                <option value="asc">升序</option>
+                <option value="desc">降序</option>
+            </select>
+            <button type="submit" onclick="confirmChangeSearchData()">搜索</button>
+        </form>
+    </div>
 
-	<table id="userTable">
-		<tr>
-			<th>序号</th>
-			<th>订单编号</th>
-			<th>用户ID</th>
-			<th>起始时间</th>
-			<th>实际归还</th>
-			<th>租车点</th>
-			<th>换车点</th>
-			<th>还车点</th>
-			<th>押金</th>
-			<th>租金</th>
-			<th>调度费</th>
-			<th>超时费</th>
-			<th>其他费用</th>
-			<th>已付金额</th>
-			<th>已退押金</th>
-			<th>订单状态</th>
-			<th>支付完成时间</th>
-			<th>备注</th>
-			<th>创建时间</th>
-			<th>更新时间</th>
-			<th>操作</th>
-		</tr>
-		@for (int i = 0; i < Model.List.Count; i++) {
-			<tr>
-				<form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data">
-				<td>@(i + 1)</td>
-				<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" /></td>
-				<td><span id="@("TheUser" + i)">@Model.List[i].TheUser</span></td>
-				<td>
-						@if (@Model.List[i].ActualStartingTime != null) {
-						<span id="@("ActualStartingTime" + i)">@Model.List[i].ActualStartingTime</span>
-						} else {
-						<span>未开始</span>
-						}
-				</td>
-				<td>
-					@if (@Model.List[i].ActualReturnTime!=null) {
-						<span id="@("ActualReturnTime" + i)">@Model.List[i].ActualReturnTime </span>
-					} else {
-						<span>未归还</span>
-					}
-				</td>
-				<td><span id="@("TheVehicle" + i)">@Model.List[i].TheVehicle</span></td>
-				<td>
-						@if (@Model.List[i].TheRentalLocation != null) {
-						<span id="@("TheRentalLocation" + i)">@Model.List[i].TheRentalLocation</span>
-						} else {
-						<span>无</span>
-						}
-				</td>
-				<td>
-						@if (@Model.List[i].TheReturnThePoint != null) {
-						<span id="@("ActualStartingTime" + i)">@Model.List[i].TheReturnThePoint</span>
-						} else {
-						<span>未归还</span>
-						}
-				</td>
-				<td><input id="@("Deposit" + i)" type="text" name="UpdatedUser.Deposit" value="@Model.List[i].Deposit" placeholder="无" disabled /></td>
-				<td><input id="@("Rent" + i)" type="text" name="UpdatedUser.Rent" value="@Model.List[i].Rent" placeholder="无" disabled /></td>
-				<td><input id="@("DispatchFee" + i)" type="text" name="UpdatedUser.DispatchFee" value="@Model.List[i].DispatchFee" placeholder="无" disabled /></td>
-				<td><input id="@("OvertimeFee" + i)" type="text" name="UpdatedUser.OvertimeFee" value="@Model.List[i].OvertimeFee" placeholder="无" disabled /></td>
-				<td><input id="@("OtherFees" + i)" type="text" name="UpdatedUser.OtherFees" value="@Model.List[i].OtherFees" placeholder="无" disabled /></td>
-				<td><span id="@("Paid" + i)">@Model.List[i].Paid</span></td>
-				<td><input id="@("DepositRefunded" + i)" type="text" name="UpdatedUser.DepositRefunded" value="@Model.List[i].DepositRefunded" placeholder="无" disabled /></td>
-				<td><span id="@("Status" + i)">@Model.List[i].Status</span></td>
-				<td>
-						@if (@Model.List[i].SuccessTime != null) {
-						<span id="@("ActualStartingTime" + i)">@Model.List[i].SuccessTime</span>
-						} else {
-						<span>无</span>
-						}
-				</td>
-				<td><input id="@("Notes" + i)" type="text" name="UpdatedUser.Notes" value="@Model.List[i].Notes" placeholder="无" disabled /></td>
-				<td><span id="@("createdAt" + i)">@Model.List[i].CreatedAt</span></td>
-				<td><span id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</span></td>
-				<td>
-					<button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
-					<button id="@("save" + i)" type="submit" class="saveBtn" data-id="@i" style="display: none;" onclick="saveClick(event)">保存</button>
-				</td>
+    <table id="userTable">
+        <tr>
+            <th>序号</th>
+            <th>订单编号</th>
+            <th>用户ID</th>
+            <th>起始时间</th>
+            <th>实际归还</th>
+            <th>租车点</th>
+            <th>换车点</th>
+            <th>还车点</th>
+            <th>押金</th>
+            <th>租金</th>
+            <th>调度费</th>
+            <th>超时费</th>
+            <th>其他费用</th>
+            <th>已付金额</th>
+            <th>已退押金</th>
+            <th>订单状态</th>
+            <th>支付完成时间</th>
+            <th>备注</th>
+            <th>创建时间</th>
+            <th>更新时间</th>
+            <th>操作</th>
+        </tr>
+        @for (int i = 0; i < Model.List.Count; i++)
+        {
+            <tr>
+                <form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data">
+                <td>@(i + 1)</td>
+                <td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" /></td>
+                <td><span id="@("TheUser" + i)">@Model.List[i].TheUser</span></td>
+                <td>
+                        @if (@Model.List[i].ActualStartingTime != null)
+                        {
+                        <span id="@("ActualStartingTime" + i)">@Model.List[i].ActualStartingTime</span>
+                        }
+                        else
+                        {
+                        <span>未开始</span>
+                        }
+                </td>
+                <td>
+                        @if (@Model.List[i].ActualReturnTime != null)
+                        {
+                        <span id="@("ActualReturnTime" + i)">@Model.List[i].ActualReturnTime </span>
+                        }
+                        else
+                        {
+                        <span>未归还</span>
+                        }
+                </td>
+                <td><span id="@("TheVehicle" + i)">@Model.List[i].TheVehicle</span></td>
+                <td>
+                        @if (@Model.List[i].TheRentalLocation != null)
+                        {
+                        <span id="@("TheRentalLocation" + i)">@Model.List[i].TheRentalLocation</span>
+                        }
+                        else
+                        {
+                        <span>无</span>
+                        }
+                </td>
+                <td>
+                        @if (@Model.List[i].TheReturnThePoint != null)
+                        {
+                        <span id="@("ActualStartingTime" + i)">@Model.List[i].TheReturnThePoint</span>
+                        }
+                        else
+                        {
+                        <span>未归还</span>
+                        }
+                </td>
+                <td><input id="@("Deposit" + i)" type="text" name="UpdatedUser.Deposit" value="@Model.List[i].Deposit" placeholder="无" disabled /></td>
+                <td><input id="@("Rent" + i)" type="text" name="UpdatedUser.Rent" value="@Model.List[i].Rent" placeholder="无" disabled /></td>
+                <td><input id="@("DispatchFee" + i)" type="text" name="UpdatedUser.DispatchFee" value="@Model.List[i].DispatchFee" placeholder="无" disabled /></td>
+                <td><input id="@("OvertimeFee" + i)" type="text" name="UpdatedUser.OvertimeFee" value="@Model.List[i].OvertimeFee" placeholder="无" disabled /></td>
+                <td><input id="@("OtherFees" + i)" type="text" name="UpdatedUser.OtherFees" value="@Model.List[i].OtherFees" placeholder="无" disabled /></td>
+                <td><span id="@("Paid" + i)">@Model.List[i].Paid</span></td>
+                <td><input id="@("DepositRefunded" + i)" type="text" name="UpdatedUser.DepositRefunded" value="@Model.List[i].DepositRefunded" placeholder="无" disabled /></td>
+                <td><span id="@("Status" + i)">@Model.List[i].Status</span></td>
+                <td>
+                        @if (@Model.List[i].SuccessTime != null)
+                        {
+                        <span id="@("ActualStartingTime" + i)">@Model.List[i].SuccessTime</span>
+                        }
+                        else
+                        {
+                        <span>无</span>
+                        }
+                </td>
+                <td><input id="@("Notes" + i)" type="text" name="UpdatedUser.Notes" value="@Model.List[i].Notes" placeholder="无" disabled /></td>
+                <td><span id="@("createdAt" + i)">@Model.List[i].CreatedAt</span></td>
+                <td><span id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</span></td>
+                <td>
+                    <button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
+                    <button id="@("save" + i)" type="submit" class="saveBtn" data-id="@i" style="display: none;" onclick="saveClick(event)">保存</button>
+                </td>
 
-				<input type="hidden" name="UpdatedUser.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
-				</form>
-			</tr>
-		}
+                <input type="hidden" name="UpdatedUser.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+                </form>
+            </tr>
+        }
 
 
 
-	</table>
-	<div class="bottom">
-		<div class="bottom-item">
-			<text id="page">第 1 页</text>
-			<text>，当前页共 @Model.List.Count 条数据</text>
-			@if (@Model.SearchSum != 0) {
-				<text>，共搜索到 @Model.SearchSum 条数据，</text>
-			}
-			@* <text id="searchData" style="display:none;">，共搜索到 @Model.SearchSum 条数据，</text> *@
+    </table>
+    <div class="bottom">
+        <div class="bottom-item">
+            <text id="page">第 1 页</text>
+            <text>，当前页共 @Model.List.Count 条数据</text>
+            @if (@Model.SearchSum != 0)
+            {
+                <text>，共搜索到 @Model.SearchSum 条数据，</text>
+            }
+            <input id="PageCount" value="@Model.List.Count" style="display:none;" />
+            <input id="PageLimit" value="@Model.Limit" style="display:none;" />
 
-			<input id="PageCount" value="@Model.List.Count" style="display:none;" />
-			<input id="PageLimit" value="@Model.Limit" style="display:none;" />
+            <text id="pageSum"></text>
+            <a href="#" id="pageSumButton" onclick="loadPageSum()" style="font-size:small;">显示总页数</a>
+        </div>
 
-			<text id="pageSum"></text>
-			<a href="#" id="pageSumButton" onclick="loadPageSum()" style="font-size:small;">显示总页数</a>
-		</div>
+        <div class="bottom-item">
 
-		<div class="bottom-item">
+            <form method="post" asp-page-handler="Search">
+                <input placeholder="请输入页数" id="redirect" />
+                <button onclick="changePage(3)" class="editBtn">跳转</button>
+                <button onclick="changePage(2)" class="editBtn">首页</button>
+                <button onclick="changeEndPage()" class="editBtn">尾页</button>
+                <button onclick="changePage(0)">上一页</button>
+                <button onclick="changePage(1)">下一页</button>
 
-			<form method="post" asp-page-handler="Search">
-				<input placeholder="请输入页数" id="redirect" />
-				<button onclick="changePage(3)" class="editBtn">跳转</button>
-				<button onclick="changePage(2)" class="editBtn">首页</button>
-				<button onclick="changeEndPage()" class="editBtn">尾页</button>
-				<button onclick="changePage(0)">上一页</button>
-				<button onclick="changePage(1)">下一页</button>
+            </form>
+        </div>
+    </div>
 
-			</form>
-		</div>
-	</div>
-
-	<script>
-		// 页面加载完成后执行函数
-		window.onload = function () {
-			getSearchData();// 获取搜索框数据
-			loadIndexPage();// 加载页码
-			loadButton();// 加载按钮
-		};
-	</script>
+    <script>
+        // 页面加载完成后执行函数
+        window.onload = function () {
+            getSearchData();// 获取搜索框数据
+            loadIndexPage();// 加载页码
+            loadButton();// 加载按钮
+        };
+    </script>
 </body>

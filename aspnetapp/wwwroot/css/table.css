@@ -35,6 +35,12 @@ td {
     border: 1px solid #ddd; /* 单元格边框 */
     padding: 8px; /* 内边距 */
 }
+
+/* 使列可调整宽度 */
+th{
+    resize: horizontal;
+    overflow: auto;
+}
 /* 奇数行背景色 */
 tr:nth-child(odd) {
     background-color: #ffffff; /* 奇数行背景颜色 */
@@ -195,7 +201,7 @@ input.editing {
 @media (min-width: 1500px) {
 
     input, tr, th, td {
-        width: 80px;
+        width: 100px;
         font-size: small;
         transition: font-size 0.3s ease,width 0.3s ease;
     }
@@ -238,8 +244,13 @@ input.editing {
         font-size: small;
     }
 
-    input, tr, th, td {
+    tr, th, td {
         width: 60px;
+        font-size: small;
+        transition: font-size 0.3s ease,width 0.3s ease;
+    }
+    input{
+        width: 80px;
         font-size: small;
         transition: font-size 0.3s ease,width 0.3s ease;
     }
@@ -273,12 +284,16 @@ input.editing {
         font-size: small;
     }
 
-    input, tr, th, td {
+    tr, th, td {
         width: 40px;
         font-size: small;
         transition: font-size 0.3s ease,width 0.3s ease;
     }
-
+    input {
+        width: 80px;
+        font-size: small;
+        transition: font-size 0.3s ease,width 0.3s ease;
+    }
     button {
         width: 60px;
         font-size: small;
