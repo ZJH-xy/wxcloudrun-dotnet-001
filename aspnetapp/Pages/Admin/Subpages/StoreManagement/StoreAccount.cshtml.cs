@@ -1,4 +1,4 @@
-using aspnetapp.Controllers.Web;
+ï»¿using aspnetapp.Controllers.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NPOI.SS.UserModel;
@@ -22,13 +22,13 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         [BindProperty]
         public StoreAccount NewStore { get; set; } = new();
 
-        // ÓÃÓÚÔÚÒ³ÃæÏÔÊ¾´íÎóĞÅÏ¢
+        // ç”¨äºåœ¨é¡µé¢æ˜¾ç¤ºé”™è¯¯ä¿¡æ¯
         public string ErrorMessage { get; set; }
 
-        // ÓÃÓÚÔÚÒ³ÃæÏÔÊ¾³É¹¦ĞÅÏ¢
+        // ç”¨äºåœ¨é¡µé¢æ˜¾ç¤ºæˆåŠŸä¿¡æ¯
         public string SuccessMessage { get; set; }
 
-        // ·ÖÒ³²éÑ¯
+        // åˆ†é¡µæŸ¥è¯¢
         [BindProperty(SupportsGet = true)]
         public int Limit { get; set; } = 10;
 
@@ -36,17 +36,17 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         public static int PageIndex { get; set; } = 1;
         public int PageIndexHtml { get; set; }
 
-        // ¸üĞÂ
+        // æ›´æ–°
         [BindProperty]
         public StoreAccount UpdatedStore { get; set; } = new();
 
-        // ²éÑ¯
-        public static List<StoreAccount> SearchList { get; set; } = new();// ²éÑ¯ÓÃList
+        // æŸ¥è¯¢
+        public static List<StoreAccount> SearchList { get; set; } = new();// æŸ¥è¯¢ç”¨List
 
         [BindProperty(SupportsGet = true)]
-        public int SearchSum { get; set; } = 0;// ²éÑ¯½á¹û×ÜÊı
+        public int SearchSum { get; set; } = 0;// æŸ¥è¯¢ç»“æœæ€»æ•°
 
-        // Êı¾İ
+        // æ•°æ®
         [BindProperty(SupportsGet = true)]
         public static int? SearchTheStore { get; set; }
         public string? SearchTheStoreHtml { get; set; }
@@ -55,38 +55,38 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         public static string? SearchAccount { get; set; }
         public string? SearchAccountHtml { get; set; }
 
-        // ÅÅĞò
+        // æ’åº
         [BindProperty(SupportsGet = true)]
-        public string? SortField { get; set; } = "Id"; // Ä¬ÈÏÅÅĞò×Ö¶ÎÎª "Id"
+        public string? SortField { get; set; } = "Id"; // é»˜è®¤æ’åºå­—æ®µä¸º "Id"
 
         [BindProperty(SupportsGet = true)]
-        public string? SortOrder { get; set; } = "asc"; // Ä¬ÈÏÅÅĞòË³ĞòÎªÉıĞò
+        public string? SortOrder { get; set; } = "asc"; // é»˜è®¤æ’åºé¡ºåºä¸ºå‡åº
 
-        // Í¼Æ¬ÉÏ´«
-        public string ImageName { get; set; }// Í¼Æ¬ÎÄ¼şÃû
+        // å›¾ç‰‡ä¸Šä¼ 
+        public string ImageName { get; set; }// å›¾ç‰‡æ–‡ä»¶å
         public static string FileId { get; set; } = "";
 
 
         /// <summary>
-        /// Ìí¼Ó
+        /// æ·»åŠ 
         /// </summary>
         /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> OnPostAddStoreAsync() {
             await _storeAccountControllerWeb.AddStoreAccountAsync(NewStore);
-            SuccessMessage = $"Ìí¼Ó³É¹¦";
-            List = await _storeAccountControllerWeb.GetTablePage(Limit, PageIndex); // Ë¢ĞÂÓÃ»§ÁĞ±í
+            SuccessMessage = $"æ·»åŠ æˆåŠŸ";
+            List = await _storeAccountControllerWeb.GetTablePage(Limit, PageIndex); // åˆ·æ–°ç”¨æˆ·åˆ—è¡¨
 
             return Page();
             //return await _storeControllerWeb.AddStoreAsync(NewStore);
         }
 
         /// <summary>
-        /// Ä¬ÈÏÒ³Âë²éÑ¯
+        /// é»˜è®¤é¡µç æŸ¥è¯¢
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnGetAsync() {
-            //_logger.LogInformation("[OnGetAsync]ÕıÔÚ»ñÈ¡ÏŞÖÆÎª{Limit}µÄÒ³Ãæ{PageIndex}µÄÓÃ»§ÁĞ±í", PageIndex, Limit);
+            //_logger.LogInformation("[OnGetAsync]æ­£åœ¨è·å–é™åˆ¶ä¸º{Limit}çš„é¡µé¢{PageIndex}çš„ç”¨æˆ·åˆ—è¡¨", PageIndex, Limit);
 
             SearchTheStore = null;
             SearchAccount = null;
@@ -95,24 +95,24 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
                 List = await _storeAccountControllerWeb.GetTablePage(Limit, PageIndex);
 
             } catch (Exception ex) {
-                _logger.LogError(ex, "»ñÈ¡ÓÃ»§ÁĞ±íÊ±³ö´í");
-                ModelState.AddModelError(string.Empty, "¼ÓÔØÓÃ»§ÁĞ±íÊ±·¢Éú´íÎó¡£");
+                _logger.LogError(ex, "è·å–ç”¨æˆ·åˆ—è¡¨æ—¶å‡ºé”™");
+                ModelState.AddModelError(string.Empty, "åŠ è½½ç”¨æˆ·åˆ—è¡¨æ—¶å‘ç”Ÿé”™è¯¯ã€‚");
             }
             return Page();
         }
 
         /// <summary>
-        /// ËÑË÷
+        /// æœç´¢
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnPostSearchAsync() {
 
-            // µ÷ÓÃ UserControllerWeb ÖĞµÄ SearchUsers ·½·¨£¬°üº¬ÅÅĞò×Ö¶ÎºÍË³Ğò
+            // è°ƒç”¨ UserControllerWeb ä¸­çš„ SearchUsers æ–¹æ³•ï¼ŒåŒ…å«æ’åºå­—æ®µå’Œé¡ºåº
             SearchList = await _storeAccountControllerWeb.SearchStoreAccounts(SearchTheStore, SearchAccount);
 
             List = SearchList
-                .Skip((PageIndex - 1) * Limit) // Ìø¹ıÇ°ÃæÒ³µÄÊı¾İ
-                .Take(Limit).ToList(); // »ñÈ¡µ±Ç°Ò³µÄÊı¾İ
+                .Skip((PageIndex - 1) * Limit) // è·³è¿‡å‰é¢é¡µçš„æ•°æ®
+                .Take(Limit).ToList(); // è·å–å½“å‰é¡µçš„æ•°æ®
 
             SearchSum = SearchList.Count;
 
@@ -120,35 +120,35 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         }
 
         /// <summary>
-        /// ¸üĞÂ
+        /// æ›´æ–°
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnPostUpdateUserAsync() {
 
             //if (!ModelState.IsValid) {
-            //    _logger.LogWarning("±íµ¥ÑéÖ¤Ê§°Ü¡£UserId: {UserId}", UpdatedStore.Id);
-            //    ErrorMessage = "±íµ¥ÑéÖ¤Ê§°Ü£¬Çë¼ì²éÊäÈëÄÚÈİ";
+            //    _logger.LogWarning("è¡¨å•éªŒè¯å¤±è´¥ã€‚UserId: {UserId}", UpdatedStore.Id);
+            //    ErrorMessage = "è¡¨å•éªŒè¯å¤±è´¥ï¼Œè¯·æ£€æŸ¥è¾“å…¥å†…å®¹";
             //    return Page();
             //}
 
             var result = await _storeAccountControllerWeb.UpdateStoreAccount(UpdatedStore);
             if (result is NotFoundResult) {
-                _logger.LogWarning("ÕÒ²»µ½ÓÃ»§¡£UserId: {UserId}", UpdatedStore.Id);
-                ErrorMessage = "ÕÒ²»µ½ÓÃ»§";
+                _logger.LogWarning("æ‰¾ä¸åˆ°ç”¨æˆ·ã€‚UserId: {UserId}", UpdatedStore.Id);
+                ErrorMessage = "æ‰¾ä¸åˆ°ç”¨æˆ·";
             } else if (result is StatusCodeResult status && status.StatusCode == 500) {
-                _logger.LogError("¸üĞÂÓÃ»§Ê±³ö´í¡£UserId: {UserId}", UpdatedStore.Id);
-                ErrorMessage = "¸üĞÂÓÃ»§Ê±³ö´í¡£";
+                _logger.LogError("æ›´æ–°ç”¨æˆ·æ—¶å‡ºé”™ã€‚UserId: {UserId}", UpdatedStore.Id);
+                ErrorMessage = "æ›´æ–°ç”¨æˆ·æ—¶å‡ºé”™ã€‚";
             } else if (result is ObjectResult objResult && objResult.StatusCode == 409) {
-                _logger.LogWarning("Ê¹ÓÃID¸üĞÂÓÃ»§Ê±·¢Éú²¢·¢³åÍ»¡£UserId: {UserId}", UpdatedStore.Id);
-                ErrorMessage = $"Äú³¢ÊÔ±à¼­µÄ¼ÇÂ¼ÒÑ±»ÆäËûÓÃ»§ĞŞ¸Ä¡£ÇëÖØĞÂ¼ÓÔØÊı¾İºóÖØÊÔ£¬ID£º{UpdatedStore.Id}";
+                _logger.LogWarning("ä½¿ç”¨IDæ›´æ–°ç”¨æˆ·æ—¶å‘ç”Ÿå¹¶å‘å†²çªã€‚UserId: {UserId}", UpdatedStore.Id);
+                ErrorMessage = $"æ‚¨å°è¯•ç¼–è¾‘çš„è®°å½•å·²è¢«å…¶ä»–ç”¨æˆ·ä¿®æ”¹ã€‚è¯·é‡æ–°åŠ è½½æ•°æ®åé‡è¯•ï¼ŒIDï¼š{UpdatedStore.Id}";
             } else {
-                _logger.LogInformation("IDÎª{UserId}µÄÓÃ»§ÒÑ³É¹¦¸üĞÂ", UpdatedStore.Id);
-                // ¼ÆËãĞĞºÅ
-                var rowIndex = List.FindIndex(user => user.Id == UpdatedStore.Id) + 1; // ĞĞºÅ´Ó1¿ªÊ¼
-                SuccessMessage = $"±£´æ³É¹¦£¬ÒÑ¸üĞÂ ID£º{UpdatedStore.Id}";
+                _logger.LogInformation("IDä¸º{UserId}çš„ç”¨æˆ·å·²æˆåŠŸæ›´æ–°", UpdatedStore.Id);
+                // è®¡ç®—è¡Œå·
+                var rowIndex = List.FindIndex(user => user.Id == UpdatedStore.Id) + 1; // è¡Œå·ä»1å¼€å§‹
+                SuccessMessage = $"ä¿å­˜æˆåŠŸï¼Œå·²æ›´æ–° IDï¼š{UpdatedStore.Id}";
             }
 
-            List = await _storeAccountControllerWeb.GetTablePage(Limit, PageIndex); // Ë¢ĞÂÓÃ»§ÁĞ±í
+            List = await _storeAccountControllerWeb.GetTablePage(Limit, PageIndex); // åˆ·æ–°ç”¨æˆ·åˆ—è¡¨
 
             //Thread.Sleep(2500);
 
@@ -156,75 +156,75 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         }
 
         /// <summary>
-        /// ·µ»Ø×ÜÒ³Êı
+        /// è¿”å›æ€»é¡µæ•°
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnGetPageSumAsync() {
             try {
-                // »ñÈ¡ËùÓĞÓÃ»§Êı¾İµÄ×ÜÊı£¨¿ÉÒÔÍ¨¹ı·şÎñ·½·¨»ñÈ¡£©
+                // è·å–æ‰€æœ‰ç”¨æˆ·æ•°æ®çš„æ€»æ•°ï¼ˆå¯ä»¥é€šè¿‡æœåŠ¡æ–¹æ³•è·å–ï¼‰
                 var sum = await _storeAccountControllerWeb.GetPageSum();
 
-                // ¼ÆËã×ÜÒ³Êı
+                // è®¡ç®—æ€»é¡µæ•°
                 int totalPages = (sum / Limit) + 1;
 
-                // ·µ»Ø×ÜÒ³Êı
+                // è¿”å›æ€»é¡µæ•°
                 return new JsonResult(new { totalPages });
             } catch (Exception ex) {
-                _logger.LogError(ex, "»ñÈ¡×ÜÒ³ÊıÊ±·¢Éú´íÎó");
-                return BadRequest("ÎŞ·¨»ñÈ¡×ÜÒ³Êı");
+                _logger.LogError(ex, "è·å–æ€»é¡µæ•°æ—¶å‘ç”Ÿé”™è¯¯");
+                return BadRequest("æ— æ³•è·å–æ€»é¡µæ•°");
             }
         }
 
         /// <summary>
-        /// µ¼³öÉÌ¼ÒÕÊºÅÊı¾İµ½ Excel
+        /// å¯¼å‡ºå•†å®¶å¸å·æ•°æ®åˆ° Excel
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnGetExportToExcelAsync() {
-            // »ñÈ¡ÉÌ¼ÒÕÊºÅÊı¾İ
+            // è·å–å•†å®¶å¸å·æ•°æ®
             List<StoreAccount> excelList = await _storeAccountControllerWeb.GetAllList();
 
-            // ´´½¨Ò»¸öĞÂµÄ¹¤×÷²¾
+            // åˆ›å»ºä¸€ä¸ªæ–°çš„å·¥ä½œç°¿
             IWorkbook workbook = new XSSFWorkbook();
-            ISheet sheet = workbook.CreateSheet("ÉÌ¼ÒÕÊºÅÊı¾İ");
+            ISheet sheet = workbook.CreateSheet("å•†å®¶å¸å·æ•°æ®");
 
-            // ´´½¨±íÍ·ĞĞ
+            // åˆ›å»ºè¡¨å¤´è¡Œ
             IRow headerRow = sheet.CreateRow(0);
-            headerRow.CreateCell(0).SetCellValue("ĞòºÅ");
-            headerRow.CreateCell(1).SetCellValue("ÉÌ¼Ò ID");
-            headerRow.CreateCell(2).SetCellValue("ÃÅµê ID");
-            headerRow.CreateCell(3).SetCellValue("ÕÊºÅ");
-            headerRow.CreateCell(4).SetCellValue("ÃÜÂë");
-            headerRow.CreateCell(5).SetCellValue("²¢·¢°æ±¾");
+            headerRow.CreateCell(0).SetCellValue("åºå·");
+            headerRow.CreateCell(1).SetCellValue("å•†å®¶ ID");
+            headerRow.CreateCell(2).SetCellValue("é—¨åº— ID");
+            headerRow.CreateCell(3).SetCellValue("å¸å·");
+            headerRow.CreateCell(4).SetCellValue("å¯†ç ");
+            headerRow.CreateCell(5).SetCellValue("å¹¶å‘ç‰ˆæœ¬");
 
-            // Ìî³äÉÌ¼ÒÕÊºÅÊı¾İ
+            // å¡«å……å•†å®¶å¸å·æ•°æ®
             for (int i = 0; i < excelList.Count; i++) {
                 var row = sheet.CreateRow(i + 1);
-                row.CreateCell(0).SetCellValue(i + 1); // ĞòºÅ
-                row.CreateCell(1).SetCellValue(excelList[i].Id.ToString()); // ÉÌ¼Ò ID
-                row.CreateCell(2).SetCellValue(excelList[i].TheStore.ToString()); // ÃÅµê ID
-                row.CreateCell(3).SetCellValue(excelList[i].Account ?? ""); // ÕÊºÅ
-                row.CreateCell(4).SetCellValue(excelList[i].Password ?? ""); // ÃÜÂë
-                row.CreateCell(5).SetCellValue(Convert.ToBase64String(excelList[i].RowVersion)); // ²¢·¢°æ±¾
+                row.CreateCell(0).SetCellValue(i + 1); // åºå·
+                row.CreateCell(1).SetCellValue(excelList[i].Id.ToString()); // å•†å®¶ ID
+                row.CreateCell(2).SetCellValue(excelList[i].TheStore.ToString()); // é—¨åº— ID
+                row.CreateCell(3).SetCellValue(excelList[i].Account ?? ""); // å¸å·
+                row.CreateCell(4).SetCellValue(excelList[i].Password ?? ""); // å¯†ç 
+                row.CreateCell(5).SetCellValue(Convert.ToBase64String(excelList[i].RowVersion)); // å¹¶å‘ç‰ˆæœ¬
             }
 
-            // ×Ô¶¯µ÷ÕûÁĞ¿í
-            for (int col = 0; col < 6; col++) {
-                sheet.AutoSizeColumn(col);
-            }
+			// å›ºå®šåˆ—å®½
+			for (int col = 0; col < 6; col++) {
+				sheet.SetColumnWidth(col, 20 * 256); // è®¾ç½®å›ºå®šå®½åº¦ï¼Œå•ä½ä¸º 1/256 ä¸ªå­—ç¬¦å®½åº¦
+			}
 
-            // ½«¹¤×÷²¾±£´æµ½ÄÚ´æÁ÷
+            // å°†å·¥ä½œç°¿ä¿å­˜åˆ°å†…å­˜æµ
             using (var memoryStream = new MemoryStream()) {
                 workbook.Write(memoryStream);
-                var fileName = "ÉÌ¼ÒÕÊºÅÊı¾İ.xlsx";
+                var fileName = "å•†å®¶å¸å·æ•°æ®.xlsx";
                 var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-                // ·µ»ØÎÄ¼şÁ÷¹©ÏÂÔØ
+                // è¿”å›æ–‡ä»¶æµä¾›ä¸‹è½½
                 return File(memoryStream.ToArray(), contentType, fileName);
             }
         }
 
         /// <summary>
-        /// »ñÈ¡Ò³Âë
+        /// è·å–é¡µç 
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnGetPageIndexAsync() {
@@ -232,49 +232,49 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         }
 
         /// <summary>
-        /// ¸ü¸ÄÒ³Âë
+        /// æ›´æ”¹é¡µç 
         /// </summary>
         /// <param name="requestData"></param>
         /// <returns></returns>
         [HttpPost]
         [IgnoreAntiforgeryToken]
         public async Task<JsonResult> OnPostChangePageAsync([FromBody] Dictionary<string, int> requestData) {
-            // È·±£½ÓÊÕµ½µÄÊı¾İ±»ÕıÈ·°ó¶¨
+            // ç¡®ä¿æ¥æ”¶åˆ°çš„æ•°æ®è¢«æ­£ç¡®ç»‘å®š
             if (requestData == null || !requestData.Any()) {
-                return new JsonResult(new { success = false, message = "ÇëÇóÊı¾İÎª¿Õ£¡" });
+                return new JsonResult(new { success = false, message = "è¯·æ±‚æ•°æ®ä¸ºç©ºï¼" });
             }
 
             PageIndex = requestData["PageIndex"];
 
-            return new JsonResult(new { success = true, message = "³É¹¦", pageIndex = PageIndex });
+            return new JsonResult(new { success = true, message = "æˆåŠŸ", pageIndex = PageIndex });
         }
 
         /// <summary>
-        /// ¸ü¸Ä²éÑ¯Êı¾İ
+        /// æ›´æ”¹æŸ¥è¯¢æ•°æ®
         /// </summary>
         /// <param name="requestData"></param>
         /// <returns></returns>
         [HttpPost]
         [IgnoreAntiforgeryToken]
         public async Task<JsonResult> OnPostChangeSearchDataAsync([FromBody] Dictionary<string, string> requestData) {
-            // È·±£½ÓÊÕµ½µÄÊı¾İ±»ÕıÈ·°ó¶¨
+            // ç¡®ä¿æ¥æ”¶åˆ°çš„æ•°æ®è¢«æ­£ç¡®ç»‘å®š
             if (requestData == null || !requestData.Any()) {
-                return new JsonResult(new { success = false, message = "ÇëÇóÊı¾İÎª¿Õ£¡" });
+                return new JsonResult(new { success = false, message = "è¯·æ±‚æ•°æ®ä¸ºç©ºï¼" });
             }
 
             SearchTheStore = int.Parse(requestData["SearchTheStore"]);
             SearchAccount = requestData["SearchAccount"];
 
-            return new JsonResult(new { success = true, message = "³É¹¦" });
+            return new JsonResult(new { success = true, message = "æˆåŠŸ" });
         }
 
         /// <summary>
-        /// »ñÈ¡²éÑ¯Êı¾İ
+        /// è·å–æŸ¥è¯¢æ•°æ®
         /// </summary>
         /// <returns></returns>
         public async Task<JsonResult> OnGetSearchDataAsync() {
 
-            return new JsonResult(new { success = true, message = "³É¹¦", SearchTheStore, SearchAccount });
+            return new JsonResult(new { success = true, message = "æˆåŠŸ", SearchTheStore, SearchAccount });
         }
     }
 }

@@ -54,7 +54,7 @@
     <None Include="wwwroot\js\utils\applyForReview.js" />
     <None Include="wwwroot\js\utils\announcementOverview.js" />
     <None Include="wwwroot\js\utils\storeMenu.js" />
-    <None Include="wwwroot\js\utils\vehicle.js" />
+    <None Include="wwwroot\js\utils\vehicle%28未使用%29.js" />
     <None Include="wwwroot\js\utils\user.js" />
   </ItemGroup>
 

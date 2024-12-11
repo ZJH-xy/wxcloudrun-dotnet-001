@@ -218,10 +218,10 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
                 row.CreateCell(6).SetCellValue(Convert.ToBase64String(excelList[i].RowVersion)); // 并发版本
             }
 
-            // 自动调整列宽
-            for (int col = 0; col < 8; col++) {
-                sheet.AutoSizeColumn(col);
-            }
+			// 固定列宽
+			for (int col = 0; col < 6; col++) {
+				sheet.SetColumnWidth(col, 20 * 256); // 设置固定宽度，单位为 1/256 个字符宽度
+			}
 
             // 将工作簿保存到内存流
             using (var memoryStream = new MemoryStream()) {

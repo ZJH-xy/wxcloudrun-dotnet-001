@@ -119,7 +119,7 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 		/// </summary>
 		/// <returns></returns>
 		[HttpPost]
-		public async Task<IActionResult> OnPostAddStoreAsync() {
+		public async Task<IActionResult> OnPostAddVehicleAsync() {
 			await _vehicleController.AddVehicleAsync(NewVehicle);
 			SuccessMessage = $"添加成功";
 			List = await _vehicleController.GetTablePage(Limit, PageIndex); // 刷新列表
@@ -312,9 +312,9 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 				row.CreateCell(6).SetCellValue(excelList[i].UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
 			}
 
-			// 自动调整列宽
-			for (int col = 0; col < 7; col++) {
-				sheet.AutoSizeColumn(col);
+			// 固定列宽
+			for (int col = 0; col < 6; col++) {
+				sheet.SetColumnWidth(col, 20 * 256); // 设置固定宽度，单位为 1/256 个字符宽度
 			}
 
 			// 将工作簿保存到内存流
