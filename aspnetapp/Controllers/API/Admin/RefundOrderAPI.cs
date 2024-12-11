@@ -61,6 +61,8 @@ namespace aspnetapp.Controllers.API.Admin {
 					return StatusCode(403, refundReturnJson.ToJson());
 				}
 
+				order.Status = Order.EOrderStatus.退款中;
+
 				// 生成退款表数据
 				_dbContext.RefundOrder.Add(refundOrder);
 				await _dbContext.SaveChangesAsync();
