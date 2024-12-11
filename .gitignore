@@ -30,3 +30,4 @@ artifacts/
 .cloudbase/
 # Other Dockerfiles
 Dockerfile.*
+aspnetapp/.editorconfig

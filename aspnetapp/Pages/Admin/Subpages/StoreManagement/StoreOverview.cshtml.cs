@@ -326,10 +326,10 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
                 row.CreateCell(10).SetCellValue(excelList[i].UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
             }
 
-            // 自动调整列宽
-            for (int col = 0; col < 11; col++) {
-                sheet.AutoSizeColumn(col);
-            }
+			// 固定列宽
+			for (int col = 0; col < 10; col++) {
+				sheet.SetColumnWidth(col, 20 * 256); // 设置固定宽度，单位为 1/256 个字符宽度
+			}
 
             // 将工作簿保存到内存流
             using (var memoryStream = new MemoryStream()) {
