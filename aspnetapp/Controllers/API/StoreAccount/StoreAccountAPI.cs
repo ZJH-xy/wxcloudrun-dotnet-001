@@ -584,6 +584,28 @@ namespace aspnetapp.Controllers.API.StoreAccount
         }
         #endregion
 
+        #region 商家提交地址审核
+        [HttpPost("reviewMerchantAddress")]
+        public async Task<IActionResult> PostReviewMerchantAddress(GetAddress data) {
+            var reviewMerchantAddress = new ReviewMerchantAddress() {
+                TheStore = GetUserIdInt(),
+                GpsLongitude = data.GpsLongitude,
+                GpsLatitude = data.GpsLatitude,
+            };
+
+            try {
+                await _dbContext.ReviewMerchantAddress.AddAsync(reviewMerchantAddress);
+                await _dbContext.SaveChangesAsync();
+
+            } catch (Exception e) {
+                _logger.LogError(e, "保存商家提交地址审核失败");
+                return StatusCode(500);
+            }
+
+            return Ok();
+        }
+        #endregion
+
         #region 接收支付回调
         /// <summary>
         /// 支付回调（侍测试）
@@ -817,6 +839,21 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 claims.ToJToken());
             return jwt;
         }
+    }
+
+    /// <summary>
+    /// 商家审核地址信息
+    /// </summary>
+    public class GetAddress {
+        /// <summary>
+        /// Longitude 经度，范围 [-180, 180]
+        /// </summary>
+        public double GpsLongitude { get; set; }
+
+        /// <summary>
+        /// Latitude 纬度，范围 [-90, 90]
+        /// </summary>
+        public double GpsLatitude { get; set; }
     }
 
     /// <summary>
