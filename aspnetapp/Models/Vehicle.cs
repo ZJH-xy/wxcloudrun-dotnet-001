@@ -3,7 +3,7 @@
     /// 车辆总表
     /// </summary>
     [Table("T_VehicleSummary")]
-    [Index(nameof(TheOriginalStore), nameof(TheCurrentStore), nameof(State))]
+    [Index(nameof(TheOriginalStore), nameof(TheCurrentStore), nameof(State), nameof(IsDelete))]
     public class Vehicle {
         /// <summary>
         /// 车辆编号

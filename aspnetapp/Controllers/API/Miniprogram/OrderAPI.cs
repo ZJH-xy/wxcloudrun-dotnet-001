@@ -1865,11 +1865,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             OrderId = order.Id;
             TheRentalLocation = order.TheRentalLocation;
             TheVehicle = order.TheVehicle;
-            UserName = order.UserName;
-            UserPhone = order.UserPhone;
             Deposit = order.Deposit;
             Rent = order.Rent;
             DispatchFee = order.DispatchFee;
+            OvertimeFee = order.OvertimeFee;
             OtherFees = order.OtherFees;
             Paid = order.Paid;
             DepositRefunded = order.DepositRefunded;
@@ -1879,11 +1878,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public int OrderId { get; init; }// 订单编号
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public int TheVehicle { get; set; }// 租用车辆
-        public string UserName { get; set; }// 用户姓名
-        public string UserPhone { get; set; }// 用户手机号
         public decimal Deposit { get; set; }// 押金
         public decimal Rent { get; set; }// 租金
         public decimal DispatchFee { get; set; }// 调度费
+        public decimal OvertimeFee { get; set; }// 超时费
         public decimal OtherFees { get; set; }// 其他费用
         public decimal Paid { get; set; }// 已付
         public decimal DepositRefunded { get; set; }// 已退押金
@@ -1908,6 +1906,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             Deposit = order.Deposit;
             Rent = order.Rent;
             DispatchFee = order.DispatchFee;
+            OvertimeFee = order.OvertimeFee;
             OtherFees = order.OtherFees;
             Paid = order.Paid;
             DepositRefunded = order.DepositRefunded;
@@ -1928,6 +1927,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public decimal Deposit { get; set; }// 押金
         public decimal Rent { get; set; }// 租金
         public decimal DispatchFee { get; set; }// 调度费
+        public decimal OvertimeFee { get; set; }// 超时费
         public decimal OtherFees { get; set; }// 其他费用
         public decimal Paid { get; set; }// 已付
         public decimal DepositRefunded { get; set; }// 已退押金

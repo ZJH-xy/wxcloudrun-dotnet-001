@@ -4,16 +4,19 @@ namespace aspnetapp.Models {
     /// <summary>
     /// 补充订单
     /// </summary>
+	//[Table("T_SupplementaryOrders")]
     public class SupplementaryOrders {
         /// <summary>
         /// 补充订单编号
         /// </summary>
         [Key]
         public int Id { get; init; }
+
         /// <summary>
         /// 订单编号
         /// </summary>
         public int TheOrder {get; set;}
+
         /// <summary>
         /// 商户系统内部订单号，可以是数字、大小写字母_-*的任意组合且在同一个商户号下唯一。
         /// </summary>
@@ -23,20 +26,24 @@ namespace aspnetapp.Models {
         /// 微信支付系统生成的订单号
         /// </summary>
         public string? TransactionId { get; set; }
+
         /// <summary>
         /// 【总金额】订单总金额
         /// </summary>
         [Precision(10, 2)]
         public decimal Total { get; set; } = 0;
+
         /// <summary>
         /// 已付
         /// </summary>
         [Precision(10, 2)]
         public decimal Paid { get; set; } = 0;
+
         /// <summary>
 		/// 订单状态
 		/// </summary>
 		public EOrderStatus Status { get; set; }
+
         /// <summary>
 		/// 支付完成时间（微信获取）
 		/// </summary>

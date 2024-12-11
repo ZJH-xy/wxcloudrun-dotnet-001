@@ -23,8 +23,11 @@
     public DbSet<RevenueStatistics> RevenueStatistic { get; set; } = null!;
     public DbSet<AdminAccount> AdminAccount { get; set; } = null!;
     public DbSet<RefundOrder> RefundOrder { get; set; } = null!;
+    public DbSet<Notice> Notice { get; set; } = null!;
+    public DbSet<Advertisement> Advertisement { get; set; } = null!;
+    public DbSet<ReviewMerchantAddress> ReviewMerchantAddress { get; set; } = null!;
 
-	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
         // 如果未配置，则使用 _databaseConfig 配置
         if (!optionsBuilder.IsConfigured && _databaseConfig != null) {
             _databaseConfig.ConfigureMySql(optionsBuilder);

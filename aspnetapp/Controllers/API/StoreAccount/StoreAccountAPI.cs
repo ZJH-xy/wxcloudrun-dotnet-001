@@ -476,7 +476,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 try {
                     await _dbContext.SupplementaryOrders.AddAsync(supplementaryOrders);
                     await _dbContext.SaveChangesAsync();
-                    await transaction.CommitAsync();
 
                 } catch (Exception e) {
                     _logger.LogError(e, "创建补充订单{supplementaryOrders}失败", supplementaryOrders.ToJson(true));
@@ -528,31 +527,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
 					vehicle.StateUpdatedAt = now;
 					await _dbContext.SaveChangesAsync();
 
-
-					// 营业额统计表
-					RevenueStatistics revenueStatistics = new() {
-                        TheStoreA = order.TheRentalLocation,
-                        TheStoreB = GetUserIdInt(),
-                        TheOrder = order.Id,
-                        CreatedAt = now,
-                        UpdatedAt = now,
-                    };
-
-                    try {
-						await _dbContext.RevenueStatistic.AddAsync(revenueStatistics);
-						await _dbContext.SaveChangesAsync();
-
-					} catch (Exception ex) {
-                        _logger.LogCritical(ex, "营业额统计表添加失败{data}", revenueStatistics.ToJson(true));
-					}
-
-					// 如果退款成功，提交事务
-					await transaction.CommitAsync();
-
 				} catch (Exception ex) {
-                    _logger.LogError(ex, "订单处理失败。订单ID: {OrderId}, 车辆ID: {VehicleId}, 退款金额: {RefundAmount}",
-                        order.Id, order.TheVehicle, refundOrder.Refund);
-                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, "订单处理失败。订单ID: {OrderId}, 车辆ID: {VehicleId}, 退款金额: {RefundAmount}", order.Id, order.TheVehicle, refundOrder.Refund);
                     return StatusCode(500);
                 }
             } else {
@@ -569,17 +545,64 @@ namespace aspnetapp.Controllers.API.StoreAccount
 					order.UpdatedAt = now;
 					await _dbContext.SaveChangesAsync();
 
-					await transaction.CommitAsync();
-
 				} catch (Exception e) {
-                    _logger.LogError(e, "无退款订单处理失败。订单ID: {OrderId}, 车辆ID: {VehicleId}", order.Id, order.TheVehicle);
-					await transaction.RollbackAsync();
+                    _logger.LogError(e, "金额相等无退款订单处理失败。订单ID: {OrderId}, 车辆ID: {VehicleId}", order.Id, order.TheVehicle);
 
 					return StatusCode(500);
 				}
 			}
 
+            // 营业额统计表
+            RevenueStatistics revenueStatistics = new() {
+                TheStoreA = order.TheRentalLocation,
+                TheStoreB = GetUserIdInt(),
+                TheOrder = order.Id,
+                CreatedAt = now,
+                UpdatedAt = now,
+            };
+
+            try {
+                await _dbContext.RevenueStatistic.AddAsync(revenueStatistics);
+                await _dbContext.SaveChangesAsync();
+
+            } catch (Exception ex) {
+                _logger.LogError(ex, "营业额统计表添加失败{data}", revenueStatistics.ToJson(true));
+            }
+
+            // 最后操作
+            try {
+                await transaction.CommitAsync();
+
+            } catch (Exception e) {
+                _logger.LogCritical(e, "确认还车事务提交失败orderId{Id},TheVehicle:{TheVehicle},TheStoreId:{TheStore}", order.Id, order.TheVehicle, GetUserIdInt());
+                await transaction.RollbackAsync();
+
+                return StatusCode(500);
+            }
+
             return StatusCode(200);
+        }
+        #endregion
+
+        #region 商家提交地址审核
+        [HttpPost("reviewMerchantAddress")]
+        public async Task<IActionResult> PostReviewMerchantAddress(GetAddress data) {
+            var reviewMerchantAddress = new ReviewMerchantAddress() {
+                TheStore = GetUserIdInt(),
+                GpsLongitude = data.GpsLongitude,
+                GpsLatitude = data.GpsLatitude,
+            };
+
+            try {
+                await _dbContext.ReviewMerchantAddress.AddAsync(reviewMerchantAddress);
+                await _dbContext.SaveChangesAsync();
+
+            } catch (Exception e) {
+                _logger.LogError(e, "保存商家提交地址审核失败");
+                return StatusCode(500);
+            }
+
+            return Ok();
         }
         #endregion
 
@@ -816,6 +839,21 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 claims.ToJToken());
             return jwt;
         }
+    }
+
+    /// <summary>
+    /// 商家审核地址信息
+    /// </summary>
+    public class GetAddress {
+        /// <summary>
+        /// Longitude 经度，范围 [-180, 180]
+        /// </summary>
+        public double GpsLongitude { get; set; }
+
+        /// <summary>
+        /// Latitude 纬度，范围 [-90, 90]
+        /// </summary>
+        public double GpsLatitude { get; set; }
     }
 
     /// <summary>
