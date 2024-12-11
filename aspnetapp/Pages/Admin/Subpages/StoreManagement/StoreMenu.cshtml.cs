@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using aspnetapp.Controllers.Miniprogram;
 
 namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
     public class StoreMenuModel : PageModel {
@@ -117,13 +118,7 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         public async Task<IActionResult> OnPostSearchAsync() {
 
             // 调用 UserControllerWeb 中的 SearchUsers 方法，包含排序字段和顺序
-            SearchList = await _storeMenuControllerWeb.SearchStoreMenus(SearchTheStore);
-
-            List = SearchList
-                .Skip((PageIndex - 1) * Limit) // 跳过前面页的数据
-                .Take(Limit).ToList(); // 获取当前页的数据
-
-            SearchSum = SearchList.Count;
+			(List, SearchSum) = await _storeMenuControllerWeb.SearchStoreMenus(Limit, PageIndex, SearchTheStore, SortField, SortOrder);
 
             return Page();
         }

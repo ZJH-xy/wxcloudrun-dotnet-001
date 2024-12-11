@@ -38,7 +38,7 @@ namespace aspnetapp.Controllers.Web {
 		/// <summary>
 		/// 分页查询订单
 		/// </summary>
-		public async Task<List<Order>> GetOrderPage(int limit, int pageIndex) {
+		public async Task<List<Order>> GetTablePage(int limit, int pageIndex) {
 			return await _context.Order
 				.OrderBy(o => o.Id) // 根据订单ID排序，确保分页顺序一致
 				.Skip((pageIndex - 1) * limit) // 跳过前面页的数据
@@ -49,11 +49,15 @@ namespace aspnetapp.Controllers.Web {
 		/// <summary>
 		/// 查询订单（支持多字段搜索）
 		/// </summary>
-		public async Task<List<Order>> SearchOrders(string? userPhone = null, string? status = null, string sortField = "Id", string sortOrder = "asc") {
-			_logger.LogInformation("[SearchOrders] Starting search with filters - UserPhone: {UserPhone}, Status: {Status}, SortField: {SortField}, SortOrder: {SortOrder}",
-								   userPhone, status, sortField, sortOrder);
+		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, string sortField = "Id", string sortOrder = "asc") {
+			if (userPhone.IsNullOrEmpty() && status.IsNullOrEmpty()) {
+				return (await GetTablePage(limit, pageIndex), limit);
+			}
 
 			var query = _context.Order.AsQueryable();
+
+			// 取消跟踪实体
+			query.AsNoTracking();
 
 			// 过滤条件
 			if (!string.IsNullOrEmpty(userPhone)) {
@@ -74,10 +78,14 @@ namespace aspnetapp.Controllers.Web {
 				_ => sortOrder == "asc" ? query.OrderBy(o => o.Id) : query.OrderByDescending(o => o.Id),
 			};
 
-			List<Order> results = await query.ToListAsync();
-			_logger.LogInformation("Found {Count} orders with given filters and sorting", results.Count);
+			int sum = await query.CountAsync();
 
-			return results;
+			List<Order> results = await query
+				.Skip((pageIndex - 1) * limit) // 跳过前面页的数据
+				.Take(limit) // 获取当前页的数据
+				.ToListAsync();
+
+			return (results, sum);
 		}
 
 		/// <summary>

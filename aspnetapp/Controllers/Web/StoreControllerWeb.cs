@@ -111,14 +111,18 @@ namespace aspnetapp.Controllers.Web {
         }
 
         // 根据条件进行门店搜索
-        public async Task<List<Store>> SearchStores(string? name = null, string? address = null, string sortField = "Id", string sortOrder = "asc") {
-            _logger.LogInformation("[SearchStores] Starting search with filters - Name: {Name}, Address: {Address}, SortField: {SortField}, SortOrder: {SortOrder}",
-                                    name, address, sortField, sortOrder);
+        public async Task<(List<Store>, int sum)> SearchStores(int limit, int pageIndex, string? name = null, string? address = null, string sortField = "Id", string sortOrder = "asc") {
+			if (name.IsNullOrEmpty() && address.IsNullOrEmpty()) {
+				return (await GetTablePage(limit, pageIndex), limit);
+			}
 
-            var query = _context.Store.AsQueryable();
+			var query = _context.Store.AsQueryable();
 
-            // 过滤条件
-            if (!string.IsNullOrEmpty(name)) {
+			// 取消跟踪实体
+			query.AsNoTracking();
+
+			// 过滤条件
+			if (!string.IsNullOrEmpty(name)) {
                 query = query.Where(s => s.Name.Contains(name));
             }
             if (!string.IsNullOrEmpty(address)) {
@@ -136,10 +140,14 @@ namespace aspnetapp.Controllers.Web {
             // 过滤掉已删除的记录
             query = query.Where(s => !s.IsDelete);
 
-            List<Store> results = await query.ToListAsync();
-            _logger.LogInformation("Found {Count} stores with given filters and sorting", results.Count);
+			int sum = await query.CountAsync();
 
-            return results;
+			List<Store> results = await query
+				.Skip((pageIndex - 1) * limit) // 跳过前面页的数据
+				.Take(limit) // 获取当前页的数据
+				.ToListAsync();
+
+			return (results, sum);
         }
 
         // 删除门店（逻辑删除）

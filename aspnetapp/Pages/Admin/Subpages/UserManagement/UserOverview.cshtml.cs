@@ -173,17 +173,9 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 		/// </summary>
 		/// <returns></returns>
 		public async Task<IActionResult> OnPostSearchAsync() {
-			_logger.LogDebug("[OnPostPageAsync]正在条件查询: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
-						   SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
 
 			// 调用 UserControllerWeb 中的 SearchUsers 方法，包含排序字段和顺序
-			SearchList = await _userController.SearchUsers(SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
-
-			List = SearchList
-				.Skip((PageIndex - 1) * Limit) // 跳过前面页的数据
-				.Take(Limit).ToList(); // 获取当前页的数据
-
-			SearchSum = SearchList.Count;
+			(List, SearchSum) = await _userController.SearchUsers(Limit, PageIndex, SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
 
 			return Page();
 		}

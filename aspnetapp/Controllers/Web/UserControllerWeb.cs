@@ -97,11 +97,15 @@ namespace aspnetapp.Controllers.Web {
 		/// <param name="sortField"></param>
 		/// <param name="sortOrder"></param>
 		/// <returns></returns>
-		public async Task<List<User>> SearchUsers(string? phone = null, string? name = null, string? nickname = null, string sortField = "Id", string sortOrder = "asc") {
-			_logger.LogInformation("[SearchUsers]Starting search with filters - Phone: {Phone}, Name: {Name}, Nickname: {Nickname}, SortField: {SortField}, SortOrder: {SortOrder}",
-								   phone, name, nickname, sortField, sortOrder);
+		public async Task<(List<User>, int sum)> SearchUsers(int limit, int pageIndex, string? phone = null, string? name = null, string? nickname = null, string sortField = "Id", string sortOrder = "asc") {
+			if (phone.IsNullOrEmpty() && name.IsNullOrEmpty() && nickname.IsNullOrEmpty()) {
+				return (await GetTablePage(limit, pageIndex), limit);
+			}
 
 			var query = _context.User.AsQueryable();
+
+			// 取消跟踪实体
+			query.AsNoTracking();
 
 			// 过滤条件
 			if (!string.IsNullOrEmpty(phone)) {
@@ -123,10 +127,14 @@ namespace aspnetapp.Controllers.Web {
 				_ => sortOrder == "asc" ? query.OrderBy(u => u.Id) : query.OrderByDescending(u => u.Id),
 			};
 
-			List<User> results = await query.ToListAsync();
-			_logger.LogInformation("Found {Count} users with given filters and sorting", results.Count);
+			int sum = await query.CountAsync();
 
-			return results;
+			List<User> results = await query
+				.Skip((pageIndex - 1) * limit) // 跳过前面页的数据
+				.Take(limit) // 获取当前页的数据
+				.ToListAsync();
+
+			return (results, sum);
 		}
 
 		/// <summary>

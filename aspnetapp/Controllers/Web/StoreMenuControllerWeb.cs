@@ -1,6 +1,7 @@
 ﻿using aspnetapp.Controllers.API.Miniprogram;
 using aspnetapp.Dao.RepositoryInterface.Web;
 using aspnetapp.Models;
+using aspnetapp.Pages;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 
 namespace aspnetapp.Controllers.Web {
@@ -125,8 +126,14 @@ namespace aspnetapp.Controllers.Web {
         /// <param name="sortField"></param>
         /// <param name="sortOrder"></param>
         /// <returns></returns>
-        public async Task<List<StoreMenu>> SearchStoreMenus(int? theStore = null, string sortField = "Id", string sortOrder = "asc") {
-            var query = _context.StoreMenus.AsQueryable();
+        public async Task<(List<StoreMenu>, int sum)> SearchStoreMenus(int limit, int pageIndex, int? theStore = null, string sortField = "Id", string sortOrder = "asc") {
+			if ((theStore is null || theStore == 0)) {
+				return (await GetTablePage(limit, pageIndex), limit);
+			}
+
+			var query = _context.StoreMenus.AsQueryable();
+
+            query.AsNoTracking();
 
             // 过滤条件
             if (theStore > 0) {
@@ -142,10 +149,14 @@ namespace aspnetapp.Controllers.Web {
             // 过滤掉已删除的记录
             query = query.Where(s => !s.IsDelete);
 
-            List<StoreMenu> results = await query.ToListAsync();
-            _logger.LogInformation("Found {Count} StoreMenus with given filters and sorting", results.Count);
+			int sum = await query.CountAsync();
 
-            return results;
+			List<StoreMenu> results = await query
+				.Skip((pageIndex - 1) * limit) // 跳过前面页的数据
+				.Take(limit) // 获取当前页的数据
+				.ToListAsync();
+
+			return (results, sum);
         }
     }
 }

@@ -3,6 +3,7 @@ using aspnetapp.Controllers.Web;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
+using aspnetapp.Controllers.Miniprogram;
 
 namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
     public class StoreOverviewModel : PageModel {
@@ -207,15 +208,9 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         public async Task<IActionResult> OnPostSearchAsync() {
 
             // 调用 UserControllerWeb 中的 SearchUsers 方法，包含排序字段和顺序
-            SearchList = await _storeControllerWeb.SearchStores(SearchName, SearchAddress);
+			(List, SearchSum) = await _storeControllerWeb.SearchStores(Limit, PageIndex, SearchName, SearchAddress, SortField, SortOrder);
 
-            List = SearchList
-                .Skip((PageIndex - 1) * Limit) // 跳过前面页的数据
-                .Take(Limit).ToList(); // 获取当前页的数据
-
-            SearchSum = SearchList.Count;
-
-            return Page();
+			return Page();
         }
 
         /// <summary>

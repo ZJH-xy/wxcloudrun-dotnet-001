@@ -1,4 +1,5 @@
 ﻿using aspnetapp.Controllers.API.Miniprogram;
+using aspnetapp.Pages;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 
 namespace aspnetapp.Controllers.Web {
@@ -99,8 +100,14 @@ namespace aspnetapp.Controllers.Web {
         }
 
         // 根据条件进行套餐搜索
-        public async Task<List<StoreAccount>> SearchStoreAccounts(int? theStore = null, string? account = null, string sortField = "Id", string sortOrder = "asc") {
-            var query = _context.StoreAccount.AsQueryable();
+        public async Task<(List<StoreAccount>, int sum)> SearchStoreAccounts(int limit, int pageIndex, int? theStore = null, string? account = null, string sortField = "Id", string sortOrder = "asc") {
+			if ((theStore is null || theStore == 0) && account.IsNullOrEmpty()) {
+				return (await GetTablePage(limit, pageIndex), limit);
+			}
+
+			var query = _context.StoreAccount.AsQueryable();
+
+            query.AsNoTracking();
 
             // 过滤条件
             if (theStore > 0) {
@@ -116,10 +123,14 @@ namespace aspnetapp.Controllers.Web {
                 _ => sortOrder == "asc" ? query.OrderBy(s => s.Id) : query.OrderByDescending(s => s.Id),
             };
 
-            List<StoreAccount> results = await query.ToListAsync();
-            _logger.LogInformation("Found {Count} StoreAccounts with given filters and sorting", results.Count);
+			int sum = await query.CountAsync();
 
-            return results;
+			List<StoreAccount> results = await query
+				.Skip((pageIndex - 1) * limit) // 跳过前面页的数据
+				.Take(limit) // 获取当前页的数据
+				.ToListAsync();
+
+			return (results, sum);
         }
     }
 }
