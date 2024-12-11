@@ -3,6 +3,7 @@
     /// 门店总表
     /// </summary>
     [Table("T_StoreSummary")]
+    [Index(nameof(IsDelete))]
     public class Store {
         /// <summary>
         /// 门店编号

@@ -3,6 +3,7 @@
     /// 广告表
     /// </summary>
     [Table("T_Advertisement")]
+    [Index(nameof(IsDelete))]
     public class Advertisement {
         /// <summary>
         /// 广告表ID
@@ -19,6 +20,11 @@
         /// 内容
         /// </summary>
         public string Content { get; set; }
+
+        /// <summary>
+        /// 跳转链接
+        /// </summary>
+        public string Src { get; set; }
 
         /// <summary>
         /// 创建时间

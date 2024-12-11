@@ -3,6 +3,7 @@
     /// 公告表
     /// </summary>
     [Table("T_Notice")]
+    [Index(nameof(IsDelete))]
     public class Notice {
         /// <summary>
         /// 公告表ID
@@ -19,11 +20,6 @@
         /// 内容
         /// </summary>
         public string Content { get; set; }
-
-        /// <summary>
-        /// 跳转链接
-        /// </summary>
-        public string Src { get; set; }
 
         /// <summary>
         /// 创建时间
