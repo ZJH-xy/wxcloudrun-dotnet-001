@@ -1,5 +1,7 @@
 ﻿using aspnetapp.Dao.RepositoryInterface.Web;
+using aspnetapp.Pages;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
+using System.Collections.Generic;
 
 namespace aspnetapp.Controllers.Web {
     public class VehicleControllerWeb : Controller {
@@ -74,6 +76,7 @@ namespace aspnetapp.Controllers.Web {
             vehicle.PurchaseRegistrationTime = updatedVehicle.PurchaseRegistrationTime;
             vehicle.Owner = updatedVehicle.Owner;
             vehicle.VehicleIntroduction = updatedVehicle.VehicleIntroduction;
+            vehicle.Model = updatedVehicle.Model;
             vehicle.State = updatedVehicle.State;
             vehicle.IsCase = updatedVehicle.IsCase;
             vehicle.StateUpdatedAt = DateTime.Now;
@@ -100,11 +103,15 @@ namespace aspnetapp.Controllers.Web {
         }
 
         // 查询车辆
-        public async Task<List<Vehicle>> SearchVehicles(string? plateNumber = null, string? owner = null, string sortField = "Id", string sortOrder = "asc") {
-            _logger.LogInformation("[SearchVehicles]Starting search with filters - PlateNumber: {PlateNumber}, Owner: {Owner}, SortField: {SortField}, SortOrder: {SortOrder}",
-                                   plateNumber, owner, sortField, sortOrder);
+        public async Task<(List<Vehicle>, int sum)> SearchVehicles(int limit, int pageIndex, string? plateNumber = null, string? owner = null,  string sortField = "Id", string sortOrder = "asc") {
+            if (plateNumber.IsNullOrEmpty() && owner.IsNullOrEmpty()) {
+                return (await GetTablePage(limit, pageIndex), limit);
+            }
 
             var query = _context.Vehicle.AsQueryable();
+            
+            // 取消跟踪实体
+            query.AsNoTracking();
 
             // 过滤条件
             if (!string.IsNullOrEmpty(plateNumber)) {
@@ -127,10 +134,14 @@ namespace aspnetapp.Controllers.Web {
             // 过滤掉已删除的记录
             query = query.Where(s => !s.IsDelete);
 
-            List<Vehicle> results = await query.ToListAsync();
-            _logger.LogInformation("Found {Count} vehicles with given filters and sorting", results.Count);
+            int sum = await query.CountAsync();
 
-            return results;
+            List<Vehicle> results = await query
+                .Skip((pageIndex - 1) * limit) // 跳过前面页的数据
+                .Take(limit) // 获取当前页的数据
+                .ToListAsync();
+
+            return (results, sum);
         }
 
         // 更新车辆图片信息
