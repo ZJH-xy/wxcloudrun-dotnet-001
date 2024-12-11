@@ -154,13 +154,13 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 							SearchPlateNumber, SearchOwner, SortField, SortOrder);
 
 			// 调用 VehicleControllerWeb 中的 SearchVehicles 方法，包含排序字段和顺序
-			SearchList = await _vehicleController.SearchVehicles(SearchPlateNumber, SearchOwner, SortField, SortOrder);
+			(List, SearchSum) = await _vehicleController.SearchVehicles(Limit, PageIndex, SearchPlateNumber, SearchOwner, SortField, SortOrder);
 
-			List = SearchList
-				.Skip((PageIndex - 1) * Limit) // 跳过前面页的数据
-				.Take(Limit).ToList(); // 获取当前页的数据
+			//List = SearchList
+			//	.Skip((PageIndex - 1) * Limit) // 跳过前面页的数据
+			//	.Take(Limit).ToList(); // 获取当前页的数据
 
-			SearchSum = SearchList.Count;
+			//SearchSum = List.Count;
 
 			return Page();
 		}
