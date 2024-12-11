@@ -119,7 +119,7 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 		/// </summary>
 		/// <returns></returns>
 		[HttpPost]
-		public async Task<IActionResult> OnPostAddStoreAsync() {
+		public async Task<IActionResult> OnPostAddVehicleAsync() {
 			await _vehicleController.AddVehicleAsync(NewVehicle);
 			SuccessMessage = $"添加成功";
 			List = await _vehicleController.GetTablePage(Limit, PageIndex); // 刷新列表
