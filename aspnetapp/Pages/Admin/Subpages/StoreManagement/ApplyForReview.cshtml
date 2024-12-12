@@ -54,44 +54,38 @@
 	}
 
 	<div class="table-container">
-		@if (Model.List.Count >= 1) {
-			<table id="Table">
+		<table id="Table">
+			<tr>
+				<th>序号</th>
+				<th>ID</th>
+				<th>门店ID</th>
+				<th>名称</th>
+				<th>地址</th>
+				<th>经度</th>
+				<th>纬度</th>
+				<th>操作</th>
+			</tr>
+			@for (int i = 0; i < Model.List.Count; i++) {
 				<tr>
-					<th>序号</th>
-					<th>ID</th>
-					<th>门店ID</th>
-					<th>名称</th>
-					<th>地址</th>
-					<th>经度</th>
-					<th>纬度</th>
-					<th>操作</th>
+					<form method="post" id="pageForm">
+					<td>@(i + 1)</td>
+					<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
+					<td><span id="@("TheStore" + i)">@Model.List[i].TheStore</span></td>
+					<td><input id="@("Name" + i)" type="text" name="UpdatedStore.Name" value="@Model.List[i].Name" /></td>
+					<td><input id="@("Address" + i)" type="text" name="UpdatedStore.Address" value="@Model.List[i].Address" /></td>
+					<td><span id="@("GpsLongitude" + i)">@Model.List[i].GpsLongitude</span></td>
+					<td><span id="@("GpsLatitude" + i)">@Model.List[i].GpsLatitude</span></td>
+					<td>
+						<button id="@("Confirm " + i)" type="button" data-id="@Model.List[i].Id" onclick="confirm(@Model.List[i].Id)">确认</button>
+						<button id="@("delete" + i)" type="button" class="deleteBtn" data-id="@Model.List[i].Id" onclick="cancel(@Model.List[i].Id)">取消</button>
+					</td>
+
+					<input type="hidden" name="UpdatedStore.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+					</form>
 				</tr>
-				@for (int i = 0; i < Model.List.Count; i++) {
-					<tr>
-						<form method="post" id="pageForm">
-						<td>@(i + 1)</td>
-						<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
-						<td><span id="@("TheStore" + i)">@Model.List[i].TheStore</span></td>
-						<td><span id="@("Name" + i)">@Model.List[i].Name</span></td>
-						<td><span id="@("Address" + i)">@Model.List[i].Address</span></td>
-						<td><span id="@("GpsLongitude" + i)">@Model.List[i].GpsLongitude</span></td>
-						<td><span id="@("GpsLatitude" + i)">@Model.List[i].GpsLatitude</span></td>
-						<td>
-							<button id="@("Confirm " + i)" type="button" data-id="@Model.List[i].Id" onclick="confirm(@Model.List[i].Id)">确认</button>
-							<button id="@("delete" + i)" type="button" class="deleteBtn" data-id="@Model.List[i].Id" onclick="cancel(@Model.List[i].Id)">取消</button>
-						</td>
 
-						<input type="hidden" name="UpdatedStore.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
-						</form>
-					</tr>
-
-				}
-			</table>
-		} else {
-			<div style="width:100%;display:flex;justify-content: center;  ">
-				<h1>无商家申请数据</h1>
-			</div>
-		}
+			}
+		</table>
 
 
 	</div>
