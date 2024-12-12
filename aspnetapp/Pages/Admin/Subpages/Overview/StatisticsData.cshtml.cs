@@ -32,6 +32,11 @@ namespace aspnetapp.Pages.Admin.Subpages.Overview {
 		public int OrderSum { get; set; }
 
 		/// <summary>
+		/// 统计营业额趋势
+		/// </summary>
+		public List<(string Month, decimal TotalRevenue)> RevenueTrends { get; set; }
+
+		/// <summary>
 		/// 最近任意个月的订单趋势
 		/// </summary>
 		public List<(string Month, int OrderCount)> OrderTrends { get; set; }
@@ -56,6 +61,7 @@ namespace aspnetapp.Pages.Admin.Subpages.Overview {
 			//UserTrends = await _statisticsDataController.GetUserTrendsAsync(6);
 
 			//VehicleStateDistribution = await _statisticsDataController.GetVehicleStateDistributionAsync();
+			//var s = await _statisticsDataController.GetRevenueTrendsAsync(6);
 
 			return Page();
 		}
@@ -87,6 +93,17 @@ namespace aspnetapp.Pages.Admin.Subpages.Overview {
 		public async Task<IActionResult> OnGetVehicleStateDistributionAsync() {
 			try {
 				VehicleStateDistribution = await _statisticsDataController.GetVehicleStateDistributionAsync();
+
+			} catch (Exception e) {
+
+				return new JsonResult(new { success = false, e.Message });
+			}
+			return new JsonResult(new { success = true, VehicleStateDistribution = VehicleStateDistribution.ToJson() });
+		}
+
+		public async Task<IActionResult> OnGetRevenueTrendsAsync() {
+			try {
+				RevenueTrends = await _statisticsDataController.GetRevenueTrendsAsync(6);
 
 			} catch (Exception e) {
 
