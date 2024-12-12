@@ -56,7 +56,7 @@
     <div class="header">
         <div class="header">
             <form method="get">
-                <button type="submit" onclick="init()">刷新</button>
+                <button type="submit">刷新</button>
             </form>
 
             <button onclick="exportFile()" class="editBtn export">导出</button>
@@ -175,7 +175,7 @@
                     <td><span id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</span></td>
                     <td>
                         <button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
-                        <button id="@("save" + i)" type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;" onclick="saveClick(event)">保存</button>
+                        <button id="@("save" + i)" type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;" >保存</button>
                     </td>
 
                     <input type="hidden" name="UpdatedOrder.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
@@ -205,13 +205,13 @@
 
         <div class="bottom-item">
 
-            <form method="post" asp-page-handler="Search">
+			<form method="post" asp-page-handler="Search" id="pageForm">
                 <input placeholder="请输入页数" id="redirect" />
-                <button onclick="changePage(3)" class="editBtn">跳转</button>
-                <button onclick="changePage(2)" class="editBtn">首页</button>
-                <button onclick="changeEndPage()" class="editBtn">尾页</button>
-                <button onclick="changePage(0)">上一页</button>
-                <button onclick="changePage(1)">下一页</button>
+				<button type="button" onclick="changePage(3)" class="editBtn">跳转</button>
+				<button type="button" onclick="changePage(2)" class="editBtn">首页</button>
+				<button type="button" onclick="changeEndPage()" class="editBtn">尾页</button>
+				<button type="button" onclick="changePage(0)">上一页</button>
+                <button type="button"onclick="changePage(1)">下一页</button>
 
             </form>
         </div>
@@ -230,133 +230,6 @@
 		const RESPONSEURL = `/Admin/Subpages/OrderManagement/OrderOverview`;
 		const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]').value;
 		const LENGTH = document.getElementById('PageCount').value;// 显示长度
-		var file;
-		var fileId;
-		// 监听每行的文件是否有变化
-		for (var i = 0; i < LENGTH; i++) {
-			document.getElementById('fileInput' + i).addEventListener('change', function (event) {
-				if (event.target.files[0]) {
-					file = event.target.files[0]; // 获取用户上传的文件
-					console.log('myFile', file)
-				}
-			});
-		}
-		// 保存数据
-		async function saveClick(event) {
-			loadHTML(); // 显示加载中
-
-			console.log("开始调用接口...");
-
-			const response = await fetch(`${RESPONSEURL}?handler=SayHello`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'RequestVerificationToken': TOKEN // 添加 CSRF Token
-				},
-			});
-
-			if (!response.ok) {
-				throw new Error(`HTTP 错误！状态码: ${response.status}`);
-			}
-
-			const data = await response.json();  // 等待接口返回数据
-
-			if (data.success) {
-				console.log("接口返回数据:", data);
-			} else {
-				alert("文件上传失败: " + (data.message || "未知错误"));
-			}
-
-			try {
-				const formData = new FormData();
-				formData.append("key", data["filePath"]);
-				formData.append("Signature", data["authorization"]);
-				formData.append("x-cos-security-token", data["token"]);
-				formData.append("x-cos-meta-fileid", data["cos_file_id"]);
-				formData.append("file", file, file.name);
-
-				const uploadResponse = await uploadFile(data["imageUrl"], formData);  // 异步上传文件
-				console.log("Upload success:", uploadResponse);
-
-				setTimeout(function () {
-					cancelloadHTML();// 取消显示加载中
-				}, 2500)
-
-			} catch (error) {
-				console.error("Error during upload:", error);
-			}
-
-
-		}
-
-		// 加载文件
-		async function uploadFile(url, data) {
-			try {
-				const response = await fetch(url, {
-					method: 'POST',
-					body: data,
-				});
-
-				if (!response.ok) {
-					throw new Error(`HTTP 错误！状态码: ${response.status}`);
-				}
-
-				return;  // 返回服务器的响应
-			} catch (error) {
-				throw error;
-			}
-		}
-
-		// 获取图片url
-		async function loadImageUrl(event) {
-			loadHTML();
-			// 使用 event.target 获取被点击的按钮元素
-			const button = event.target;
-
-			// 获取 data-id 属性的值
-			const fileId = button.getAttribute('data-id');
-			const requestData = {
-				fileid: fileId
-			};
-			console.log("requestData...", requestData);
-
-			try {
-				const response = await fetch(`${RESPONSEURL}?handler=ImageDownload`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'RequestVerificationToken': TOKEN // 添加 CSRF Token
-					},
-					body: JSON.stringify(requestData), // 将数据序列化为 JSON 格式
-				});
-
-				if (!response.ok) {
-					throw new Error(`HTTP 错误！状态码: ${response.status}`);
-				}
-
-				const data = await response.json();  // 等待接口返回数据
-
-				if (data.success) {
-					console.log("接口返回数据:", data);
-					// 设置图片路径
-					const image = button.parentElement.querySelector('.thumbnail'); // 获取当前行的图片元素
-
-					image.src = data.file_list[0].download_url; // 设置图片路径
-					image.style.display = 'block'; // 显示图片
-					showMessage("message");
-					// 隐藏加载图片按钮
-					button.style.display = 'none';
-				} else {
-					alert("文件上传失败: " + (data.message || "未知错误"));
-				}
-
-			} catch (error) {
-				console.error("API 调用失败:", error);
-			} finally {
-				cancelloadHTML();
-			}
-		}
-
 		// 更改页面
 		async function changePage(index) {
 			loadHTML();
@@ -443,6 +316,11 @@
 				if (!response.ok) {
 					throw new Error(`HTTP 错误！状态码: ${response.status}`);
 				}
+				// 获取表单元素
+				var form = document.getElementById('pageForm');
+				// 提交表单
+				if (form) form.submit();
+
 				cancelloadHTML()
 
 			} catch (error) {
@@ -686,55 +564,6 @@
 				cancelloadHTML();
 			}
 		}
-
-		async function getListData() {
-			loadHTML(); // 显示加载中
-
-
-			try {
-				const response = await fetch(`${RESPONSEURL}?handler=Search`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'RequestVerificationToken': TOKEN
-					},
-				});
-
-				if (!response.ok) {
-					throw new Error(`HTTP 错误！状态码: ${response.status}`);
-				}
-				const data = await response.json();
-
-				if (data.success) {
-					console.log('getdata', data)
-					const list = data.list;
-					for (var i = 0; i < LENGTH; i++) {
-						var id = document.getElementById('id' + i);
-						var nickname = document.getElementById('nickname' + i);
-						var name = document.getElementById('name' + i);
-						var phone = document.getElementById('phone' + i);
-						var identityCard = document.getElementById('identityCard' + i);
-						var createdAt = document.getElementById('createdAt' + i);
-						var updatedAt = document.getElementById('updatedAt' + i);
-						id.value = list[i].id;
-						nickname.value = list[i].nickname
-						name.value = list[i].name;
-						phone.value = list[i].phone;
-						identityCard.value = list[i].identityCard;
-						createdAt.value = list[i].createdAt;
-						updatedAt.value = list[i].updatedAt;
-					}
-
-				} else {
-					alert(data.message + '请刷新页面后重试');
-				}
-			} catch (error) {
-				console.error("API 调用失败:", error);
-			} finally {
-				cancelloadHTML();
-			}
-		}
-
     </script>
 
 </body>
