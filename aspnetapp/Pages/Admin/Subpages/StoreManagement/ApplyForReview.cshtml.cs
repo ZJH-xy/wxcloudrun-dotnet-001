@@ -1,10 +1,4 @@
-﻿using aspnetapp.Controllers.Miniprogram;
-using aspnetapp.Controllers.Web;
-using aspnetapp.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using Polly;
+﻿using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 	public class ApplyForReviewModel : PageModel {
