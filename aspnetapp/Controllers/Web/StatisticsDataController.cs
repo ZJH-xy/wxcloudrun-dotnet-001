@@ -41,6 +41,48 @@
 		}
 
 		/// <summary>
+		/// 统计营业额趋势
+		/// </summary>
+		/// <param name="months"></param>
+		/// <returns></returns>
+		/// <exception cref="ArgumentException"></exception>
+		public async Task<List<(string Month, decimal TotalRevenue)>> GetRevenueTrendsAsync(int months) {
+			if (months <= 0) {
+				throw new ArgumentException("月份数量必须大于0", nameof(months));
+			}
+
+			try {
+				// 计算统计范围的起始日期
+				var startDate = DateTime.Now.AddMonths(-months + 1).Date;
+
+				// 查询数据库统计数据
+				var revenueTrends = await _context.RevenueStatistic
+					.Where(rs => rs.CreatedAt >= startDate) // 筛选时间范围
+					.Join(_context.Order,
+						rs => rs.TheOrder,
+						o => o.Id,
+						(rs, o) => new { rs.CreatedAt, o.Paid })
+					.GroupBy(g => new { g.CreatedAt.Year, g.CreatedAt.Month })
+					.Select(g => new {
+						Year = g.Key.Year,
+						Month = g.Key.Month,
+						TotalRevenue = g.Sum(x => x.Paid)
+					})
+					.OrderByDescending(g => g.Year)
+					.ThenByDescending(g => g.Month)
+					.ToListAsync();
+
+				// 将分组结果转换为所需格式
+				return revenueTrends
+					.Select(t => ($"{t.Year}-{t.Month:00}", t.TotalRevenue))
+					.ToList();
+			} catch (Exception ex) {
+				_logger.LogError(ex, "获取营业额趋势数据失败");
+				throw;
+			}
+		}
+
+		/// <summary>
 		/// 获取最近任意个月的订单趋势（按月统计）
 		/// </summary>
 		/// <param name="months">最近的月数（包含当前月）</param>

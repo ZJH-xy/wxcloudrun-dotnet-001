@@ -21,13 +21,13 @@
 	</header>
 	<!-- 数据统计展示 -->
 	<div class="statistics">
-@* 		<div class="stat-item">
+		<div class="stat-item">
 			<i class="fas fa-dollar-sign"></i>
 			<div>
-				<span>销售额</span>
-				<span>¥ 9999999</span>
+				<span>本月销售额</span>
+				<span>¥</span>
 			</div>
-		</div> *@
+		</div>
 		<div class="stat-item">
 			<i class="fas fa-store"></i>
 			<div>
@@ -97,7 +97,7 @@
 
 	<div class="statistics" id="content">
 		<!-- 销售统计卡片 -->
-@* 		<div class="card">
+		<div class="card">
 			<div class="card-header">销售统计</div>
 			<div class="stat-card">
 				<i class="fas fa-dollar-sign"></i>
@@ -106,7 +106,7 @@
 			<div class="chart-container">
 				<canvas id="salesChart"></canvas>
 			</div>
-		</div> *@
+		</div>
 		<!-- 订单趋势分析 -->
 		<div class="card">
 			<div class="card-header">订单趋势分析</div>
@@ -131,7 +131,7 @@
 		</div>
 
 		<!-- 门店营业情况 -->
-		 <div class="card">
+@* 		 <div class="card">
 			<div class="card-header">门店营业情况</div>
 			<div class="stat-card">
 				<i class="fas fa-store"></i>
@@ -140,7 +140,7 @@
 			<div class="chart-container">
 				<canvas id="storePerformanceChart"></canvas>
 			</div>
-		</div>
+		</div> *@
 		@*
 		<!-- 订单状态分布 -->
 		<div class="card">
@@ -356,7 +356,12 @@
 					data1.push(item.Item1);
 					data2.push(item.Item2);
 				});
-				
+				function getRandomColor() {
+					// 随机生成一个整数，并转换为16进制字符串
+					const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+					// 通过padStart确保结果为6位数，不足的用0填充
+					return `#${randomColor.padStart(6, '0')}`;
+				}
 				// 车辆状态分布饼图
 				var ctx5 = document.getElementById('vehicleStatusChart').getContext('2d');
 				var vehicleStatusChart = new Chart(ctx5, {
@@ -365,8 +370,8 @@
 						labels: data1,
 						datasets: [{
 							data: data2,
-							backgroundColor: ['#FF0000', '#FFA500', '#07C160', '#0000FF'],
-							hoverBackgroundColor: ['#FF7373', '#FFD580', '#66CDAA', '#87CEFA']
+							backgroundColor: [getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor()],
+							hoverBackgroundColor: [getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor()]
 						}]
 					},
 					options: {
@@ -392,48 +397,7 @@
 
 		// 获取门店数据
 		async function getStoreData(event) {
-			// 门店营业情况柱状图
-			var ctx10 = document.getElementById('storePerformanceChart').getContext('2d');
-			var storePerformanceChart = new Chart(ctx10, {
-				type: 'bar',
-				data: {
-					labels: ['门店A', '门店B', '门店C', '门店D', '门店E'], // 门店名称
-					datasets: [{
-						label: '营业额 (¥)',
-						data: [100000, 150000, 120000, 130000, 110000], // 对应门店的营业额
-						backgroundColor: '#66BB6A', // 条形图颜色
-						borderColor: '#388E3C', // 条形图边框颜色
-						borderWidth: 1
-					}, {
-						label: '订单数量',
-						data: [200, 300, 250, 280, 220], // 对应门店的订单数量
-						backgroundColor: '#FF7043', // 条形图颜色
-						borderColor: '#D32F2F', // 条形图边框颜色
-						borderWidth: 1
-					}]
-				},
-				options: {
-					responsive: true,
-					scales: {
-						y: {
-							beginAtZero: true // y轴从0开始
-						}
-					},
-					plugins: {
-						tooltip: {
-							backgroundColor: 'rgba(0, 0, 0, 0.8)',
-							titleColor: '#fff',
-							bodyColor: '#fff',
-							borderColor: 'rgba(75, 192, 192, 1)',
-							borderWidth: 2
-						},
-						legend: {
-							display: true, // 显示图例
-							position: 'top'
-						}
-					}
-				}
-			});
+			
 			// loadHTML(); // 显示加载中
 			// console.log("开始调用接口...");
 			// const response = await fetch(`${RESPONSEURL}?handler=VehicleStateDistribution`, {
