@@ -356,7 +356,12 @@
 					data1.push(item.Item1);
 					data2.push(item.Item2);
 				});
-				
+				function getRandomColor() {
+					// 随机生成一个整数，并转换为16进制字符串
+					const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+					// 通过padStart确保结果为6位数，不足的用0填充
+					return `#${randomColor.padStart(6, '0')}`;
+				}
 				// 车辆状态分布饼图
 				var ctx5 = document.getElementById('vehicleStatusChart').getContext('2d');
 				var vehicleStatusChart = new Chart(ctx5, {
@@ -365,8 +370,8 @@
 						labels: data1,
 						datasets: [{
 							data: data2,
-							backgroundColor: ['#FF0000', '#FFA500', '#07C160', '#0000FF'],
-							hoverBackgroundColor: ['#FF7373', '#FFD580', '#66CDAA', '#87CEFA']
+							backgroundColor: [getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor()],
+							hoverBackgroundColor: [getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor()]
 						}]
 					},
 					options: {
