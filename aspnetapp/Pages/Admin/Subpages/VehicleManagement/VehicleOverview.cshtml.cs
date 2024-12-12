@@ -147,6 +147,26 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 		}
 
 		/// <summary>
+		/// 默认页码查询
+		/// </summary>
+		[HttpGet("{page}")]
+		public async Task<IActionResult> OnGetAsync(int page = 1) {
+			_logger.LogInformation("[OnGetAsync]正在获取限制为{Limit}的页面{PageIndex}的车辆列表", page, Limit);
+
+			// SearchPlateNumber = "";
+			// SearchOwner = "";
+
+			try {
+				List = await _vehicleController.GetTablePage(page, PageIndex);
+			} catch (Exception ex) {
+				_logger.LogError(ex, "获取车辆列表时出错");
+				ModelState.AddModelError(string.Empty, "加载车辆列表时发生错误。");
+			}
+
+			return Page();
+		}
+
+		/// <summary>
 		/// 搜索
 		/// </summary>
 		public async Task<IActionResult> OnPostSearchAsync() {
