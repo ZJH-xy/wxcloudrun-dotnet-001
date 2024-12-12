@@ -1,10 +1,7 @@
-﻿using aspnetapp.Controllers.Miniprogram;
-using aspnetapp.Controllers.Web;
-using aspnetapp.Pages.Admin.Subpages.VehicleManagement;
+﻿using aspnetapp.Controllers.Web;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
-using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 
 namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 	/// <summary>
@@ -88,8 +85,8 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 			try {
 				List = await _advertisementController.GetTablePageAsync(Limit, PageIndex);
 			} catch (Exception ex) {
-				_logger.LogError(ex, "获取车辆列表时出错");
-				ModelState.AddModelError(string.Empty, "加载车辆列表时发生错误。");
+				_logger.LogError(ex, "获取广告列表时出错");
+				ModelState.AddModelError(string.Empty, "加载广告列表时发生错误。");
 			}
 
 			return Page();
@@ -111,20 +108,20 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 		public async Task<IActionResult> OnPostUpdateAsync() {
 			var result = await _advertisementController.UpdateAsync(UpdatedAdvertisement);
 			if (result is NotFoundResult) {
-				_logger.LogWarning("找不到车辆。VehicleId: {VehicleId}", UpdatedAdvertisement.Id);
-				ErrorMessage = "找不到车辆";
+				_logger.LogWarning("找不到广告。VehicleId: {VehicleId}", UpdatedAdvertisement.Id);
+				ErrorMessage = "找不到广告";
 			} else if (result is StatusCodeResult status && status.StatusCode == 500) {
-				_logger.LogError("更新车辆时出错。VehicleId: {VehicleId}", UpdatedAdvertisement.Id);
-				ErrorMessage = "更新车辆时出错。";
+				_logger.LogError("更新广告时出错。VehicleId: {VehicleId}", UpdatedAdvertisement.Id);
+				ErrorMessage = "更新广告时出错。";
 			} else if (result is ObjectResult objResult && objResult.StatusCode == 409) {
-				_logger.LogWarning("使用ID更新车辆时发生并发冲突。VehicleId: {VehicleId}", UpdatedAdvertisement.Id);
+				_logger.LogWarning("使用ID更新广告时发生并发冲突。VehicleId: {VehicleId}", UpdatedAdvertisement.Id);
 				ErrorMessage = $"您尝试编辑的记录已被其他用户修改。请重新加载数据后重试，ID：{UpdatedAdvertisement.Id}";
 			} else {
-				_logger.LogInformation("ID为{VehicleId}的车辆已成功更新", UpdatedAdvertisement.Id);
+				_logger.LogInformation("ID为{VehicleId}的广告已成功更新", UpdatedAdvertisement.Id);
 				SuccessMessage = $"保存成功，已更新 ID：{UpdatedAdvertisement.Id}";
 			}
 
-			List = await _advertisementController.GetTablePageAsync(Limit, PageIndex); // 刷新车辆列表
+			List = await _advertisementController.GetTablePageAsync(Limit, PageIndex); // 刷新广告列表
 
 			Thread.Sleep(1500);
 
