@@ -1,4 +1,4 @@
-using aspnetapp.Controllers.Miniprogram;
+ï»¿using aspnetapp.Controllers.Miniprogram;
 using aspnetapp.Controllers.Web;
 using aspnetapp.Pages.Admin.Subpages.VehicleManagement;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -8,7 +8,7 @@ using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 
 namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 	/// <summary>
-	/// ¹ã¸æ
+	/// å¹¿å‘Š
 	/// </summary>
 	public class AdvertisingOverviewModel : PageModel {
 		private readonly AdvertisementControllerWeb _advertisementController;
@@ -24,13 +24,13 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 		[BindProperty]
 		public Advertisement NewAdvertisement { get; set; } = new();
 
-		// ÓÃÓÚÔÚÒ³ÃæÏÔÊ¾´íÎóĞÅÏ¢
+		// ç”¨äºåœ¨é¡µé¢æ˜¾ç¤ºé”™è¯¯ä¿¡æ¯
 		public string ErrorMessage { get; set; }
 
-		// ÓÃÓÚÔÚÒ³ÃæÏÔÊ¾³É¹¦ĞÅÏ¢
+		// ç”¨äºåœ¨é¡µé¢æ˜¾ç¤ºæˆåŠŸä¿¡æ¯
 		public string SuccessMessage { get; set; }
 
-		// ·ÖÒ³²éÑ¯
+		// åˆ†é¡µæŸ¥è¯¢
 		[BindProperty(SupportsGet = true)]
 		public int Limit { get; set; } = 10;
 
@@ -38,48 +38,47 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 		public static int PageIndex { get; set; } = 1;
 		public int PageIndexHtml { get; set; }
 
-		// ¸üĞÂ
+		// æ›´æ–°
 		[BindProperty]
 		public Advertisement UpdatedAdvertisement { get; set; } = new();
 
-		// ²éÑ¯
-		public static List<Advertisement> SearchList { get; set; } = new(); // ²éÑ¯ÓÃList
+		// æŸ¥è¯¢
+		public static List<Advertisement> SearchList { get; set; } = new(); // æŸ¥è¯¢ç”¨List
 
 		[BindProperty(SupportsGet = true)]
-		public int SearchSum { get; set; } = 0; // ²éÑ¯½á¹û×ÜÊı
+		public int SearchSum { get; set; } = 0; // æŸ¥è¯¢ç»“æœæ€»æ•°
 
-		// ²éÑ¯×Ö¶Î
+		// æŸ¥è¯¢å­—æ®µ
 		[BindProperty(SupportsGet = true)]
-		public static string? SearchTitle { get; set; }// ±êÌâ
+		public static string? SearchTitle { get; set; }// æ ‡é¢˜
 		public string? SearchTitleHtml { get; set; }
 
 		[BindProperty(SupportsGet = true)]
-		public string? SearchContentHtml { get; set; }// ÄÚÈİ
+		public string? SearchContentHtml { get; set; }// å†…å®¹
 		public string? SearchContent { get; set; }
 
-		// ÅÅĞò
+		// æ’åº
 		[BindProperty(SupportsGet = true)]
-		public string? SortField { get; set; } = "Id"; // Ä¬ÈÏÅÅĞò×Ö¶ÎÎª "Id"
+		public string? SortField { get; set; } = "Id"; // é»˜è®¤æ’åºå­—æ®µä¸º "Id"
 
 		[BindProperty(SupportsGet = true)]
-		public string? SortOrder { get; set; } = "asc"; // Ä¬ÈÏÅÅĞòË³ĞòÎªÉıĞò
+		public string? SortOrder { get; set; } = "asc"; // é»˜è®¤æ’åºé¡ºåºä¸ºå‡åº
 
 		/// <summary>
-		/// Ìí¼Ó
+		/// æ·»åŠ 
 		/// </summary>
 		/// <returns></returns>
-		[HttpPost]
 		public async Task<IActionResult> OnPostAddVehicleAsync() {
 			await _advertisementController.AddAsync(NewAdvertisement);
-			SuccessMessage = $"Ìí¼Ó³É¹¦";
+			SuccessMessage = $"æ·»åŠ æˆåŠŸ";
 
-			List = await _advertisementController.GetTablePageAsync(Limit, PageIndex); // Ë¢ĞÂÁĞ±í
+			List = await _advertisementController.GetTablePageAsync(Limit, PageIndex); // åˆ·æ–°åˆ—è¡¨
 
 			return Page();
 		}
 
 		/// <summary>
-		/// Ä¬ÈÏÒ³Âë²éÑ¯
+		/// é»˜è®¤é¡µç æŸ¥è¯¢
 		/// </summary>
 		public async Task<IActionResult> OnGetAsync() {
 
@@ -89,43 +88,43 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 			try {
 				List = await _advertisementController.GetTablePageAsync(Limit, PageIndex);
 			} catch (Exception ex) {
-				_logger.LogError(ex, "»ñÈ¡³µÁ¾ÁĞ±íÊ±³ö´í");
-				ModelState.AddModelError(string.Empty, "¼ÓÔØ³µÁ¾ÁĞ±íÊ±·¢Éú´íÎó¡£");
+				_logger.LogError(ex, "è·å–è½¦è¾†åˆ—è¡¨æ—¶å‡ºé”™");
+				ModelState.AddModelError(string.Empty, "åŠ è½½è½¦è¾†åˆ—è¡¨æ—¶å‘ç”Ÿé”™è¯¯ã€‚");
 			}
 
 			return Page();
 		}
 
 		/// <summary>
-		/// ËÑË÷
+		/// æœç´¢
 		/// </summary>
 		public async Task<IActionResult> OnPostSearchAsync() {
 			(List, SearchSum) = await _advertisementController.SearchAsync(Limit, PageIndex, SearchTitle, SearchContent, SortField, SortOrder);
-			//SuccessMessage = "ËÑË÷³É¹¦";
+			//SuccessMessage = "æœç´¢æˆåŠŸ";
 
 			return Page();
 		}
 
 		/// <summary>
-		/// ¸üĞÂ
+		/// æ›´æ–°
 		/// </summary>
 		public async Task<IActionResult> OnPostUpdateAsync() {
 			var result = await _advertisementController.UpdateAsync(UpdatedAdvertisement);
 			if (result is NotFoundResult) {
-				_logger.LogWarning("ÕÒ²»µ½³µÁ¾¡£VehicleId: {VehicleId}", UpdatedAdvertisement.Id);
-				ErrorMessage = "ÕÒ²»µ½³µÁ¾";
+				_logger.LogWarning("æ‰¾ä¸åˆ°è½¦è¾†ã€‚VehicleId: {VehicleId}", UpdatedAdvertisement.Id);
+				ErrorMessage = "æ‰¾ä¸åˆ°è½¦è¾†";
 			} else if (result is StatusCodeResult status && status.StatusCode == 500) {
-				_logger.LogError("¸üĞÂ³µÁ¾Ê±³ö´í¡£VehicleId: {VehicleId}", UpdatedAdvertisement.Id);
-				ErrorMessage = "¸üĞÂ³µÁ¾Ê±³ö´í¡£";
+				_logger.LogError("æ›´æ–°è½¦è¾†æ—¶å‡ºé”™ã€‚VehicleId: {VehicleId}", UpdatedAdvertisement.Id);
+				ErrorMessage = "æ›´æ–°è½¦è¾†æ—¶å‡ºé”™ã€‚";
 			} else if (result is ObjectResult objResult && objResult.StatusCode == 409) {
-				_logger.LogWarning("Ê¹ÓÃID¸üĞÂ³µÁ¾Ê±·¢Éú²¢·¢³åÍ»¡£VehicleId: {VehicleId}", UpdatedAdvertisement.Id);
-				ErrorMessage = $"Äú³¢ÊÔ±à¼­µÄ¼ÇÂ¼ÒÑ±»ÆäËûÓÃ»§ĞŞ¸Ä¡£ÇëÖØĞÂ¼ÓÔØÊı¾İºóÖØÊÔ£¬ID£º{UpdatedAdvertisement.Id}";
+				_logger.LogWarning("ä½¿ç”¨IDæ›´æ–°è½¦è¾†æ—¶å‘ç”Ÿå¹¶å‘å†²çªã€‚VehicleId: {VehicleId}", UpdatedAdvertisement.Id);
+				ErrorMessage = $"æ‚¨å°è¯•ç¼–è¾‘çš„è®°å½•å·²è¢«å…¶ä»–ç”¨æˆ·ä¿®æ”¹ã€‚è¯·é‡æ–°åŠ è½½æ•°æ®åé‡è¯•ï¼ŒIDï¼š{UpdatedAdvertisement.Id}";
 			} else {
-				_logger.LogInformation("IDÎª{VehicleId}µÄ³µÁ¾ÒÑ³É¹¦¸üĞÂ", UpdatedAdvertisement.Id);
-				SuccessMessage = $"±£´æ³É¹¦£¬ÒÑ¸üĞÂ ID£º{UpdatedAdvertisement.Id}";
+				_logger.LogInformation("IDä¸º{VehicleId}çš„è½¦è¾†å·²æˆåŠŸæ›´æ–°", UpdatedAdvertisement.Id);
+				SuccessMessage = $"ä¿å­˜æˆåŠŸï¼Œå·²æ›´æ–° IDï¼š{UpdatedAdvertisement.Id}";
 			}
 
-			List = await _advertisementController.GetTablePageAsync(Limit, PageIndex); // Ë¢ĞÂ³µÁ¾ÁĞ±í
+			List = await _advertisementController.GetTablePageAsync(Limit, PageIndex); // åˆ·æ–°è½¦è¾†åˆ—è¡¨
 
 			Thread.Sleep(1500);
 
@@ -133,99 +132,66 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 		}
 
 		/// <summary>
-		/// ·µ»Ø×ÜÒ³Êı
+		/// è¿”å›æ€»é¡µæ•°
 		/// </summary>
 		/// <returns></returns>
 		public async Task<IActionResult> OnGetPageSumAsync() {
 			try {
-				// »ñÈ¡ËùÓĞÓÃ»§Êı¾İµÄ×ÜÊı£¨¿ÉÒÔÍ¨¹ı·şÎñ·½·¨»ñÈ¡£©
+				// è·å–æ‰€æœ‰ç”¨æˆ·æ•°æ®çš„æ€»æ•°ï¼ˆå¯ä»¥é€šè¿‡æœåŠ¡æ–¹æ³•è·å–ï¼‰
 				var sum = await _advertisementController.GetPageSum();
 
-				// ¼ÆËã×ÜÒ³Êı
+				// è®¡ç®—æ€»é¡µæ•°
 				int totalPages = (sum / Limit) + 1;
 
-				// ·µ»Ø×ÜÒ³Êı
+				// è¿”å›æ€»é¡µæ•°
 				return new JsonResult(new { totalPages });
 			} catch (Exception ex) {
-				_logger.LogError(ex, "»ñÈ¡×ÜÒ³ÊıÊ±·¢Éú´íÎó");
-				return BadRequest("ÎŞ·¨»ñÈ¡×ÜÒ³Êı");
+				_logger.LogError(ex, "è·å–æ€»é¡µæ•°æ—¶å‘ç”Ÿé”™è¯¯");
+				return BadRequest("æ— æ³•è·å–æ€»é¡µæ•°");
 			}
 		}
 
 		/// <summary>
-		/// »ñÈ¡Ò³Âë
+		/// è·å–é¡µç 
 		/// </summary>
 		public async Task<IActionResult> OnGetPageIndexAsync() {
 			return new JsonResult(new { success = true, pageIndex = PageIndex });
 		}
 
 		/// <summary>
-		/// ¸ü¸ÄÒ³Âë
+		/// æ›´æ”¹é¡µç 
 		/// </summary>
-		[HttpPost]
-		[IgnoreAntiforgeryToken]
 		public async Task<JsonResult> OnPostChangePageAsync([FromBody] Dictionary<string, int> requestData) {
 			if (requestData == null || !requestData.Any()) {
-				return new JsonResult(new { success = false, message = "ÇëÇóÊı¾İÎª¿Õ£¡" });
+				return new JsonResult(new { success = false, message = "è¯·æ±‚æ•°æ®ä¸ºç©ºï¼" });
 			}
 
 			PageIndex = requestData["PageIndex"];
 
-			return new JsonResult(new { success = true, message = "³É¹¦", pageIndex = PageIndex });
+			return new JsonResult(new { success = true, message = "æˆåŠŸ", pageIndex = PageIndex });
 		}
 
 		/// <summary>
-		/// »ñÈ¡ÎÄ¼şÏÂÔØÁ´½Ó
-		/// </summary>
-		/// <returns></returns>
-		[HttpPost]
-		[IgnoreAntiforgeryToken]
-		public async Task<JsonResult> OnPostImageDownload([FromBody] Dictionary<string, string> requestData) {
-			// È·±£½ÓÊÕµ½µÄÊı¾İ±»ÕıÈ·°ó¶¨
-			if (requestData == null || !requestData.Any()) {
-				return new JsonResult(new { success = false, message = "ÇëÇóÊı¾İÎª¿Õ£¡" });
-			}
-
-			var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
-			var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
-			var envId = _wxSetting.Value.Env;
-
-			List<FileItem> fileid_list = new() {
-				new FileItem {
-					fileid = requestData["fileid"],
-					max_age = 7200
-				}
-				};
-
-			var re = await TcbApi.BatchDownloadFileAsync(appId, envId, fileid_list);
-			if (re.errcode != ReturnCode.ÇëÇó³É¹¦) {
-				_logger.LogError("{errmsg},»ñÈ¡ÏÂÔØÁ´½Ó{fileid_list}", re.errmsg, fileid_list.ToJson());
-			}
-
-			return new JsonResult(new { success = true, message = "»ñÈ¡ÎÄ¼şÏÂÔØÁ´½Ó½áÊø", re.file_list });
-		}
-
-		/// <summary>
-		/// µ¼³ö¹¦ÄÜ
+		/// å¯¼å‡ºåŠŸèƒ½
 		/// </summary>
 		public async Task<IActionResult> OnGetExportToExcelAsync() {
 			List<Advertisement> excelList = await _advertisementController.GetAllListAsync();
 
-			// ´´½¨Ò»¸öĞÂµÄ¹¤×÷²¾
+			// åˆ›å»ºä¸€ä¸ªæ–°çš„å·¥ä½œç°¿
 			IWorkbook workbook = new XSSFWorkbook();
-			ISheet sheet = workbook.CreateSheet("¹ã¸æÊı¾İ");
+			ISheet sheet = workbook.CreateSheet("å¹¿å‘Šæ•°æ®");
 
-			// ´´½¨±íÍ·ĞĞ
+			// åˆ›å»ºè¡¨å¤´è¡Œ
 			IRow headerRow = sheet.CreateRow(0);
-			headerRow.CreateCell(0).SetCellValue("ĞòºÅ");
-			headerRow.CreateCell(1).SetCellValue("¹ã¸æ ID");
-			headerRow.CreateCell(2).SetCellValue("±êÌâ");
-			headerRow.CreateCell(3).SetCellValue("ÄÚÈİ");
-			headerRow.CreateCell(4).SetCellValue("Ìø×ªÁ´½Ó");
-			headerRow.CreateCell(5).SetCellValue("´´½¨Ê±¼ä");
-			headerRow.CreateCell(6).SetCellValue("¸üĞÂÊ±¼ä");
+			headerRow.CreateCell(0).SetCellValue("åºå·");
+			headerRow.CreateCell(1).SetCellValue("å¹¿å‘Š ID");
+			headerRow.CreateCell(2).SetCellValue("æ ‡é¢˜");
+			headerRow.CreateCell(3).SetCellValue("å†…å®¹");
+			headerRow.CreateCell(4).SetCellValue("è·³è½¬é“¾æ¥");
+			headerRow.CreateCell(5).SetCellValue("åˆ›å»ºæ—¶é—´");
+			headerRow.CreateCell(6).SetCellValue("æ›´æ–°æ—¶é—´");
 
-			// Ìî³äÊı¾İ
+			// å¡«å……æ•°æ®
 			for (int i = 0; i < excelList.Count; i++) {
 				var row = sheet.CreateRow(i + 1);
 				row.CreateCell(0).SetCellValue(i + 1);
@@ -237,43 +203,41 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 				row.CreateCell(6).SetCellValue(excelList[i].UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
 			}
 
-			// ¹Ì¶¨ÁĞ¿í
+			// å›ºå®šåˆ—å®½
 			for (int col = 0; col < 7; col++) {
-				sheet.SetColumnWidth(col, 20 * 256); // ÉèÖÃ¹Ì¶¨¿í¶È£¬µ¥Î»Îª 1/256 ¸ö×Ö·û¿í¶È
+				sheet.SetColumnWidth(col, 20 * 256); // è®¾ç½®å›ºå®šå®½åº¦ï¼Œå•ä½ä¸º 1/256 ä¸ªå­—ç¬¦å®½åº¦
 			}
 
-			// ½«¹¤×÷²¾±£´æµ½ÄÚ´æÁ÷
+			// å°†å·¥ä½œç°¿ä¿å­˜åˆ°å†…å­˜æµ
 			using (var memoryStream = new MemoryStream()) {
 				workbook.Write(memoryStream);
-				var fileName = "¹ã¸æÊı¾İ.xlsx";
+				var fileName = "å¹¿å‘Šæ•°æ®.xlsx";
 				var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-				// ·µ»ØÎÄ¼şÁ÷¹©ÏÂÔØ
+				// è¿”å›æ–‡ä»¶æµä¾›ä¸‹è½½
 				return File(memoryStream.ToArray(), contentType, fileName);
 			}
 		}
 
 		/// <summary>
-		/// »ñÈ¡²éÑ¯Êı¾İ
+		/// è·å–æŸ¥è¯¢æ•°æ®
 		/// </summary>
 		public async Task<JsonResult> OnGetSearchDataAsync() {
-			return new JsonResult(new { success = true, message = "³É¹¦", SearchTitle, SearchContent });
+			return new JsonResult(new { success = true, message = "æˆåŠŸ", SearchTitle, SearchContent });
 		}
 
 		/// <summary>
-		/// ¸ü¸Ä²éÑ¯Êı¾İ
+		/// æ›´æ”¹æŸ¥è¯¢æ•°æ®
 		/// </summary>
-		[HttpPost]
-		[IgnoreAntiforgeryToken]
 		public async Task<JsonResult> OnPostChangeSearchDataAsync([FromBody] Dictionary<string, string> requestData) {
 			if (requestData == null || !requestData.Any()) {
-				return new JsonResult(new { success = false, message = "ÇëÇóÊı¾İÎª¿Õ£¡" });
+				return new JsonResult(new { success = false, message = "è¯·æ±‚æ•°æ®ä¸ºç©ºï¼" });
 			}
 
 			SearchTitle = requestData["SearchTitle"];
 			SearchContent = requestData["SearchContent"];
 
-			return new JsonResult(new { success = true, message = "³É¹¦" });
+			return new JsonResult(new { success = true, message = "æˆåŠŸ" });
 		}
 	}
 }
