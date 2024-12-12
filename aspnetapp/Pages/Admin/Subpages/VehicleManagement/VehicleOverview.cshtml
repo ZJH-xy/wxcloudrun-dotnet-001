@@ -355,7 +355,7 @@
 
 		<div class="bottom-item">
 
-			<form method="post" asp-page-handler="Search">
+			<form method="post" asp-page-handler="Search" id="pageForm">
 				<input placeholder="请输入页数" id="redirect" />
 				<button onclick="changePage(3)" class="editBtn">跳转</button>
 				<button onclick="changePage(2)" class="editBtn">首页</button>
@@ -679,7 +679,12 @@
 				if (!response.ok) {
 					throw new Error(`HTTP 错误！状态码: ${response.status}`);
 				}
-				//cancelloadHTML()
+				// 获取表单元素
+				var form = document.getElementById('pageForm');
+				// 提交表单
+				if (form) form.submit();
+
+				cancelloadHTML()
 
 			} catch (error) {
 				cancelloadHTML()
