@@ -39,7 +39,6 @@ builder.Services.AddScoped<StatisticsDataControllerWeb>();
 builder.Services.AddScoped<UserControllerWeb>();
 builder.Services.AddScoped<VehicleControllerWeb>();
 builder.Services.AddScoped<OrderControllerWeb>();
-builder.Services.AddScoped<StatisticsControllerWeb>();
 builder.Services.AddScoped<OrderControllerWeb>();
 builder.Services.AddScoped<StoreControllerWeb>();
 builder.Services.AddScoped<StoreMenuControllerWeb>();

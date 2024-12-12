@@ -76,7 +76,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchStatus = "";
 
 			try {
-				List = await _orderController.GetOrderPage(Limit, PageIndex);
+				List = await _orderController.GetTablePage(Limit, PageIndex);
 			} catch (Exception ex) {
 				_logger.LogError(ex, "获取订单列表时出错");
 				ModelState.AddModelError(string.Empty, "加载订单列表时发生错误。");
@@ -93,14 +93,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 							  SearchUserPhone, SearchStatus, SortField, SortOrder);
 
 			// 调用 OrderControllerWeb 中的 SearchOrders 方法，包含排序字段和顺序
-			SearchList = await _orderController.SearchOrders(SearchUserPhone, SearchStatus, SortField, SortOrder);
-
-			List = SearchList
-				.Skip((PageIndex - 1) * Limit) // 跳过前面页的数据
-				.Take(Limit) // 获取当前页的数据
-				.ToList();
-
-			SearchSum = SearchList.Count;
+			(List, SearchSum) = await _orderController.SearchOrders(Limit, PageIndex, SearchUserPhone, SearchStatus, SortField, SortOrder);
 
 			return Page();
 		}
@@ -135,7 +128,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 				SuccessMessage = $"保存成功，已更新 ID：{UpdatedOrder.Id}";
 			}
 
-			List = await _orderController.GetOrderPage(Limit, PageIndex); // 刷新订单列表
+			List = await _orderController.GetTablePage(Limit, PageIndex); // 刷新订单列表
 
 			return Page();
 		}
