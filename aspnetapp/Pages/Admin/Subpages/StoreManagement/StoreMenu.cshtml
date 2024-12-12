@@ -111,7 +111,7 @@
 			</form>
 			@for (int i = 0; i < Model.List.Count; i++) {
 				<tr>
-					<form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data">
+					<form method="post" asp-page-handler="Update" enctype="multipart/form-data">
 					<td>@(i + 1)</td>
 					<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
 					<td><input id="@("TheStore" + i)" type="text" name="UpdatedStore.TheStore" value="@Model.List[i].TheStore" placeholder="无" disabled /></td>
@@ -200,16 +200,16 @@
                         method: 'Delete',
                         headers: {
                             'Content-Type': 'application/json',
-                            'RequestVerificationToken': TOKEN // 添加 CSRF Token
+                            'RequestVerificationToken': TOKEN 
                         },
-                        body: JSON.stringify(requestData), // 将数据序列化为 JSON 格式
+                        body: JSON.stringify(requestData), 
                     });
 
                     if (!response.ok) {
                         throw new Error(`HTTP 错误！状态码: ${response.status}`);
                     }
 
-                    const data = await response.json();  // 等待接口返回数据
+                    const data = await response.json(); 
 
                     if (data.success) {
                         console.log("删除成功，message:", data.message);
@@ -245,7 +245,7 @@
             elementsToShow.forEach(id => {
                 const element = document.getElementById(id);
                 if (element) {
-                    element.style.display = "table-cell"; // 修改为适合的显示样式
+                    element.style.display = "table-cell"; 
                 }
             });
 
@@ -254,7 +254,6 @@
         // 更改页面
         async function changePage(index) {
             loadHTML();
-            //const SearchSum = document.getElementById("SearchSum");待修改
             try {
                 const response = await fetch(`${RESPONSEURL}?handler=PageIndex`, {
                     method: 'Get',
@@ -268,7 +267,7 @@
                     throw new Error(`HTTP 错误！状态码: ${response.status}`);
                 }
 
-                const data = await response.json();  // 等待接口返回数据
+                const data = await response.json();  
 
                 if (data.success) {
                     var pageIndex = data.pageIndex;
@@ -460,15 +459,7 @@
                     const id = this.dataset.id;
                     console.log('id', id)
                     const container = document.querySelector(`.saveBtn[data-id="${id}"]`);
-                    //const img = container.querySelector(".thumbnail");
-                    //const fileInput = container.querySelector(".fileUpload");
-
-                    // 隐藏旧图片
-                    //if (img) img.style.display = "none";
-
-                    //// 显示文件上传控件
-                    //fileInput.style.display = "block";
-
+ 
                     // 切换其他字段为可编辑状态
                     const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
                     inputs.forEach(input => input.disabled = false);
@@ -491,29 +482,7 @@
 
         }
 
-        // 打开模态窗口并加载点击的图片
-        function openModal(imgElement) {
-            var modal = document.getElementById("imageModal");
-            var modalImg = document.getElementById("modalImage");
 
-            // 设置模态窗口中的图片为当前点击的图片
-            modal.style.display = "flex"; // 使用 flexbox 居中
-            modalImg.src = imgElement.src; // 设置模态窗口图片源
-        }
-
-        // 关闭模态窗口
-        function closeModal() {
-            var modal = document.getElementById("imageModal");
-            modal.style.display = "none";
-        }
-
-        // 如果点击模态窗口外部区域，关闭模态窗口
-        window.onclick = function (event) {
-            var modal = document.getElementById("imageModal");
-            if (event.target === modal) {
-                modal.style.display = "none";
-            }
-        }
 
 
         // 获取搜索输入框的数据

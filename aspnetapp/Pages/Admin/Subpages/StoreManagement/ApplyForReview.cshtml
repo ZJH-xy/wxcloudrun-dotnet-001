@@ -54,143 +54,142 @@
 	}
 
 	<div class="table-container">
-		<table id="userTable">
-			<tr>
-				<th>序号</th>
-				<th>套餐ID</th>
-				<th>门店ID</th>
-				<th>时长/小时</th>
-				<th>租金</th>
-				<th>押金</th>
-				<th>操作</th>
-			</tr>
-@* 			@for (int i = 0; i < Model.List.Count; i++) {
+		@if (Model.List.Count >= 1) {
+			<table id="Table">
 				<tr>
-					<form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data">
-					<td>@(i + 1)</td>
-					<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
-					<td><input id="@("TheStore" + i)" type="text" name="UpdatedStore.TheStore" value="@Model.List[i].TheStore" placeholder="无" disabled /></td>
-					<td><input id="@("Duration" + i)" type="text" name="UpdatedStore.Duration" value="@Model.List[i].Duration" placeholder="无" disabled /></td>
-					<td><input id="@("Rent" + i)" type="text" name="UpdatedStore.Rent" value="@Model.List[i].Rent" placeholder="无" disabled /></td>
-					<td><input id="@("Deposit" + i)" type="text" name="UpdatedStore.Deposit" value="@Model.List[i].Deposit" placeholder="无" disabled /></td>
-					<td>
-						<button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
-						<button id="@("save" + i)" type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;" >保存</button>
-						<button id="@("delete" + i)" type="button" class="deleteBtn" data-id="@Model.List[i].Id" style="display: none;" onclick="confirmDelete(event)">删除</button>
-					</td>
-
-					<input type="hidden" name="UpdatedStore.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
-					</form>
+					<th>序号</th>
+					<th>ID</th>
+					<th>门店ID</th>
+					<th>名称</th>
+					<th>地址</th>
+					<th>经度</th>
+					<th>纬度</th>
+					<th>操作</th>
 				</tr>
-			} *@
+				@for (int i = 0; i < Model.List.Count; i++) {
+					<tr>
+						<form method="post" id="pageForm">
+						<td>@(i + 1)</td>
+						<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
+						<td><span id="@("TheStore" + i)">@Model.List[i].TheStore</span></td>
+						<td><span id="@("Name" + i)">@Model.List[i].Name</span></td>
+						<td><span id="@("Address" + i)">@Model.List[i].Address</span></td>
+						<td><span id="@("GpsLongitude" + i)">@Model.List[i].GpsLongitude</span></td>
+						<td><span id="@("GpsLatitude" + i)">@Model.List[i].GpsLatitude</span></td>
+						<td>
+							<button id="@("Confirm " + i)" type="button" data-id="@Model.List[i].Id" onclick="confirm(@Model.List[i].Id)">确认</button>
+							<button id="@("delete" + i)" type="button" class="deleteBtn" data-id="@Model.List[i].Id" onclick="cancel(@Model.List[i].Id)">取消</button>
+						</td>
 
+						<input type="hidden" name="UpdatedStore.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+						</form>
+					</tr>
 
+				}
+			</table>
+		} else {
+			<div style="width:100%;display:flex;justify-content: center;  ">
+				<h1>无商家申请数据</h1>
+			</div>
+		}
 
-		</table>
 
 	</div>
 	<script>
-		// 页面加载完成后执行函数
-		window.onload = function () {
-			getSearchData();// 获取搜索框数据
-			loadIndexPage();// 加载页码
-			loadButton();// 加载按钮
-		};
-	</script>
-	<script>
 
-        const RESPONSEURL = `/Admin/Subpages/StoreManagement/StoreMenu`;
-        const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]').value;
+		const RESPONSEURL = `/Admin/Subpages/StoreManagement/ApplyForReview`;
+		const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]');
 
+		// 确认
+		async function confirm(id) {
+			if (!TOKEN) {
+				console.log("TOKEN为空！");
+				return;
+			}
+			loadHTML();
+			const requestData = {
+				"id": id
+			};
+			console.log("requestData", requestData);
+			try {
+				const response = await fetch(`${RESPONSEURL}?handler=Confirm`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'RequestVerificationToken': TOKEN.value
+					},
+					body: JSON.stringify(requestData),
+				});
 
-        // 请求修改页面
-        async function getListData(pageIndex) {
-            loadHTML();
-            const requestData = {
-                "PageIndex": pageIndex
-            };
-            console.log("requestData", requestData);
-            try {
-                const response = await fetch(`${RESPONSEURL}?handler=ChangePage`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': TOKEN
-                    },
-                    body: JSON.stringify(requestData),
-                });
+				if (!response.ok) {
+					throw new Error(`HTTP 错误！状态码: ${response.status}`);
+				}
+				const data = await response.json();
 
-                if (!response.ok) {
-                    throw new Error(`HTTP 错误！状态码: ${response.status}`);
-                }
-                // 获取表单元素
-                var form = document.getElementById('pageForm');
-                // 提交表单
-                if (form) form.submit();
-                
-                cancelloadHTML()
+				if (data.success) {
+					// 获取表单元素
+					var form = document.getElementById('pageForm');
+					// 提交表单
+					if (form) {
+						form.submit();
+					}
 
-            } catch (error) {
-                cancelloadHTML()
-                console.error("API 调用失败:", error);
-            }
-        }
- }
-        }
+				} else {
+					alert(data.message);
+				}
+				cancelloadHTML();
 
+			} catch (error) {
+				cancelloadHTML()
+				console.error("API 调用失败:", error);
+			} 
+		}
+		async function cancel(id) {
+			const isConfirmed = confirm("确定要删除吗？");
+			if (!isConfirmed){
+				return;
+			}
+			if (!TOKEN) {
+				console.log("TOKEN为空！");
+				return;
+			}
+			loadHTML();
+			const requestData = {
+				"id": id
+			};
+			console.log("requestData", requestData);
+			try {
+				const response = await fetch(`${RESPONSEURL}?handler=Refuse`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'RequestVerificationToken': TOKEN.value
+					},
+					body: JSON.stringify(requestData),
+				});
 
-        // 加载按钮
-        function loadButton() {
-            // 获取所有文件上传控件
-            const fileInputs = document.querySelectorAll(".fileUpload");
+				if (!response.ok) {
+					throw new Error(`HTTP 错误！状态码: ${response.status}`);
+				}
+				const data = await response.json();
 
-            fileInputs.forEach(input => {
-                input.addEventListener("change", function () {
-                    const file = this.files[0];
-                    if (file) {
-                        const reader = new FileReader();
+				if (data.success) {
+					// 获取表单元素
+					var form = document.getElementById('pageForm');
+					// 提交表单
+					if (form) {
+						form.submit();
+					}
 
-                        // 读取文件完成后设置预览图片的 src 属性
-                        reader.onload = function (e) {
-                            const preview = input.closest(".imageContainer").querySelector(".preview");
-                            preview.src = e.target.result; // 设置预览图像的路径
-                            preview.style.display = "block"; // 显示预览图片
-                        };
+				} else {
+					alert(data.message);
+				}
+				cancelloadHTML();
 
-                        // 读取文件为 Data URL
-                        reader.readAsDataURL(file);
-                    }
-                });
-            });
-
-            // 编辑按钮逻辑
-            const editButtons = document.querySelectorAll(".editBtn");
-            editButtons.forEach(button => {
-                button.addEventListener("click", function () {
-                    const id = this.dataset.id;
-                    console.log('id', id)
-                    const container = document.querySelector(`.saveBtn[data-id="${id}"]`);
-
-                    // 切换其他字段为可编辑状态
-                    const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
-                    inputs.forEach(input => input.disabled = false);
-
-                    // 使 textarea 可编辑
-                    const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedStore.Introduce']`);
-                    if (textArea) textArea.disabled = false; // 使 textarea 可编辑
-
-                    // 使状态下拉框可以编辑
-                    const selectState = container.closest("tr").querySelector("select[name='UpdatedStore.Status']");
-                    if (selectState) selectState.disabled = false;
-
-                    // 切换按钮状态
-                    this.style.display = "none"; // 隐藏编辑按钮
-                    container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
-                    container.closest("tr").querySelector(".deleteBtn").style.display = "inline-block";
-
-                });
-            });
-
-        }
+			} catch (error) {
+				cancelloadHTML()
+				console.error("API 调用失败:", error);
+			}
+		}
 	</script>
 </body>

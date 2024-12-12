@@ -151,7 +151,7 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 		/// 添加
 		/// </summary>
 		/// <returns></returns>
-		public async Task<IActionResult> OnPostAddVehicleAsync() {
+		public async Task<IActionResult> OnPostAddAsync() {
 			await _advertisementController.AddAsync(NewAdvertisement);
 			SuccessMessage = $"添加成功";
 

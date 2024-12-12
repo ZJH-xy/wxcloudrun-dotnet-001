@@ -98,11 +98,14 @@ input {
     transition: border-color 0.3s, box-shadow 0.3s; /* 过渡效果 */
     font-size: small;
     height: 30px;
-    width:100px;
+    width: 100px;
 }
-td>input{
-    width:100%;
+
+textarea,
+td > input {
+    width: 100%;
 }
+
 .bottom {
     gap: 20px;
     display: flex;
