@@ -14,6 +14,7 @@ using Senparc.CO2NET.Utilities;
 using Senparc.Weixin.TenPayV3;
 using Senparc.CO2NET.Extensions;
 using Microsoft.Extensions.Logging;
+using System.Xml.Linq;
 
 namespace aspnetapp.Controllers.API.StoreAccount
 {
@@ -582,14 +583,21 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             return StatusCode(200);
         }
-        #endregion
+		#endregion
 
-        #region 商家提交地址审核
-        [HttpPost("reviewMerchantAddress")]
+		#region 商家提交地址审核
+		/// <summary>
+		/// 商家提交地址审核
+		/// </summary>
+		/// <param name="data"></param>
+		/// <returns></returns>
+		[HttpPost("reviewMerchantAddress")]
         public async Task<IActionResult> PostReviewMerchantAddress(GetAddress data) {
             var reviewMerchantAddress = new ReviewMerchantAddress() {
                 TheStore = GetUserIdInt(),
-                GpsLongitude = data.GpsLongitude,
+				Name = data.Name,
+				Address = data.Address,
+				GpsLongitude = data.GpsLongitude,
                 GpsLatitude = data.GpsLatitude,
             };
 
@@ -854,7 +862,9 @@ namespace aspnetapp.Controllers.API.StoreAccount
         /// Latitude 纬度，范围 [-90, 90]
         /// </summary>
         public double GpsLatitude { get; set; }
-    }
+		public string Name { get; set; }
+		public string Address { get; set; }
+	}
 
     /// <summary>
     /// 确认订单格式
@@ -890,7 +900,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
             TheRentalLocation = order.TheRentalLocation;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
-            Deposit = order.Deposit;
+			IdentityCard = order.IdentityCard;
+			Deposit = order.Deposit;
             Rent = order.Rent;
             Paid = order.Paid;
             Status = order.Status;
@@ -903,14 +914,14 @@ namespace aspnetapp.Controllers.API.StoreAccount
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
-        public decimal Deposit { get; set; }// 押金
+		public string? IdentityCard { get; set; }// 身份证号
+		public decimal Deposit { get; set; }// 押金
         public decimal Rent { get; set; }// 租金
         public decimal Paid { get; set; }// 已付
         public Order.EOrderStatus Status { get; set; }// 订单状态
         public DateTime CreatedAt { get; set; }
         public string? Notes { get; set; }// 备注
         //public DateTime UpdatedAt { get; set; }
-        //public string? IdentityCard { get; set; }// 身份证号
     }
 
     /// <summary>
@@ -955,7 +966,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
             TheRentalLocation = order.TheRentalLocation;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
-            Deposit = order.Deposit;
+            IdentityCard = order.IdentityCard;
+			Deposit = order.Deposit;
             Rent = order.Rent;
             Paid = order.Paid;
             Status = order.Status;
@@ -969,6 +981,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
+		public string? IdentityCard { get; set; }// 身份证号
         public decimal Deposit { get; set; }// 押金
         public decimal Rent { get; set; }// 租金
         public decimal Paid { get; set; }// 已付
@@ -976,6 +989,5 @@ namespace aspnetapp.Controllers.API.StoreAccount
         public DateTime CreatedAt { get; set; }
         public string? Notes { get; set; }// 备注
         //public DateTime UpdatedAt { get; set; }
-        //public string? IdentityCard { get; set; }// 身份证号
     }
 }

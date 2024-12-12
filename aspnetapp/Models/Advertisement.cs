@@ -26,10 +26,15 @@
         /// </summary>
         public string Src { get; set; }
 
-        /// <summary>
-        /// 创建时间
-        /// </summary>
-        public DateTime CreatedAt { get; set; }
+		/// <summary>
+		/// 图片
+		/// </summary>
+		public string? Pictures { get; set; }
+
+		/// <summary>
+		/// 创建时间
+		/// </summary>
+		public DateTime CreatedAt { get; set; }
 
         /// <summary>
         /// 更新时间
