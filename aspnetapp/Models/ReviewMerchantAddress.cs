@@ -16,6 +16,16 @@
         public int TheStore { get; set; }
 
         /// <summary>
+        /// 地址
+        /// </summary>
+        public string? Address { get; set; }
+
+		/// <summary>
+		/// 地址名
+		/// </summary>
+		public string? Name { get; set; }
+
+        /// <summary>
         /// Longitude 经度，范围 [-180, 180]
         /// </summary>
         public double GpsLongitude { get; init; }
