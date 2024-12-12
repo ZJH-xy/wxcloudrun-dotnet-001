@@ -86,10 +86,10 @@
 				<th>用户手机号</th>
 				<th>用户身份证</th>
 				<th>起始时间</th>
-                <th>实际归还</th>
-                <th>租车点</th>
-                <th>换车点</th>
-                <th>还车点</th>
+                <th>实际归还门店ID</th>
+                <th>租车门店ID</th>
+				<th>换车门店ID</th>
+				<th>还车门店ID</th>
                 <th>押金</th>
                 <th>租金</th>
                 <th>调度费</th>
@@ -126,13 +126,17 @@
                     <td>
                             @if (@Model.List[i].ActualReturnTime != null)
                             {
-                            <span id="@("ActualReturnTime" + i)">@Model.List[i].ActualReturnTime </span>
-                            }
-                            else
-                            {
-                            <span>未归还</span>
-                            }
-                    </td>
+								<span id="@("ActualReturnTime" + i)">@Model.List[i].ActualReturnTime </span>
+							}
+							else if (@Model.List[i].ActualStartingTime != null)
+							{
+								<span>未归还</span>
+							}
+							else
+							{
+								<span>无</span>
+							}
+						</td>
                     <td><span id="@("TheVehicle" + i)">@Model.List[i].TheVehicle</span></td>
                     <td>
                             @if (@Model.List[i].TheRentalLocation != null)
@@ -149,10 +153,14 @@
                             {
                             <span id="@("ActualStartingTime" + i)">@Model.List[i].TheReturnThePoint</span>
                             }
-                            else
-                            {
-                            <span>未归还</span>
-                            }
+							else if (@Model.List[i].ActualStartingTime != null)
+							{
+							<span>未归还</span>
+							}
+							else
+							{
+							<span>无</span>
+							}
                     </td>
                     <td><span id="@("Deposit" + i)">@Model.List[i].Deposit</span></td>
                     <td><span id="@("Rent" + i)">@Model.List[i].Rent</span></td>
@@ -211,7 +219,7 @@
 				<button type="button" onclick="changePage(2)" class="editBtn">首页</button>
 				<button type="button" onclick="changeEndPage()" class="editBtn">尾页</button>
 				<button type="button" onclick="changePage(0)">上一页</button>
-                <button type="button"onclick="changePage(1)">下一页</button>
+				<button type="button" onclick="changePage(1)">下一页</button>
 
             </form>
         </div>
