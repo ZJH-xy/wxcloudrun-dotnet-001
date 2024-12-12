@@ -55,7 +55,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 storeList = await _storeController.GetAllStore();
 
             } catch (Exception e) {
-                _logger.LogError(e, "获取所有门店");
+                _logger.LogError(e, "获取所有门店失败");
 
                 return StatusCode(500);
 			}
