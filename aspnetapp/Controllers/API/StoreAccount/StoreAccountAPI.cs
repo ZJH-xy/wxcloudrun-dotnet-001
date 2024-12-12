@@ -14,6 +14,7 @@ using Senparc.CO2NET.Utilities;
 using Senparc.Weixin.TenPayV3;
 using Senparc.CO2NET.Extensions;
 using Microsoft.Extensions.Logging;
+using System.Xml.Linq;
 
 namespace aspnetapp.Controllers.API.StoreAccount
 {
@@ -582,14 +583,21 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             return StatusCode(200);
         }
-        #endregion
+		#endregion
 
-        #region 商家提交地址审核
-        [HttpPost("reviewMerchantAddress")]
+		#region 商家提交地址审核
+		/// <summary>
+		/// 商家提交地址审核
+		/// </summary>
+		/// <param name="data"></param>
+		/// <returns></returns>
+		[HttpPost("reviewMerchantAddress")]
         public async Task<IActionResult> PostReviewMerchantAddress(GetAddress data) {
             var reviewMerchantAddress = new ReviewMerchantAddress() {
                 TheStore = GetUserIdInt(),
-                GpsLongitude = data.GpsLongitude,
+				Name = data.Name,
+				Address = data.Address,
+				GpsLongitude = data.GpsLongitude,
                 GpsLatitude = data.GpsLatitude,
             };
 
@@ -854,7 +862,9 @@ namespace aspnetapp.Controllers.API.StoreAccount
         /// Latitude 纬度，范围 [-90, 90]
         /// </summary>
         public double GpsLatitude { get; set; }
-    }
+		public string Name { get; set; }
+		public string Address { get; set; }
+	}
 
     /// <summary>
     /// 确认订单格式
