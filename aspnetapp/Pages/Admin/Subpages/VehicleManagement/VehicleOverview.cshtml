@@ -54,7 +54,7 @@
 	<div class="header">
 		<div class="header">
 			<form method="get">
-				<button type="submit" onclick="init()">刷新</button>
+				<button type="submit">刷新</button>
 			</form>
 
 			<button onclick="exportFile()" class="editBtn export">导出</button>
@@ -357,11 +357,11 @@
 
 			<form method="post" asp-page-handler="Search" id="pageForm">
 				<input placeholder="请输入页数" id="redirect" />
-				<button onclick="changePage(3)" class="editBtn">跳转</button>
-				<button onclick="changePage(2)" class="editBtn">首页</button>
-				<button onclick="changeEndPage()" class="editBtn">尾页</button>
-				<button onclick="changePage(0)">上一页</button>
-				<button onclick="changePage(1)">下一页</button>
+				<button type="button" onclick="changePage(3)" class="editBtn">跳转</button>
+				<button type="button" onclick="changePage(2)" class="editBtn">首页</button>
+				<button type="button" onclick="changeEndPage()" class="editBtn">尾页</button>
+				<button type="button" onclick="changePage(0)">上一页</button>
+				<button type="button" onclick="changePage(1)">下一页</button>
 
 			</form>
 		</div>
@@ -482,6 +482,7 @@
 			loadHTML(); // 显示加载中
 
 			console.log("开始调用接口...");
+			if (!file) return;
 
 			const response = await fetch(`${RESPONSEURL}?handler=SayHello`, {
 				method: 'POST',
@@ -635,7 +636,7 @@
 					}
 					await confirmChangePage(pageIndex);
 
-					//cancelloadHTML();
+					cancelloadHTML();
 
 				} else {
 					alert("失败： " + (data.message || "未知错误"));
