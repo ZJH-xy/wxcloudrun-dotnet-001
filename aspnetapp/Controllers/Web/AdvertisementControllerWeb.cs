@@ -1,11 +1,15 @@
-﻿namespace aspnetapp.Controllers.Web {
+﻿using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
+
+namespace aspnetapp.Controllers.Web {
 	public class AdvertisementControllerWeb : Controller {
 		private readonly MyDbContext _context;
 		private readonly ILogger<AdvertisementControllerWeb> _logger;
+		private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;
 
-		public AdvertisementControllerWeb(MyDbContext context, ILogger<AdvertisementControllerWeb> logger) {
+		public AdvertisementControllerWeb(MyDbContext context, ILogger<AdvertisementControllerWeb> logger, IOptionsSnapshot<WeixinSetting> wxSetting) {
 			_context = context;
 			_logger = logger;
+			_wxSetting = wxSetting;
 		}
 
 		/// <summary>
@@ -152,6 +156,47 @@
 				.ToListAsync();
 
 			return (results, sum);
+		}
+
+		/// <summary>
+		/// 更新图片信息
+		/// </summary>
+		/// <param name="vehicleId"></param>
+		/// <param name="fileId"></param>
+		/// <returns></returns>
+		public async Task<int> PutImagePath(int vehicleId, string fileId) {
+			var vehicle = await _context.Vehicle.SingleOrDefaultAsync(v => v.Id == vehicleId);
+
+			if (vehicle is null)
+				return -1;
+
+			// 删除原图片逻辑（如果有）
+			if (!string.IsNullOrEmpty(vehicle.Pictures)) {
+				var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+				var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+				var envId = _wxSetting.Value.Env;
+
+				List<string> fileidList = new() { vehicle.Pictures };
+
+				// 删除原图片
+				var re = await TcbApi.BatchDeleteFileAsync(appId, envId, fileidList);
+				if (re.errcode != ReturnCode.请求成功) {
+					_logger.LogError("删除车辆{VehicleId}原图片{ImageId}", vehicle.Id, vehicle.Pictures);
+				}
+			}
+
+			// 更新图片路径
+			vehicle.Pictures = fileId;
+			vehicle.UpdatedAt = DateTime.Now;
+			try {
+				_context.Vehicle.Update(vehicle);
+				await _context.SaveChangesAsync();
+			} catch (Exception e) {
+				_logger.LogError(e, "保存车辆{VehicleId}图片路径", vehicle);
+				return -2;
+			}
+
+			return 0;
 		}
 	}
 }
