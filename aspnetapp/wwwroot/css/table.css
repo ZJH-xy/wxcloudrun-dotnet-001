@@ -98,8 +98,11 @@ input {
     transition: border-color 0.3s, box-shadow 0.3s; /* 过渡效果 */
     font-size: small;
     height: 30px;
+    width:100px;
 }
-
+td>input{
+    width:100%;
+}
 .bottom {
     gap: 20px;
     display: flex;
@@ -208,7 +211,7 @@ input.editing {
 /* 对大屏设备（桌面）进行优化 */
 @media (min-width: 1500px) {
 
-    input, tr, th, td {
+    tr, th, td {
         width: 100px;
         font-size: small;
         transition: font-size 0.3s ease,width 0.3s ease;
@@ -216,7 +219,6 @@ input.editing {
 
     input {
         font-size: small;
-        height: 30px;
         transition: font-size 0.3s ease,height 0.3s ease;
     }
 
@@ -260,7 +262,6 @@ input.editing {
     }
 
     input {
-        width: 80px;
         font-size: small;
         transition: font-size 0.3s ease,width 0.3s ease;
     }
@@ -301,7 +302,6 @@ input.editing {
     }
 
     input {
-        width: 80px;
         font-size: small;
         transition: font-size 0.3s ease,width 0.3s ease;
     }
@@ -335,7 +335,7 @@ input.editing {
         font-size: 10px;
     }
 
-    td > input, tr, th, td {
+    td > tr, th, td {
         width: 30px;
         font-size: small;
         transition: font-size 0.3s ease,width 0.3s ease;
@@ -344,7 +344,6 @@ input.editing {
     }
 
     input {
-        width: 80px;
         overflow-y: auto; /* 允许垂直滚动 */
         white-space: pre-wrap; /* 保留换行和空格 */
     }

@@ -24,6 +24,9 @@ function loadPage(pageName, clickedLink) {
         case "套餐总览":
             selectedPage = "Subpages/StoreManagement/StoreMenu";
             break;
+        case "账号总览":
+            selectedPage = "Subpages/StoreManagement/StoreAccount";
+            break;
         case "申请审核":
             selectedPage = "Subpages/StoreManagement/ApplyForReview";
             break;
