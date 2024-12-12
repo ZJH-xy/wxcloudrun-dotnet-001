@@ -9,7 +9,10 @@ async function loadHTML() {
 }
 // 取消显示加载中
 function cancelloadHTML() {
-	document.getElementById('loadding').style.display = 'none';
+	var loadding = document.getElementById('loadding');
+	if (loadding) {
+		loadding.style.display = 'none';
+	}
 	unlockPage();
 }
 
