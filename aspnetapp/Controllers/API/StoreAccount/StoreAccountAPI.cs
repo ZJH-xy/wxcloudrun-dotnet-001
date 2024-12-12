@@ -13,6 +13,7 @@ using Polly.Caching;
 using Senparc.CO2NET.Utilities;
 using Senparc.Weixin.TenPayV3;
 using Senparc.CO2NET.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace aspnetapp.Controllers.API.StoreAccount
 {
@@ -139,20 +140,22 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (vehicle.TheCurrentStore != storeId)// 车辆当前所在门店
                 return StatusCode(403, "车辆不在当前门店");
 
-            if ((vehicle.State != Vehicle.Estates.锁定) || (vehicle.State != Vehicle.Estates.空闲))
+			// 车辆状态不为锁定或空闲
+			if (vehicle.State is not Vehicle.Estates.锁定 and not Vehicle.Estates.空闲)
                 return StatusCode(403, "车辆状态异常");
 
             using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
 
             DateTime now = DateTime.Now;
 
-
             vehicle.State = Vehicle.Estates.已出租;
             try {/* 确认订单 */
                 order.Status = Order.EOrderStatus.进行中;
                 order.ActualStartingTime = now;
+				await _dbContext.SaveChangesAsync();
 
-                if (order.TheVehicle != getData.TheVehicle) {
+				// 商家选择不同车辆
+				if (order.TheVehicle != getData.TheVehicle) {
                     Vehicle oldV = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
                     oldV.State = Vehicle.Estates.空闲;
                     oldV.UpdatedAt = now;
@@ -443,9 +446,11 @@ namespace aspnetapp.Controllers.API.StoreAccount
             //    order.OvertimeFee = (decimal)(overtime.Hours * 5);// 超时费，一小时5 元
             //}
 
+            // 实际费用
+            var totalPrice = order.GetActualCost();
 
-            // 已付金额小于总金额
-            if (order.Paid < order.GetTotalPrice()) {
+			// 已付金额小于总金额
+			if (order.Paid < order.GetTotalPrice()) {
                 // 要求用户支付剩余金额
                 order.Status = EOrderStatus.侍补余;
                 try {
@@ -471,7 +476,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 try {
                     await _dbContext.SupplementaryOrders.AddAsync(supplementaryOrders);
                     await _dbContext.SaveChangesAsync();
-                    await transaction.CommitAsync();
 
                 } catch (Exception e) {
                     _logger.LogError(e, "创建补充订单{supplementaryOrders}失败", supplementaryOrders.ToJson(true));
@@ -480,64 +484,125 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
                 return StatusCode(200);
                 //return StatusCode(202, new { appid, timestamp, nonceStr, pack, signType, paySign });
-            } else {
+            } else if (order.Paid > totalPrice) {
                 // 进入退款
                 // 退押金金额（金额修改完成后计算！！！）
-                var sum = order.Paid - order.GetTotalPrice();
 
                 // 新建退款表数据
                 RefundOrder refundOrder = new() {
                     TheOrder = order.Id,
-                    RefundId = "",//等待
+					//outRefundNo = string.Concat("Refund_", Guid.NewGuid().ToString("N").AsSpan(0, 20)),
+					RefundId = "",//等待
                     Reason = "自动退款",
                     Status = RefundOrder.Estatus.已创建,//等待
                     Total = order.Paid,
-                    Refund = sum,//归还多余费用
+                    Refund = totalPrice,//归还多余费用
                     SuccessTime = null,//等待
                     CreateTime = now,//等待
                     UpdatedAt = now,
                 };
 
                 try {
-                    Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
-                    vehicle.State = Vehicle.Estates.侍确认;
-                    vehicle.StateUpdatedAt = now;
+					// 调用退款服务
+					RefundReturnJson refundReturnJson = await OrderAPI.RefundAsync(order, refundOrder);
 
-                    // 生成退款表数据
-                    _dbContext.RefundOrder.Add(refundOrder);
+					if (refundReturnJson.ResultCode.Success != true) {
+						_logger.LogError("退款请求失败{ResultCode}", refundReturnJson.ResultCode.ToJson(true));
+						return StatusCode(403, "退款请求失败，请稍后再试");
+					}
 
-                    // 调用退款服务
-                    RefundReturnJson refundReturnJson = await OrderAPI.RefundAsync(order, refundOrder);
+					// 生成退款表数据
+					_dbContext.RefundOrder.Add(refundOrder);
+					await _dbContext.SaveChangesAsync();
 
-                    order.Status = Order.EOrderStatus.退款中;
+					order.Status = Order.EOrderStatus.退款中;
                     order.ActualReturnTime = now;// 归还时间
                     order.TheReturnThePoint = GetUserIdInt();
                     order.DepositRefunded += refundOrder.Refund;
                     order.UpdatedAt = now;
+					await _dbContext.SaveChangesAsync();
 
-                    // 营业额统计表
-                    RevenueStatistics revenueStatistics = new() {
-                        TheStoreA = order.TheRentalLocation,
-                        TheStoreB = GetUserIdInt(),
-                        TheOrder = order.Id,
-                        CreatedAt = now,
-                        UpdatedAt = now,
-                    };
+					Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+					vehicle.State = Vehicle.Estates.侍确认;
+					vehicle.StateUpdatedAt = now;
+					await _dbContext.SaveChangesAsync();
 
-                    await _dbContext.RevenueStatistic.AddAsync(revenueStatistics);
-                    await _dbContext.SaveChangesAsync();
-
-                    // 如果退款成功，提交事务
-                    await transaction.CommitAsync();
-                } catch (Exception ex) {
-                    _logger.LogError(ex, "订单处理失败。订单ID: {OrderId}, 车辆ID: {VehicleId}, 退款金额: {RefundAmount}",
-                        order.Id, order.TheVehicle, refundOrder.Refund);
-                    await transaction.RollbackAsync();
+				} catch (Exception ex) {
+                    _logger.LogError(ex, "订单处理失败。订单ID: {OrderId}, 车辆ID: {VehicleId}, 退款金额: {RefundAmount}", order.Id, order.TheVehicle, refundOrder.Refund);
                     return StatusCode(500);
                 }
+            } else {
+                try {
+					// 金额相等
+					Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+					vehicle.State = Vehicle.Estates.侍确认;
+					vehicle.StateUpdatedAt = now;
+					await _dbContext.SaveChangesAsync();
+
+					order.Status = Order.EOrderStatus.已完成;
+					order.ActualReturnTime = now;// 归还时间
+					order.TheReturnThePoint = GetUserIdInt();
+					order.UpdatedAt = now;
+					await _dbContext.SaveChangesAsync();
+
+				} catch (Exception e) {
+                    _logger.LogError(e, "金额相等无退款订单处理失败。订单ID: {OrderId}, 车辆ID: {VehicleId}", order.Id, order.TheVehicle);
+
+					return StatusCode(500);
+				}
+			}
+
+            // 营业额统计表
+            RevenueStatistics revenueStatistics = new() {
+                TheStoreA = order.TheRentalLocation,
+                TheStoreB = GetUserIdInt(),
+                TheOrder = order.Id,
+                CreatedAt = now,
+                UpdatedAt = now,
+            };
+
+            try {
+                await _dbContext.RevenueStatistic.AddAsync(revenueStatistics);
+                await _dbContext.SaveChangesAsync();
+
+            } catch (Exception ex) {
+                _logger.LogError(ex, "营业额统计表添加失败{data}", revenueStatistics.ToJson(true));
+            }
+
+            // 最后操作
+            try {
+                await transaction.CommitAsync();
+
+            } catch (Exception e) {
+                _logger.LogCritical(e, "确认还车事务提交失败orderId{Id},TheVehicle:{TheVehicle},TheStoreId:{TheStore}", order.Id, order.TheVehicle, GetUserIdInt());
+                await transaction.RollbackAsync();
+
+                return StatusCode(500);
             }
 
             return StatusCode(200);
+        }
+        #endregion
+
+        #region 商家提交地址审核
+        [HttpPost("reviewMerchantAddress")]
+        public async Task<IActionResult> PostReviewMerchantAddress(GetAddress data) {
+            var reviewMerchantAddress = new ReviewMerchantAddress() {
+                TheStore = GetUserIdInt(),
+                GpsLongitude = data.GpsLongitude,
+                GpsLatitude = data.GpsLatitude,
+            };
+
+            try {
+                await _dbContext.ReviewMerchantAddress.AddAsync(reviewMerchantAddress);
+                await _dbContext.SaveChangesAsync();
+
+            } catch (Exception e) {
+                _logger.LogError(e, "保存商家提交地址审核失败");
+                return StatusCode(500);
+            }
+
+            return Ok();
         }
         #endregion
 
@@ -777,6 +842,21 @@ namespace aspnetapp.Controllers.API.StoreAccount
     }
 
     /// <summary>
+    /// 商家审核地址信息
+    /// </summary>
+    public class GetAddress {
+        /// <summary>
+        /// Longitude 经度，范围 [-180, 180]
+        /// </summary>
+        public double GpsLongitude { get; set; }
+
+        /// <summary>
+        /// Latitude 纬度，范围 [-90, 90]
+        /// </summary>
+        public double GpsLatitude { get; set; }
+    }
+
+    /// <summary>
     /// 确认订单格式
     /// </summary>
     public class GetConfirmOrder {
@@ -810,7 +890,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
             TheRentalLocation = order.TheRentalLocation;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
-            Deposit = order.Deposit;
+			IdentityCard = order.IdentityCard;
+			Deposit = order.Deposit;
             Rent = order.Rent;
             Paid = order.Paid;
             Status = order.Status;
@@ -823,14 +904,14 @@ namespace aspnetapp.Controllers.API.StoreAccount
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
-        public decimal Deposit { get; set; }// 押金
+		public string? IdentityCard { get; set; }// 身份证号
+		public decimal Deposit { get; set; }// 押金
         public decimal Rent { get; set; }// 租金
         public decimal Paid { get; set; }// 已付
         public Order.EOrderStatus Status { get; set; }// 订单状态
         public DateTime CreatedAt { get; set; }
         public string? Notes { get; set; }// 备注
         //public DateTime UpdatedAt { get; set; }
-        //public string? IdentityCard { get; set; }// 身份证号
     }
 
     /// <summary>
@@ -875,7 +956,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
             TheRentalLocation = order.TheRentalLocation;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
-            Deposit = order.Deposit;
+            IdentityCard = order.IdentityCard;
+			Deposit = order.Deposit;
             Rent = order.Rent;
             Paid = order.Paid;
             Status = order.Status;
@@ -889,6 +971,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public string UserName { get; set; }// 用户姓名
         public string UserPhone { get; set; }// 用户手机号
+		public string? IdentityCard { get; set; }// 身份证号
         public decimal Deposit { get; set; }// 押金
         public decimal Rent { get; set; }// 租金
         public decimal Paid { get; set; }// 已付
@@ -896,6 +979,5 @@ namespace aspnetapp.Controllers.API.StoreAccount
         public DateTime CreatedAt { get; set; }
         public string? Notes { get; set; }// 备注
         //public DateTime UpdatedAt { get; set; }
-        //public string? IdentityCard { get; set; }// 身份证号
     }
 }

@@ -776,22 +776,22 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 							*/
                             using (var transaction = await _dbContext.Database.BeginTransactionAsync()) {
                                 try {
-                                    _logger.LogInformation("开始更改订单状态");
+                                    //_logger.LogInformation("开始更改订单状态");
                                     order.Status = Order.EOrderStatus.待确认;// 更改订单状态
                                     order.Paid += orderReturnJson.amount.total / 100m;// 增加已付金额
                                     order.SuccessTime = orderReturnJson.success_time;
                                     order.UpdatedAt = now;
                                     await _dbContext.SaveChangesAsync();
 
-                                    _logger.LogInformation("开始更改车辆状态");
-                                    Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
-                                    vehicle.State = Vehicle.Estates.已出租;
-                                    vehicle.UpdatedAt = now;
-                                    vehicle.StateUpdatedAt = now;
-                                    await _dbContext.SaveChangesAsync();
+                                    //_logger.LogInformation("开始更改车辆状态");
+                                    //Vehicle vehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
+                                    //vehicle.State = Vehicle.Estates.已出租;
+                                    //vehicle.UpdatedAt = now;
+                                    //vehicle.StateUpdatedAt = now;
+                                    //await _dbContext.SaveChangesAsync();
 
                                     await transaction.CommitAsync();
-                                    _logger.LogInformation("更改完毕");
+                                    _logger.LogInformation("更改订单状态完毕");
                                 } catch (Exception e) {
                                     _logger.LogCritical(e, "支付回调{orderReturnJson}", orderReturnJson.ToJson(true));
                                     await transaction.RollbackAsync();
@@ -903,14 +903,13 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             //if (await _dbContext.RefundOrder.AnyAsync(ro => ro.TheOrder == order.Id))
             //    return StatusCode(403, "请勿重复请求");
 
-            #region 退款
             /* 退款流程 */
             var now = DateTime.Now;
 
             // 新建退款表数据
             RefundOrder refundOrder = new() {
                 TheOrder = order.Id,
-                outRefundNo = string.Concat("Refund_", Guid.NewGuid().ToString("N").AsSpan(0, 20)),
+                //outRefundNo = string.Concat("Refund_", Guid.NewGuid().ToString("N").AsSpan(0, 20)),
                 RefundId = "",//等待
                 Reason = "直接退款",
                 Status = RefundOrder.Estatus.已创建,//等待
@@ -921,25 +920,24 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 UpdatedAt = now,
             };
 
-            try {
-                // 生成退款表数据
-                _dbContext.RefundOrder.Add(refundOrder);
-                await _dbContext.SaveChangesAsync();
-
-            } catch (Exception e) {
-                _logger.LogError(e, "新建退款表数据");
-                return StatusCode(500);
-            }
-
             RefundReturnJson refundReturnJson = await RefundAsync(order, refundOrder);// 调用退款
-            #endregion
 
             if (refundReturnJson.ResultCode.Success != true) {
                 _logger.LogError("退款请求失败{ResultCode}", refundReturnJson.ResultCode.ToJson(true));
                 return StatusCode(403, "退款请求失败，请稍后再试");
-            }
+			}
 
-            refundOrder.RefundId = refundReturnJson.refund_id;
+			try {
+				// 生成退款表数据
+				_dbContext.RefundOrder.Add(refundOrder);
+				await _dbContext.SaveChangesAsync();
+
+			} catch (Exception e) {
+				_logger.LogError(e, "新建退款表数据失败{data}", refundOrder.ToJson(true));
+				return StatusCode(500);
+			}
+
+			refundOrder.RefundId = refundReturnJson.refund_id;
 
             now = DateTime.Now;
             refundOrder.Status = (RefundOrder.Estatus)RefundOrderEstatusHashtable[refundReturnJson.status]!;// 获取对应枚举值
@@ -1115,7 +1113,14 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
                 await transaction.CommitAsync();
 
-            } catch (Exception e) {
+                // 关闭订单
+				BasePayApis basePayApis = new();
+
+                CloseRequestData closeRequestData = new(Senparc.Weixin.Config.SenparcWeixinSetting.TenPayV3_MchId, order.OutTradeNo);
+
+                var re = await basePayApis.CloseOrderAsync(closeRequestData);
+
+			} catch (Exception e) {
                 _logger.LogError("取消订单{OrderId}", getData.OrderId);
                 await transaction.RollbackAsync();
                 return StatusCode(500);
@@ -1860,11 +1865,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             OrderId = order.Id;
             TheRentalLocation = order.TheRentalLocation;
             TheVehicle = order.TheVehicle;
-            UserName = order.UserName;
-            UserPhone = order.UserPhone;
             Deposit = order.Deposit;
             Rent = order.Rent;
             DispatchFee = order.DispatchFee;
+            OvertimeFee = order.OvertimeFee;
             OtherFees = order.OtherFees;
             Paid = order.Paid;
             DepositRefunded = order.DepositRefunded;
@@ -1874,11 +1878,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public int OrderId { get; init; }// 订单编号
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public int TheVehicle { get; set; }// 租用车辆
-        public string UserName { get; set; }// 用户姓名
-        public string UserPhone { get; set; }// 用户手机号
         public decimal Deposit { get; set; }// 押金
         public decimal Rent { get; set; }// 租金
         public decimal DispatchFee { get; set; }// 调度费
+        public decimal OvertimeFee { get; set; }// 超时费
         public decimal OtherFees { get; set; }// 其他费用
         public decimal Paid { get; set; }// 已付
         public decimal DepositRefunded { get; set; }// 已退押金
@@ -1903,6 +1906,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
             Deposit = order.Deposit;
             Rent = order.Rent;
             DispatchFee = order.DispatchFee;
+            OvertimeFee = order.OvertimeFee;
             OtherFees = order.OtherFees;
             Paid = order.Paid;
             DepositRefunded = order.DepositRefunded;
@@ -1923,6 +1927,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public decimal Deposit { get; set; }// 押金
         public decimal Rent { get; set; }// 租金
         public decimal DispatchFee { get; set; }// 调度费
+        public decimal OvertimeFee { get; set; }// 超时费
         public decimal OtherFees { get; set; }// 其他费用
         public decimal Paid { get; set; }// 已付
         public decimal DepositRefunded { get; set; }// 已退押金

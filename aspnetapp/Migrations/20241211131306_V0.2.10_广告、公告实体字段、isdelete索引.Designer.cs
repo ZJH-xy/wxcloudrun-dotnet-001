@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace aspnetapp.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241211131306_V0.2.10_广告、公告实体字段、isdelete索引")]
+    partial class V0210_广告公告实体字段isdelete索引
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -57,9 +59,6 @@ namespace aspnetapp.Migrations
 
                     b.Property<bool>("IsDelete")
                         .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Pictures")
-                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("RowVersion")
                         .IsConcurrencyToken()

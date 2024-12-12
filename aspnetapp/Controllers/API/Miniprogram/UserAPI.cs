@@ -329,7 +329,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "手机号获取用户{Phone}", result.phone_info.purePhoneNumber);
 
                 return StatusCode(500);
-				
 			}
 
             //List<Claim> claims;
@@ -351,15 +350,15 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				};
                 _logger.LogInformation("创建新用户{User}", user.ToJson(true));
                 try {
-                    changeSum = await _userController.AddUser(user);
-                    if (0 == changeSum)
-                        throw new Exception("新增行数为0");
+                    await _userController.AddUser(user);
 
-                } catch (Exception e) {
+                    user.Nickname = "用户" + user.Id;
+                    await _userController.UpdateUser(user);
+
+				} catch (Exception e) {
                     _logger.LogError(e, "新用户注册");
 
                     return StatusCode(403, "注册失败，请联系管理员");
-					
 				}
 
                 return StatusCode(200, GetJwtToken(CreateClaim(user.Id.ToString(), "user")));

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace aspnetapp.Migrations
 {
     [DbContext(typeof(MyDbContext))]
-    partial class MyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241211130225_V0.2.9_新建公告表、广告表、审核商家地址表")]
+    partial class V029_新建公告表广告表审核商家地址表
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -58,17 +60,10 @@ namespace aspnetapp.Migrations
                     b.Property<bool>("IsDelete")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("Pictures")
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp(6)");
-
-                    b.Property<string>("Src")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -78,8 +73,6 @@ namespace aspnetapp.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("IsDelete");
 
                     b.ToTable("T_Advertisement");
                 });
@@ -133,6 +126,10 @@ namespace aspnetapp.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp(6)");
 
+                    b.Property<string>("Src")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -141,8 +138,6 @@ namespace aspnetapp.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("IsDelete");
 
                     b.ToTable("T_Notice");
                 });
@@ -419,8 +414,6 @@ namespace aspnetapp.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("IsDelete");
-
                     b.ToTable("T_StoreSummary");
                 });
 
@@ -676,7 +669,7 @@ namespace aspnetapp.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TheOriginalStore", "TheCurrentStore", "State", "IsDelete");
+                    b.HasIndex("TheOriginalStore", "TheCurrentStore", "State");
 
                     b.ToTable("T_VehicleSummary");
                 });
