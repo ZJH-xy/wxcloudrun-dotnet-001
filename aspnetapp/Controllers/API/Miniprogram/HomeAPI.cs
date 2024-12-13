@@ -50,21 +50,48 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				return StatusCode(500);
 			}
 
-
             List<ReturnAdvertisement> returnNotice = new();
+			List<int> downloadPositionList = new();// 有图片的位置
+			List<FileItem> fileidList = new();// 文件下载链接的列表
 
-            foreach (Advertisement ad in adList) {
+			for (int i = 0; i < adList.Count; ++i) {
+				returnNotice.Add(new(adList[i]));
+				if (!adList[i].Pictures.IsNullOrEmpty()) {
+					// 如有图片则放入列表
+					fileidList.Add(new FileItem {
+						fileid = adList[i].Pictures,
+						max_age = 7200
+					});
+					downloadPositionList.Add(i);
+				}
+			}
+			// 下载链接
+			Result_File_List[] downloadLinkArray = await GetImageDownload(fileidList);
 
-				ReturnAdvertisement returnAdvertisement = new(ad);
-
-				// 获取图片下载
-				returnAdvertisement.Pictures = returnAdvertisement.Pictures is not null ? await GetImageDownload(returnAdvertisement.Pictures) : null;
-
-				returnNotice.Add(returnAdvertisement);
+			for (int i = 0; i < downloadLinkArray.Length; ++i) {
+				returnNotice[downloadPositionList[i]].Pictures = downloadLinkArray[i].download_url;
 			}
 
 			return StatusCode(200, returnNotice);
-        }
+		}
+
+		/// <summary>
+		/// 获取图片文件下载链接（多个）
+		/// </summary>
+		/// <param name="fileidList"></param>
+		/// <returns></returns>
+		private async Task<Result_File_List[]> GetImageDownload(List<FileItem> fileidList) {
+			var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+			var envId = _wxSetting.Value.Env;
+
+			var re = await TcbApi.BatchDownloadFileAsync(appId, envId, fileidList);
+
+			if (re.errcode != ReturnCode.请求成功) {
+				_logger.LogError("{errmsg},获取下载链接失败{fileidList}", re.errmsg, fileidList.ToJson());
+			}
+
+			return re.file_list;
+		}
 
 		/// <summary>
 		/// 获取图片文件下载链接
@@ -113,7 +140,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
     /// <summary>
     /// 返回广告格式
     /// </summary>
-    public struct ReturnAdvertisement {
+    public class ReturnAdvertisement {
         public ReturnAdvertisement(Advertisement advertisement) {
             Id = advertisement.Id;
             Title = advertisement.Title;

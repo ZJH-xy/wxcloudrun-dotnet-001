@@ -61,8 +61,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			}
 
 			List<StoreBasic> storeBasicList = new();
-
-
 			List<int> downloadPositionList = new();// 有图片的位置
 			List<FileItem> fileidList = new();// 文件下载链接的列表
 
