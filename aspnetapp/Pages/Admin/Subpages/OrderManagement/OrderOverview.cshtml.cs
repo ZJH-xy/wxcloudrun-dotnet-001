@@ -133,13 +133,13 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			return Page();
 		}
 
-        /// <summary>
-        /// 导出功能
-        /// </summary>
-        /// <returns></returns>
-        public async Task<IActionResult> OnGetExportToExcelAsync() {
+		/// <summary>
+		/// 导出功能
+		/// </summary>
+		/// <returns></returns>
+		public async Task<IActionResult> OnGetExportToExcelAsync([FromBody] Dictionary<string, DateTime> requestData) {
 			// 获取订单表
-			List<Order> excelList = await _orderController.GetAllOrders();
+			List<Order> excelList = await _orderController.GetAllOrdersByMonth(requestData);
 
 			// 创建一个新的工作簿
 			IWorkbook workbook = new XSSFWorkbook();
@@ -149,26 +149,64 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			IRow headerRow = sheet.CreateRow(0);
 			headerRow.CreateCell(0).SetCellValue("序号");
 			headerRow.CreateCell(1).SetCellValue("订单 ID");
-			headerRow.CreateCell(2).SetCellValue("用户手机号");
-			headerRow.CreateCell(3).SetCellValue("订单状态");
-			headerRow.CreateCell(4).SetCellValue("交易号");
-			headerRow.CreateCell(5).SetCellValue("创建时间");
-			headerRow.CreateCell(6).SetCellValue("更新时间");
+			headerRow.CreateCell(2).SetCellValue("商户系统内部订单号");
+			headerRow.CreateCell(3).SetCellValue("微信支付系统订单号");
+			headerRow.CreateCell(4).SetCellValue("用户手机号");
+			headerRow.CreateCell(5).SetCellValue("逻辑指向用户");
+			headerRow.CreateCell(6).SetCellValue("逻辑指向套餐");
+			headerRow.CreateCell(7).SetCellValue("实际起始时间");
+			headerRow.CreateCell(8).SetCellValue("实际归还时间");
+			headerRow.CreateCell(9).SetCellValue("逻辑指向车辆（租用车辆）");
+			headerRow.CreateCell(10).SetCellValue("租车点（StoreId）");
+			headerRow.CreateCell(11).SetCellValue("还车点（StoreId）");
+			headerRow.CreateCell(12).SetCellValue("用户姓名");
+			headerRow.CreateCell(13).SetCellValue("身份证号");
+			headerRow.CreateCell(14).SetCellValue("押金");
+			headerRow.CreateCell(15).SetCellValue("租金");
+			headerRow.CreateCell(16).SetCellValue("调度费");
+			headerRow.CreateCell(17).SetCellValue("超时费");
+			headerRow.CreateCell(18).SetCellValue("其他费用");
+			headerRow.CreateCell(19).SetCellValue("已付");
+			headerRow.CreateCell(20).SetCellValue("已退押金");
+			headerRow.CreateCell(21).SetCellValue("订单状态");
+			headerRow.CreateCell(22).SetCellValue("备注");
+			headerRow.CreateCell(23).SetCellValue("支付完成时间");
+			headerRow.CreateCell(24).SetCellValue("创建时间");
+			headerRow.CreateCell(25).SetCellValue("更新时间");
 
 			// 填充数据
 			for (int i = 0; i < excelList.Count; i++) {
 				var row = sheet.CreateRow(i + 1);
 				row.CreateCell(0).SetCellValue(i + 1);
 				row.CreateCell(1).SetCellValue(excelList[i].Id.ToString());
-				row.CreateCell(2).SetCellValue(excelList[i].UserPhone ?? "");
-				row.CreateCell(3).SetCellValue(excelList[i].Status.ToString());
-				row.CreateCell(4).SetCellValue(excelList[i].TransactionId ?? "");
-				row.CreateCell(5).SetCellValue(excelList[i].CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
-				row.CreateCell(6).SetCellValue(excelList[i].UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+				row.CreateCell(2).SetCellValue(excelList[i].OutTradeNo ?? "");
+				row.CreateCell(3).SetCellValue(excelList[i].TransactionId ?? "");
+				row.CreateCell(4).SetCellValue(excelList[i].UserPhone ?? "");
+				row.CreateCell(5).SetCellValue(excelList[i].TheUser.ToString());
+				row.CreateCell(6).SetCellValue(excelList[i].TheStoreMenu.ToString());
+				row.CreateCell(7).SetCellValue(excelList[i].ActualStartingTime.HasValue ? excelList[i].ActualStartingTime.Value.ToString("yyyy-MM-dd HH:mm:ss") : "");
+				row.CreateCell(8).SetCellValue(excelList[i].ActualReturnTime.HasValue ? excelList[i].ActualReturnTime.Value.ToString("yyyy-MM-dd HH:mm:ss") : "");
+				row.CreateCell(9).SetCellValue(excelList[i].TheVehicle.ToString());
+				row.CreateCell(10).SetCellValue(excelList[i].TheRentalLocation.ToString());
+				row.CreateCell(11).SetCellValue(excelList[i].TheReturnThePoint.HasValue ? excelList[i].TheReturnThePoint.Value.ToString() : "");
+				row.CreateCell(12).SetCellValue(excelList[i].UserName ?? "");
+				row.CreateCell(13).SetCellValue(excelList[i].IdentityCard ?? "");
+				row.CreateCell(14).SetCellValue(excelList[i].Deposit.ToString("F2")); // 保留两位小数
+				row.CreateCell(15).SetCellValue(excelList[i].Rent.ToString("F2")); // 保留两位小数
+				row.CreateCell(16).SetCellValue(excelList[i].DispatchFee.ToString("F2")); // 保留两位小数
+				row.CreateCell(17).SetCellValue(excelList[i].OvertimeFee.ToString("F2")); // 保留两位小数
+				row.CreateCell(18).SetCellValue(excelList[i].OtherFees.ToString("F2")); // 保留两位小数
+				row.CreateCell(19).SetCellValue(excelList[i].Paid.ToString("F2")); // 保留两位小数
+				row.CreateCell(20).SetCellValue(excelList[i].DepositRefunded.ToString("F2")); // 保留两位小数
+				row.CreateCell(21).SetCellValue(excelList[i].Status.ToString());
+				row.CreateCell(22).SetCellValue(excelList[i].Notes ?? "");
+				row.CreateCell(23).SetCellValue(excelList[i].SuccessTime.HasValue ? excelList[i].SuccessTime.Value.ToString("yyyy-MM-dd HH:mm:ss") : "");
+				row.CreateCell(24).SetCellValue(excelList[i].CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+				row.CreateCell(25).SetCellValue(excelList[i].UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
 			}
 
 			// 固定列宽
-			for (int col = 0; col < 6; col++) {
+			for (int col = 0; col < 26; col++) {
 				sheet.SetColumnWidth(col, 20 * 256); // 设置固定宽度，单位为 1/256 个字符宽度
 			}
 

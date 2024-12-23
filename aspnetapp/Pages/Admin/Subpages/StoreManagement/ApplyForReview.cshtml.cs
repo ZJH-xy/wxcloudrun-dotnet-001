@@ -53,8 +53,8 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 
 			using var transaction = await _context.Database.BeginTransactionAsync();// 事务开始
 
-			store.Address = review.Address is null ? store.Address : review.Address;
-			store.Name = review.Name is null ? store.Name : review.Name;
+			store.Address = review.Address.IsNullOrEmpty() ? store.Address : review.Address;
+			store.Name = review.Name.IsNullOrEmpty() ? store.Name : review.Name;
 			store.GpsLongitude = review.GpsLongitude;
 			store.GpsLatitude = review.GpsLatitude;
 
