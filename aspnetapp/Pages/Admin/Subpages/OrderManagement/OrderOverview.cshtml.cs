@@ -137,7 +137,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// 导出功能
 		/// </summary>
 		/// <returns></returns>
-		public async Task<IActionResult> OnGetExportToExcelAsync([FromBody] Dictionary<string, DateTime> requestData) {
+		public async Task<IActionResult> OnPostExportToExcelAsync([FromBody] Dictionary<string, DateTime> requestData) {
 			// 获取订单表
 			List<Order> excelList = await _orderController.GetAllOrdersByMonth(requestData);
 
