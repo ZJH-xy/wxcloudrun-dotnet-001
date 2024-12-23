@@ -139,10 +139,19 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// <returns></returns>
 		[HttpPost]
 		[IgnoreAntiforgeryToken]
-		public async Task<IActionResult> OnPostExportToExcelAsync([FromBody] Dictionary<string, DateTime> requestData) {
+		public async Task<IActionResult> OnPostExportToExcelAsync([FromBody] Dictionary<string, string> requestData) {
+			// 解析月份字符串
+			string monthString = requestData["Month"];
+			if (!DateTime.TryParse(monthString, out DateTime targetMonth)) {
+				return BadRequest("无效的月份格式");
+			}
+
+			// 获取该月份的第一天和最后一天
+			DateTime startOfMonth = new DateTime(targetMonth.Year, targetMonth.Month, 1);
+			DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
 
 			// 获取订单表
-			List<Order> excelList = await _orderController.GetAllOrdersByMonth(requestData);
+			List<Order> excelList = await _orderController.GetAllOrdersByMonth(startOfMonth, endOfMonth);
 
 			// 创建一个新的工作簿
 			IWorkbook workbook = new XSSFWorkbook();
