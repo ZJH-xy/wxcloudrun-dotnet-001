@@ -212,7 +212,9 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 			Thread.Sleep(2500);
 
 			if (!FileId.IsNullOrEmpty()) {
+#if DEBUG
 				_logger.LogInformation($"更新车辆图片信息FileId：{FileId}");
+#endif
 				// 更新车辆图片信息
 				await _advertisementController.PutImagePath(UpdatedAdvertisement.Id, FileId);
 				FileId = "";
