@@ -55,7 +55,11 @@ namespace aspnetapp.Controllers.Web {
             }
         }
 
-        // 删除门店（逻辑删除）
+        /// <summary>
+        /// 删除门店（逻辑删除）
+        /// </summary>
+        /// <param name="storeId"></param>
+        /// <returns></returns>
         public async Task<IActionResult> DeleteStore(int storeId) {
             var store = await _context.StoreMenus.FindAsync(storeId);
             if (store == null) {

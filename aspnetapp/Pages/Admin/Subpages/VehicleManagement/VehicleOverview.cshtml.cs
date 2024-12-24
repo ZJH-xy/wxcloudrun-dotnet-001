@@ -66,12 +66,32 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 		public string ImageName { get; set; } // 图片文件名
 		public static string FileId { get; set; } = "";
 
-        /// <summary>
-        /// 用于提供给前端的 API 方法
-        /// </summary>
-        /// <param name="requestData"></param>
-        /// <returns></returns>
-        [HttpPost]
+		/// <summary>
+		/// 删除
+		/// </summary>
+		/// <returns></returns>
+		[HttpDelete]
+		[IgnoreAntiforgeryToken]
+		public async Task<JsonResult> OnDeleteDelAsync([FromBody] Dictionary<string, int> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+			int id = requestData["id"];
+			if (id == 0)
+				return new JsonResult(new { success = false, message = "ID不能为0" });
+
+
+			return new JsonResult(new { success = true, message = $"已删除行数：{await _vehicleController.DeleteStore(id)}" });
+		}
+
+		/// <summary>
+		/// 用于提供给前端的 API 方法
+		/// </summary>
+		/// <param name="requestData"></param>
+		/// <returns></returns>
+		[HttpPost]
         [IgnoreAntiforgeryToken]
         public async Task<JsonResult> OnPostSayHelloAsync() {
             Console.WriteLine("接口已触发");

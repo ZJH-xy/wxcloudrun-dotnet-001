@@ -37,8 +37,33 @@ namespace aspnetapp.Controllers.Web {
             return await _context.Vehicle.Where(s => !s.IsDelete).CountAsync();
         }
 
-        // 添加
-        public async Task<IActionResult> AddVehicleAsync(Vehicle newVehicle) {
+		/// <summary>
+        /// 删除（逻辑删除）
+        /// </summary>
+        /// <param name="storeId"></param>
+        /// <returns></returns>
+		public async Task<IActionResult> DeleteStore(int storeId) {
+			var store = await _context.Vehicle.FindAsync(storeId);
+			if (store == null) {
+				_logger.LogWarning("StoreMenu with ID {StoreId} not found", storeId);
+				return NotFound("StoreMenu not found.");
+			}
+
+			store.IsDelete = true;
+
+			try {
+				_context.Vehicle.Update(store);
+				await _context.SaveChangesAsync();
+				_logger.LogInformation("StoreMenu with ID {StoreId} deleted successfully", storeId);
+				return Ok("StoreMenu deleted successfully.");
+			} catch (Exception ex) {
+				_logger.LogError(ex, "Error deleting StoreMenu with ID {StoreId}", storeId);
+				return StatusCode(500, "Error deleting StoreMenu.");
+			}
+		}
+
+		// 添加
+		public async Task<IActionResult> AddVehicleAsync(Vehicle newVehicle) {
             if (!ModelState.IsValid) {
                 return BadRequest("车辆信息无效");
             }
