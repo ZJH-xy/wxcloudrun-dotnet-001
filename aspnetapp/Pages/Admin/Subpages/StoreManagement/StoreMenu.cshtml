@@ -460,21 +460,21 @@
                     console.log('id', id)
                     const container = document.querySelector(`.saveBtn[data-id="${id}"]`);
  
-                    // 切换其他字段为可编辑状态
-                    const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
-                    inputs.forEach(input => input.disabled = false);
+                    // // 切换其他字段为可编辑状态
+                    // const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
+                    // inputs.forEach(input => input.disabled = false);
 
-                    // 使 textarea 可编辑
-                    const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedStore.Introduce']`);
-                    if (textArea) textArea.disabled = false; // 使 textarea 可编辑
+                    // // 使 textarea 可编辑
+                    // const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedStore.Introduce']`);
+                    // if (textArea) textArea.disabled = false; // 使 textarea 可编辑
 
-                    // 使状态下拉框可以编辑
-                    const selectState = container.closest("tr").querySelector("select[name='UpdatedStore.Status']");
-                    if (selectState) selectState.disabled = false;
+                    // // 使状态下拉框可以编辑
+                    // const selectState = container.closest("tr").querySelector("select[name='UpdatedStore.Status']");
+                    // if (selectState) selectState.disabled = false;
 
                     // 切换按钮状态
                     this.style.display = "none"; // 隐藏编辑按钮
-                    container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
+                    // container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
                     container.closest("tr").querySelector(".deleteBtn").style.display = "inline-block";
 
                 });
@@ -487,7 +487,7 @@
 
         // 获取搜索输入框的数据
         async function getSearchData() {
-            var SearchTheStore = document.getElementById('SearchTheStoreHtml');
+            var searchTheStore = document.getElementById('SearchTheStoreHtml');
 
             try {
                 const response = await fetch(`${RESPONSEURL}?handler=SearchData`, {
@@ -504,8 +504,8 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    console.log('getdata', data)
-                    SearchTheStore.value = data.searchTheStore;
+                    console.log('getSearchData', data)
+                    searchTheStore.value = data.searchTheStore;
                     setTimeout(function () {
                         console.log('搜索成功!')
                     }, 500)
@@ -522,10 +522,10 @@
         // 确认搜索
         async function confirmChangeSearchData() {
             loadHTML(); // 显示加载中            
-            var SearchTheStore = document.getElementById('SearchTheStoreHtml').value
+            var searchTheStore = document.getElementById('SearchTheStoreHtml').value
 
             const requestData = {
-                "SearchTheStore": SearchTheStore,
+                "SearchTheStore": searchTheStore,
 
             };
             console.log("requestData", requestData);

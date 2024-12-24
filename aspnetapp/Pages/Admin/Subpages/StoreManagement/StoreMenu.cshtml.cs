@@ -127,7 +127,7 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         /// 更新
         /// </summary>
         /// <returns></returns>
-        public async Task<IActionResult> OnPostUpdateUserAsync() {
+        public async Task<IActionResult> OnPostUpdateAsync() {
 
             //if (!ModelState.IsValid) {
             //    _logger.LogWarning("表单验证失败。UserId: {UserId}", UpdatedStore.Id);
@@ -153,8 +153,6 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
             }
 
             List = await _storeMenuControllerWeb.GetTablePage(Limit, PageIndex); // 刷新门店列表
-
-            Thread.Sleep(1500);//
 
             return Page();
         }

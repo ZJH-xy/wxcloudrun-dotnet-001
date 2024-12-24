@@ -165,7 +165,7 @@ namespace aspnetapp.Controllers.Web {
 		/// <param name="fileId"></param>
 		/// <returns></returns>
 		public async Task<int> PutImagePath(int vehicleId, string fileId) {
-			var vehicle = await _context.Vehicle.SingleOrDefaultAsync(v => v.Id == vehicleId);
+			var vehicle = await _context.Advertisement.SingleOrDefaultAsync(v => v.Id == vehicleId);
 
 			if (vehicle is null)
 				return -1;
@@ -189,7 +189,7 @@ namespace aspnetapp.Controllers.Web {
 			vehicle.Pictures = fileId;
 			vehicle.UpdatedAt = DateTime.Now;
 			try {
-				_context.Vehicle.Update(vehicle);
+				_context.Advertisement.Update(vehicle);
 				await _context.SaveChangesAsync();
 			} catch (Exception e) {
 				_logger.LogError(e, "保存车辆{VehicleId}图片路径", vehicle);

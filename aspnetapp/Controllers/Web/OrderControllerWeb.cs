@@ -21,6 +21,16 @@ namespace aspnetapp.Controllers.Web {
 			return await _context.Order.ToListAsync();
 		}
 
+		// 根据月份获取订单列表
+		public async Task<List<Order>> GetAllOrdersByMonth(DateTime startOfMonth, DateTime endOfMonth) {
+			// 查询该月份内的所有订单
+			var ordersInMonth = await _context.Order
+				.Where(o => o.CreatedAt >= startOfMonth && o.CreatedAt <= endOfMonth)
+				.ToListAsync();
+
+			return ordersInMonth;
+		}
+
 		/// <summary>
 		/// 根据订单ID获取订单
 		/// </summary>
