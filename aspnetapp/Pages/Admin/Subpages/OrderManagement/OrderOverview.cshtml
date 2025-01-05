@@ -84,7 +84,7 @@
 				<th>用户手机号</th>
 				<th>用户身份证</th>
 				<th>起始时间</th>
-				<th>实际归还门店ID</th>
+				<th>实际归时间</th>
 				<th>租车门店ID</th>
 				<th>换车门店ID</th>
 				<th>还车门店ID</th>
@@ -123,7 +123,7 @@
 							} else if (@Model.List[i].ActualStartingTime != null) {
 							<span>未归还</span>
 							} else {
-							<span>无</span>
+							<span>未归还</span>
 							}
 					</td>
 					<td><span id="@("TheVehicle" + i)">@Model.List[i].TheVehicle</span></td>
@@ -136,7 +136,7 @@
 					</td>
 					<td>
 							@if (@Model.List[i].TheReturnThePoint != null) {
-							<span id="@("ActualStartingTime" + i)">@Model.List[i].TheReturnThePoint</span>
+							<span id="@("TheReturnThePoint" + i)">@Model.List[i].TheReturnThePoint</span>
 							} else if (@Model.List[i].ActualStartingTime != null) {
 							<span>未归还</span>
 							} else {
@@ -153,7 +153,7 @@
 					<td><span id="@("Status" + i)">@Model.List[i].Status</span></td>
 					<td>
 							@if (@Model.List[i].SuccessTime != null) {
-							<span id="@("ActualStartingTime" + i)">@Model.List[i].SuccessTime</span>
+							<span id="@("SuccessTime" + i)">@Model.List[i].SuccessTime</span>
 							} else {
 							<span>无</span>
 							}
@@ -355,7 +355,6 @@
 
 		// 导出文件
 		async function exportFile() {
-			// window.location.href = `${RESPONSEURL}?handler=ExportToExcel`;
 			loadHTML();
 			const dateValue = document.querySelector('input[name="UpdatedOrder.exportFileTime"]').value;
 			if (!dateValue) {
@@ -363,10 +362,12 @@
 				cancelloadHTML();
 				return;
 			}
+
 			const requestData = {
 				"Month": dateValue
 			};
-			console.log(requestData)
+			console.log(requestData);
+
 			try {
 				const response = await fetch(`${RESPONSEURL}?handler=ExportToExcel`, {
 					method: 'POST',
@@ -375,19 +376,29 @@
 						'RequestVerificationToken': TOKEN
 					},
 					body: JSON.stringify(requestData),
-
 				});
+
 				if (!response.ok) {
 					throw new Error(`HTTP 错误！状态码: ${response.status}`);
 				}
-				cancelloadHTML();
+
+				// 处理文件下载
+				const blob = await response.blob(); // 将响应转换为 Blob 对象
+				const url = window.URL.createObjectURL(blob); // 创建一个对象 URL
+				const a = document.createElement('a'); // 创建一个链接元素
+				a.href = url; // 设置链接的 href 为对象 URL
+				a.download = '订单数据.xlsx'; // 设置下载文件名
+				document.body.appendChild(a); // 将链接添加到文档中
+				a.click(); // 模拟点击链接以下载文件
+				a.remove(); // 下载后移除链接
+				window.URL.revokeObjectURL(url); // 释放对象 URL
+
 			} catch (error) {
-				cancelloadHTML(); 
 				console.error('出错:', error);
-				return null;
+			} finally {
+				cancelloadHTML(); // 无论成功与否都取消加载动画
 			}
 		}
-
 		// 获取总页数
 		async function getPageSum() {
 			loadHTML();
