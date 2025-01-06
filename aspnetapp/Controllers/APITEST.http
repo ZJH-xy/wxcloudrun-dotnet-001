@@ -1,4 +1,4 @@
-@localhost = https://localhost:51045
+@localhost = https://localhost:54056
 @id = 0
 @phone = 15878175303
 @password = 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
@@ -62,7 +62,7 @@ GET {{localhost}}/store/a HTTP/1.1
 
 ### ======================== 车辆 ===========================
 ### StoreId 获取门店所有车辆
-GET {{localhost}}/vehicle/a/1 HTTP/1.1
+GET {{localhost}}/vehicle/a/43 HTTP/1.1
 
 ### 
 GET {{localhost}}/vehicle/1 HTTP/1.1

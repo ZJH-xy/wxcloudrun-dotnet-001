@@ -65,11 +65,14 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 					downloadPositionList.Add(i);
 				}
 			}
-			// 下载链接
-			Result_File_List[] downloadLinkArray = await GetImageDownload(fileidList);
 
-			for (int i = 0; i < downloadLinkArray.Length; ++i) {
-				returnNotice[downloadPositionList[i]].Pictures = downloadLinkArray[i].download_url;
+			if (fileidList.Count > 0) {
+				// 下载链接
+				Result_File_List[] downloadLinkArray = await GetImageDownload(fileidList);
+
+				for (int i = 0; i < downloadLinkArray.Length; ++i) {
+					returnNotice[downloadPositionList[i]].Pictures = downloadLinkArray[i].download_url;
+				}
 			}
 
 			return StatusCode(200, returnNotice);
