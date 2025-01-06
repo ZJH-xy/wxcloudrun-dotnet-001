@@ -109,7 +109,7 @@ namespace aspnetapp.Pages.Admin.Subpages.Overview {
 
 				return new JsonResult(new { success = false, e.Message });
 			}
-			return new JsonResult(new { success = true, VehicleStateDistribution = VehicleStateDistribution.ToJson() });
+			return new JsonResult(new { success = true, RevenueTrends = RevenueTrends.ToJson() });
 		}
 	}
 }
