@@ -93,7 +93,10 @@ namespace aspnetapp.Controllers.Web {
             }
 
             // 更新车辆属性
-            vehicle.PlateNumber = updatedVehicle.PlateNumber;
+            vehicle.TheOriginalStore = updatedVehicle.TheOriginalStore;
+            vehicle.TheCurrentStore = updatedVehicle.TheCurrentStore;
+
+			vehicle.PlateNumber = updatedVehicle.PlateNumber;
             vehicle.FrameNumber = updatedVehicle.FrameNumber;
             vehicle.Certificate = updatedVehicle.Certificate;
             vehicle.Invoice = updatedVehicle.Invoice;
