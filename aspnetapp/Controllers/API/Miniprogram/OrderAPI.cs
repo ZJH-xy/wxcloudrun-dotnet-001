@@ -14,6 +14,7 @@ using Senparc.Weixin.TenPayV3.Apis.BasePay.Entities;
 using aspnetapp.Models;
 using static aspnetapp.Models.Order;
 using Org.BouncyCastle.Asn1.Cms;
+using aspnetapp.Controllers.API.StoreAccount;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
@@ -64,20 +65,28 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		[HttpGet("i/{orderId}")]
 		public async Task<IActionResult> GetOderById(int orderId) {
 			Order? order;
+			ReturnOrder returnOrder;
+
 			try {
 				order = await _orderController.GetById(GetUserIdInt(), orderId);
+
+				if (order is null)
+					return StatusCode(404);
+
+				StoreMenu? storeMenu = await _dbContext.StoreMenus.FindAsync(order.TheStoreMenu);// 查找订单套餐
+
+				returnOrder = new(order, storeMenu);
 
 			} catch (Exception e) {
 				_logger.LogError(e, "用户{UserId}查询订单{order}信息", GetUserIdInt(), orderId);
 
 				return StatusCode(500);
-
 			}
 
 			if (order == null)
 				return StatusCode(404);
 
-			return StatusCode(200, new ReturnOrder(order));
+			return StatusCode(200, returnOrder);
 		}
 
 		/// <summary>
@@ -1462,7 +1471,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				return StatusCode(403, "未找到订单");
 			}
 
-			if (order.Status != EOrderStatus.已完成 || order.Status != EOrderStatus.已补余 || order.Status != EOrderStatus.已退款) {
+			if (order.Status != EOrderStatus.已完成 && order.Status != EOrderStatus.已补余 && order.Status != EOrderStatus.已退款) {
 				return StatusCode(403, "请在订单完成后评价");
 			}
 
@@ -1956,7 +1965,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 	/// 详细返回订单格式
 	/// </summary>
 	public struct ReturnOrder {
-		public ReturnOrder(Order order) {
+		public ReturnOrder(Order order, StoreMenu? storeMenu) {
 			OrderId = order.Id;
 			ActualStartingTime = order.ActualStartingTime;
 			ActualReturnTime = order.ActualReturnTime;
@@ -1977,6 +1986,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			SuccessTime = order.SuccessTime;
 			Notes = order.Notes;
 			CreatedAt = order.CreatedAt;
+
+			RentalDuration = storeMenu is null ? 0 : storeMenu.Duration;
 		}
 		public int OrderId { get; init; }// 订单编号
 		public DateTime? ActualStartingTime { get; set; }// 实际起始时间
@@ -1998,6 +2009,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		public DateTime? SuccessTime { get; set; }// 支付完成时间
 		public string? Notes { get; set; }// 备注
 		public DateTime CreatedAt { get; set; }
+
+		public int RentalDuration { get; set; }// 租用时长
 	}
 
 	/// <summary>
