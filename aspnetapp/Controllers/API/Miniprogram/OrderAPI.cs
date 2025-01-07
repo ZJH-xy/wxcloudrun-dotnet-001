@@ -1462,7 +1462,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				return StatusCode(403, "未找到订单");
 			}
 
-			if (order.Status != EOrderStatus.已完成 || order.Status != EOrderStatus.已补余 || order.Status != EOrderStatus.已退款) {
+			if (order.Status != EOrderStatus.已完成 && order.Status != EOrderStatus.已补余 && order.Status != EOrderStatus.已退款) {
 				return StatusCode(403, "请在订单完成后评价");
 			}
 
