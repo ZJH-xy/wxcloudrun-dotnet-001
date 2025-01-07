@@ -106,6 +106,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		[HttpGet("storeMenus/{storeId}")]
 		public async Task<IActionResult> CalculateRent(int storeId) {
 
+			// 获取门店当前的套餐
 			return StatusCode(200, await _dbContext.StoreMenus.Where(sm => sm.TheStore == storeId && !sm.IsDelete).ToListAsync());
 		}
 

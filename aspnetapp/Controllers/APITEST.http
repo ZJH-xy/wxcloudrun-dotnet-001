@@ -93,7 +93,7 @@ content-type: application/json
 
 
 ### Id 查询单个订单
-GET {{localhost}}/order/i/19 HTTP/1.1
+GET {{localhost}}/order/i/78 HTTP/1.1
 Authorization: Bearer {{authorization}}
 
 
