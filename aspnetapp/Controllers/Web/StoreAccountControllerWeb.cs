@@ -1,5 +1,6 @@
 ﻿using aspnetapp.Controllers.API.Miniprogram;
 using aspnetapp.Pages;
+using Microsoft.AspNetCore.Http;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 
 namespace aspnetapp.Controllers.Web {
@@ -42,23 +43,8 @@ namespace aspnetapp.Controllers.Web {
 				.Take(limit) // 获取当前页的数据
 				.ToListAsync();
 
-			// 获取所有涉及的门店 ID
-			var storeIds = storeAccounts
-				.Select(sa => sa.TheStore)
-				.Distinct()
-				.ToList();
-
-			// 查询门店名称
-			var stores = await _context.Store
-				.Where(s => storeIds.Contains(s.Id))
-				.ToDictionaryAsync(s => s.Id, s => s.Name);
-
-			// 替换商家帐号中的门店ID为名称
-			foreach (var account in storeAccounts) {
-				if (stores.TryGetValue(account.TheStore, out var storeName)) {
-					account.StoreName = storeName; // 设置商家所属门店名称
-				}
-			}
+			// 查询门店名称并更新结果
+			await UpdateStoreNames(storeAccounts);
 
 			return storeAccounts;
 		}
@@ -151,7 +137,30 @@ namespace aspnetapp.Controllers.Web {
 				.Take(limit) // 获取当前页的数据
 				.ToListAsync();
 
+			// 查询门店名称并更新结果
+			await UpdateStoreNames(results);
+
 			return (results, sum);
         }
-    }
+
+		private async Task UpdateStoreNames(List<StoreAccount> storeAccounts) {
+			// 获取所有涉及的门店 ID
+			var storeIds = storeAccounts
+				.Select(sa => sa.TheStore)
+				.Distinct()
+				.ToList();
+
+			// 查询门店名称
+			var stores = await _context.Store
+				.Where(s => storeIds.Contains(s.Id))
+				.ToDictionaryAsync(s => s.Id, s => s.Name);
+
+			// 替换商家帐号中的门店ID为名称
+			foreach (var account in storeAccounts) {
+				if (stores.TryGetValue(account.TheStore, out var storeName)) {
+					account.StoreName = storeName; // 设置商家所属门店名称
+				}
+			}
+		}
+	}
 }
