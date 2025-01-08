@@ -1,30 +1,40 @@
+ï»¿using aspnetapp.Controllers.Web;
+using aspnetapp.Pages.Admin.Subpages.StoreManagement;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace aspnetapp.Pages.Admin {
-    public class LoginModel : PageModel {
-        [BindProperty]
-        public string Username { get; set; }
+	public class LoginModel : PageModel {
+		private readonly ILogger<LoginModel> _logger;
+		private readonly LoginControllerWeb _loginControllerWeb;
 
-        [BindProperty]
-        public string Password { get; set; }
+		public LoginModel(LoginControllerWeb loginControllerWeb, ILogger<LoginModel> logger) {
+			_loginControllerWeb = loginControllerWeb;
+			_logger = logger;
+		}
 
-        public string ErrorMessage { get; set; }
+		[BindProperty]
+		public string Username { get; set; }
 
-        public IActionResult OnGet() {
-            return Page();
-        }
+		[BindProperty]
+		public string Password { get; set; }
 
-        public IActionResult OnPost() {
-            // ´¦Àí POST ÇëÇó
-            if (Username == "1" && Password == "1") {
-                // µÇÂ¼³É¹¦£¬Ìø×ªµ½Ö÷Ò³»òÆäËûÒ³Ãæ
-                return RedirectToPage("/admin/main");
-            } else {
-                // µÇÂ¼Ê§°Ü£¬ÏÔÊ¾´íÎóĞÅÏ¢
-                ErrorMessage = "ÓÃ»§Ãû»òÃÜÂë´íÎó";
-                return Page();
-            }
-        }
-    }
+		public string ErrorMessage { get; set; }
+
+		public IActionResult OnGet() {
+			return Page();
+		}
+
+		public IActionResult OnPost() {
+			// å¤„ç† POST è¯·æ±‚
+			if (_loginControllerWeb.Login(Username, Password)) {
+				// ç™»å½•æˆåŠŸï¼Œè·³è½¬åˆ°ä¸»é¡µæˆ–å…¶ä»–é¡µé¢
+				return RedirectToPage("/admin/main");
+			} else {
+				// ç™»å½•å¤±è´¥ï¼Œæ˜¾ç¤ºé”™è¯¯ä¿¡æ¯
+				ErrorMessage = "ç”¨æˆ·åæˆ–å¯†ç é”™è¯¯";
+				return Page();
+			}
+		}
+	}
 }

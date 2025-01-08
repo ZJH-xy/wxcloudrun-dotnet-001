@@ -42,5 +42,11 @@
 		/// </summary>
 		[Timestamp]
         public byte[] RowVersion { get; set; }
-    }
+
+		/// <summary>
+		/// 门店显示名称
+		/// </summary>
+		[NotMapped]
+		public string? StoreName { get; set; }
+	}
 }

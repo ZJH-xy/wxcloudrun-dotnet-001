@@ -108,9 +108,9 @@
 				<tr>
 					<form method="post" asp-page-handler="Update" enctype="multipart/form-data">
 					<td>@(i + 1)</td>
-					<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
-                    <td><input id="@("Title" + i)" type="text" name="UpdatedStore.Title" value="@Model.List[i].Title" placeholder="无" disabled /></td>
-                    <td><textarea id="@("Content" + i)" name="UpdatedStore.Content" value="@Model.List[i].Content" disabled>@Model.List[i].Content</textarea></td>
+                    <td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedNotice.Id" value="@Model.List[i].Id" /></td>
+                    <td><input id="@("Title" + i)" type="text" name="UpdatedNotice.Title" value="@Model.List[i].Title" placeholder="无" disabled /></td>
+                    <td><textarea id="@("Content" + i)" type="text" name="UpdatedNotice.Content" value="@Model.List[i].Content" disabled>@Model.List[i].Content</textarea></td>
 
                     <td><span>@Model.List[i].CreatedAt</span></td>
                     <td><span>@Model.List[i].UpdatedAt</span></td>
@@ -120,7 +120,7 @@
 						<button id="@("delete" + i)" type="button" class="deleteBtn" data-id="@Model.List[i].Id" style="display: none;" onclick="confirmDelete(event)">删除</button>
 					</td>
 
-					<input type="hidden" name="UpdatedStore.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+                    <input type="hidden" name="UpdatedNotice.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
 					</form>
 				</tr>
 			}
@@ -461,7 +461,7 @@
                     inputs.forEach(input => input.disabled = false);
 
                     // 使 textarea 可编辑
-                    const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedStore.Content']`);
+                    const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedNotice.Content']`);
                     if (textArea) textArea.disabled = false; // 使 textarea 可编辑
 
                     // 切换按钮状态

@@ -75,12 +75,15 @@
 			<button type="submit" onclick="confirmChangeSearchData()">搜索</button>
 		</form>
 	</div>
+
+    <span>提示：修改套餐时先删除原有套餐，再添加新套餐。</span>
 	<div class="table-container">
 		<table id="userTable">
 			<tr>
 				<th>序号</th>
 				<th>套餐ID</th>
 				<th>门店ID</th>
+				<th>门店名称</th>
 				<th>时长/小时</th>
 				<th>租金</th>
 				<th>押金</th>
@@ -115,6 +118,7 @@
 					<td>@(i + 1)</td>
 					<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
 					<td><input id="@("TheStore" + i)" type="text" name="UpdatedStore.TheStore" value="@Model.List[i].TheStore" placeholder="无" disabled /></td>
+                    <td><span>@Model.List[i].StoreName </span></td>
 					<td><input id="@("Duration" + i)" type="text" name="UpdatedStore.Duration" value="@Model.List[i].Duration" placeholder="无" disabled /></td>
 					<td><input id="@("Rent" + i)" type="text" name="UpdatedStore.Rent" value="@Model.List[i].Rent" placeholder="无" disabled /></td>
 					<td><input id="@("Deposit" + i)" type="text" name="UpdatedStore.Deposit" value="@Model.List[i].Deposit" placeholder="无" disabled /></td>

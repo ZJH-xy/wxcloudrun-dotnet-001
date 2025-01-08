@@ -82,8 +82,8 @@
 			<tr>
 				<th>序号</th>
 				<th>车辆ID</th>
-				<th>所属门店ID</th>
-				<th>当前所在门店ID</th>
+				<th>所属门店名称（ID）</th>
+				<th>当前所在门店名称（ID）</th>
 				<th>车牌号</th>
 				<th>车架号</th>
 				<th>合格证</th>
@@ -187,8 +187,14 @@
 					<form method="post" asp-page-handler="UpdateVehicle" enctype="multipart/form-data">
 					<td>@(i + 1)</td>
 					<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedVehicle.Id" value="@Model.List[i].Id" /></td>
-					<td><input id="@("TheOriginalStore" + i)" type="text" name="UpdatedVehicle.TheOriginalStore" value="@Model.List[i].TheOriginalStore" placeholder="无" disabled /></td>
-					<td><input id="@("TheCurrentStore" + i)" type="text" name="UpdatedVehicle.TheCurrentStore" value="@Model.List[i].TheCurrentStore" placeholder="无" disabled /></td>
+
+					<td>
+						<input id="@("TheOriginalStore" + i)" type="text" name="UpdatedVehicle.TheOriginalStore" value="(ID:@Model.List[i].TheOriginalStore) @Model.List[i].OriginalStoreName" placeholder="无" disabled />
+					</td>
+					<td>
+						<input id="@("TheCurrentStore" + i)" type="text" name="UpdatedVehicle.TheCurrentStore" value="(ID:@Model.List[i].TheCurrentStore) @Model.List[i].CurrentStoreName" placeholder="无" disabled />
+					</td>
+
 					<td><input id="@("plateNumber" + i)" type="text" name="UpdatedVehicle.PlateNumber" value="@Model.List[i].PlateNumber" placeholder="无" disabled /></td>
 					<td><input id="@("frameNumber" + i)" type="text" name="UpdatedVehicle.FrameNumber" value="@Model.List[i].FrameNumber" placeholder="无" disabled /></td>
 					<td>

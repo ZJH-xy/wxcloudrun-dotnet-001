@@ -145,6 +145,20 @@
 		[Timestamp]
 		public byte[] RowVersion { get; set; }
 
+
+		// 新增的虚拟属性，用于传输门店名称
+		/// <summary>
+		/// 租车点名称
+		/// </summary>
+		[NotMapped]
+		public string RentalLocationName { get; set; }
+
+		/// <summary>
+		/// 还车点名称
+		/// </summary>
+		[NotMapped]
+		public string ReturnThePointName { get; set; }
+
 		/// <summary>
 		/// 订单状态枚举
 		/// </summary>

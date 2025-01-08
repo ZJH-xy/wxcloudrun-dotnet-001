@@ -107,6 +107,20 @@
 		[Timestamp]
         public byte[] RowVersion { get; set; }
 
+
+		// 新增虚拟属性，用于传输门店名称
+		/// <summary>
+		/// 原始门店名称
+		/// </summary>
+		[NotMapped]
+		public string OriginalStoreName { get; set; }
+
+		/// <summary>
+		/// 当前门店名称
+		/// </summary>
+		[NotMapped]
+		public string CurrentStoreName { get; set; }
+
 		/// <summary>
 		/// 车辆状态
 		/// </summary>
