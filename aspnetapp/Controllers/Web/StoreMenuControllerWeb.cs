@@ -30,13 +30,19 @@ namespace aspnetapp.Controllers.Web {
         }
 
         public async Task<List<StoreMenu>> GetTablePage(int limit, int pageIndex) {
-            return await _context.StoreMenus
-                .Where(s => !s.IsDelete)
-                .OrderBy(u => u.Id) // 根据主键排序，确保分页顺序一致
-                .Skip((pageIndex - 1) * limit) // 跳过前面页的数据
-                .Take(limit) // 获取当前页的数据
-                .ToListAsync();
-        }
+			// 查询分页数据
+			var storeMenus = await _context.StoreMenus
+				.Where(s => !s.IsDelete)
+				.OrderBy(u => u.Id) // 根据主键排序，确保分页顺序一致
+				.Skip((pageIndex - 1) * limit) // 跳过前面页的数据
+				.Take(limit) // 获取当前页的数据
+				.ToListAsync();
+
+			// 更新门店名称
+			await UpdateStoreNames(storeMenus);
+
+			return storeMenus;
+		}
 
         // 添加门店
         public async Task<IActionResult> AddStoreAsync(StoreMenu newStore) {
@@ -160,7 +166,31 @@ namespace aspnetapp.Controllers.Web {
 				.Take(limit) // 获取当前页的数据
 				.ToListAsync();
 
+
+			// 查询门店名称并更新结果
+			await UpdateStoreNames(results);
+
 			return (results, sum);
         }
-    }
+
+		private async Task UpdateStoreNames(List<StoreMenu> storeMenus) {
+			// 获取所有涉及的门店 ID
+			var storeIds = storeMenus
+				.Select(sm => sm.TheStore)
+				.Distinct()
+				.ToList();
+
+			// 查询门店名称
+			var stores = await _context.Store
+				.Where(s => storeIds.Contains(s.Id))
+				.ToDictionaryAsync(s => s.Id, s => s.Name);
+
+			// 替换门店套餐中的门店ID为名称
+			foreach (var menu in storeMenus) {
+				if (stores.TryGetValue(menu.TheStore, out var storeName)) {
+					menu.StoreName = storeName; // 假设 StoreMenu 添加了 StoreName 属性
+				}
+			}
+		}
+	}
 }
