@@ -45,6 +45,7 @@ builder.Services.AddScoped<StoreMenuControllerWeb>();
 builder.Services.AddScoped<StoreAccountControllerWeb>();
 builder.Services.AddScoped<AdvertisementControllerWeb>();
 builder.Services.AddScoped<NoticeControllerWeb>();
+builder.Services.AddScoped<LoginControllerWeb>();
 
 builder.Services.AddScoped<OrderAPI>(); // 注册 OrderAPI，定时取消订单
 builder.Services.AddHostedService<TimedHostedService>();
