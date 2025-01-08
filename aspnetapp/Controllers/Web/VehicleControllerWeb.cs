@@ -16,13 +16,40 @@ namespace aspnetapp.Controllers.Web {
         }
 
         public async Task<List<Vehicle>> GetTablePage(int limit, int pageIndex) {
-            return await _context.Vehicle
-                .Where(s => !s.IsDelete)
-                .OrderBy(u => u.Id) // 根据主键排序，确保分页顺序一致
-                .Skip((pageIndex - 1) * limit) // 跳过前面页的数据
-                .Take(limit) // 获取当前页的数据
-                .ToListAsync();
-        }
+			// 获取车辆列表
+			var vehicles = await _context.Vehicle
+				.Where(v => !v.IsDelete) // 过滤删除的车辆
+				.OrderBy(v => v.Id) // 根据主键排序，确保分页顺序一致
+				.Skip((pageIndex - 1) * limit) // 跳过前面页的数据
+				.Take(limit) // 获取当前页的数据
+				.ToListAsync();
+
+			// 获取所有相关门店的 ID
+			var storeIds = vehicles
+				.SelectMany(v => new[] { v.TheOriginalStore, v.TheCurrentStore })
+				.Where(id => id.HasValue)
+				.Select(id => id.Value)
+				.Distinct()
+				.ToList();
+
+			// 查询所有门店的名称
+			var stores = await _context.Store
+				.Where(s => storeIds.Contains(s.Id))
+				.ToDictionaryAsync(s => s.Id, s => s.Name);
+
+			// 替换车辆的门店ID为名称
+			foreach (var vehicle in vehicles) {
+				if (vehicle.TheOriginalStore.HasValue && stores.TryGetValue(vehicle.TheOriginalStore.Value, out var originalStoreName)) {
+					vehicle.OriginalStoreName = originalStoreName; // 设置原始门店名称
+				}
+
+				if (vehicle.TheCurrentStore.HasValue && stores.TryGetValue(vehicle.TheCurrentStore.Value, out var currentStoreName)) {
+					vehicle.CurrentStoreName = currentStoreName; // 设置当前门店名称
+				}
+			}
+
+			return vehicles;
+		}
 
         // 获取所有车辆列表
         public async Task<List<Vehicle>> GetAllList() {
