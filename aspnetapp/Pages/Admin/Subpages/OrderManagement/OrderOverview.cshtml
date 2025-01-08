@@ -85,9 +85,9 @@
 				<th>用户身份证</th>
 				<th>起始时间</th>
 				<th>实际归时间</th>
-				<th>租车门店ID</th>
-				<th>换车门店ID</th>
-				<th>还车门店ID</th>
+				<th>租用车辆ID</th>
+				<th>换车门店名称（ID）</th>
+				<th>还车门店名称（ID）</th>
 				<th>押金</th>
 				<th>租金</th>
 				<th>调度费</th>
@@ -129,14 +129,18 @@
 					<td><span id="@("TheVehicle" + i)">@Model.List[i].TheVehicle</span></td>
 					<td>
 							@if (@Model.List[i].TheRentalLocation != null) {
-							<span id="@("TheRentalLocation" + i)">@Model.List[i].TheRentalLocation</span>
+								<span id="@("TheRentalLocation" + i)">@Model.List[i].RentalLocationName </span>
+								<span style="color:rgb(168,0,0)">(ID:@Model.List[i].TheRentalLocation)</span>
+									// RentalLocationName
 							} else {
 							<span>无</span>
 							}
 					</td>
 					<td>
 							@if (@Model.List[i].TheReturnThePoint != null) {
-							<span id="@("TheReturnThePoint" + i)">@Model.List[i].TheReturnThePoint</span>
+								<span id="@("TheReturnThePoint" + i)">@Model.List[i].ReturnThePointName</span>
+								<span style="color:rgb(168,0,0)">(ID:@Model.List[i].TheReturnThePoint)</span>
+									// ReturnThePointName
 							} else if (@Model.List[i].ActualStartingTime != null) {
 							<span>未归还</span>
 							} else {

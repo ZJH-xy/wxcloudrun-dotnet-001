@@ -12,12 +12,12 @@ namespace aspnetapp.Controllers.Web {
 		public OrderControllerWeb(MyDbContext context, ILogger<OrderControllerWeb> logger) {
 			_context = context;
 			_logger = logger;
-        }
+		}
 
-        /// <summary>
-        /// 获取所有订单
-        /// </summary>
-        public async Task<List<Order>> GetAllOrders() {
+		/// <summary>
+		/// 获取所有订单
+		/// </summary>
+		public async Task<List<Order>> GetAllOrders() {
 			return await _context.Order.ToListAsync();
 		}
 
@@ -49,11 +49,42 @@ namespace aspnetapp.Controllers.Web {
 		/// 分页查询订单
 		/// </summary>
 		public async Task<List<Order>> GetTablePage(int limit, int pageIndex) {
-			return await _context.Order
-				.OrderBy(o => o.Id) // 根据订单ID排序，确保分页顺序一致
-				.Skip((pageIndex - 1) * limit) // 跳过前面页的数据
-				.Take(limit) // 获取当前页的数据
-				.ToListAsync();
+			//return await _context.Order
+			//	.OrderBy(o => o.Id) // 根据订单ID排序，确保分页顺序一致
+			//	.Skip((pageIndex - 1) * limit) // 跳过前面页的数据
+			//	.Take(limit) // 获取当前页的数据
+			//	.ToListAsync();
+
+			var orders = await _context.Order
+		.OrderBy(o => o.Id) // 根据订单ID排序，确保分页顺序一致
+		.Skip((pageIndex - 1) * limit) // 跳过前面页的数据
+		.Take(limit) // 获取当前页的数据
+		.ToListAsync();
+
+			// 查询所有涉及的门店信息以减少数据库查询次数
+			var storeIds = orders
+				.SelectMany(o => new[] { o.TheRentalLocation, o.TheReturnThePoint })
+				.Where(id => id.HasValue)
+				.Select(id => id.Value)
+				.Distinct()
+				.ToList();
+
+			var stores = await _context.Store
+				.Where(s => storeIds.Contains(s.Id))
+				.ToDictionaryAsync(s => s.Id, s => s.Name);
+
+			// 替换订单中的门店ID为名称
+			foreach (var order in orders) {
+				if (stores.TryGetValue(order.TheRentalLocation, out var rentalLocationName)) {
+					order.RentalLocationName = rentalLocationName; // 设置租车点名称
+				}
+
+				if (order.TheReturnThePoint.HasValue && stores.TryGetValue(order.TheReturnThePoint.Value, out var returnPointName)) {
+					order.ReturnThePointName = returnPointName; // 设置还车点名称
+				}
+			}
+
+			return orders;
 		}
 
 		/// <summary>
@@ -110,13 +141,13 @@ namespace aspnetapp.Controllers.Web {
 				return NotFound("Order not found.");
 			}
 
-            // 更新订单属性
-            order.OtherFees = updatedOrder.OtherFees;
-            order.Notes = updatedOrder.Notes;
-            order.UpdatedAt = DateTime.Now;
+			// 更新订单属性
+			order.OtherFees = updatedOrder.OtherFees;
+			order.Notes = updatedOrder.Notes;
+			order.UpdatedAt = DateTime.Now;
 
-            // 设置并发标记
-            _context.Entry(order).Property("RowVersion").OriginalValue = updatedOrder.RowVersion;
+			// 设置并发标记
+			_context.Entry(order).Property("RowVersion").OriginalValue = updatedOrder.RowVersion;
 
 			try {
 				_context.Order.Update(order);
