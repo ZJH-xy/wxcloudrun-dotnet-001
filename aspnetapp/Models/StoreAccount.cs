@@ -31,5 +31,13 @@
 		/// </summary>
 		[Timestamp]
         public byte[] RowVersion { get; set; }
-    }
+
+
+		// 新增虚拟属性，用于传输门店名称
+		/// <summary>
+		/// 商家所属门店名称
+		/// </summary>
+		[NotMapped]
+		public string StoreName { get; set; }
+	}
 }
