@@ -109,7 +109,7 @@ namespace aspnetapp.Controllers.Web {
 		/// <summary>
 		/// 查询订单（支持多字段搜索）
 		/// </summary>
-		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, string sortField = "Id", string sortOrder = "asc") {
+		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, int? theVehicle = null, int? theRentalLocation = null, string sortField = "Id", string sortOrder = "asc") {
 			if (userPhone.IsNullOrEmpty() && status.IsNullOrEmpty()) {
 				return (await GetTablePage(limit, pageIndex), limit);
 			}
@@ -128,11 +128,15 @@ namespace aspnetapp.Controllers.Web {
 					query = query.Where(o => o.Status == parsedStatus);
 				}
 			}
+			if (theVehicle.HasValue) {
+				query = query.Where(o => o.TheVehicle == theVehicle);// 车辆
+			}
+			if (theRentalLocation.HasValue) {
+				query = query.Where(o => o.TheRentalLocation == theRentalLocation);// 租车点
+			}
 
 			// 排序逻辑
 			query = sortField.ToLower() switch {
-				"userid" => sortOrder == "asc" ? query.OrderBy(o => o.TheUser) : query.OrderByDescending(o => o.TheUser),
-				"transactionid" => sortOrder == "asc" ? query.OrderBy(o => o.TransactionId) : query.OrderByDescending(o => o.TransactionId),
 				"createdat" => sortOrder == "asc" ? query.OrderBy(o => o.CreatedAt) : query.OrderByDescending(o => o.CreatedAt),
 				"updatedat" => sortOrder == "asc" ? query.OrderBy(o => o.UpdatedAt) : query.OrderByDescending(o => o.UpdatedAt),
 				_ => sortOrder == "asc" ? query.OrderBy(o => o.Id) : query.OrderByDescending(o => o.Id),
