@@ -98,7 +98,7 @@ namespace aspnetapp.Controllers.Web {
 		/// <param name="sortOrder"></param>
 		/// <returns></returns>
 		public async Task<(List<User>, int sum)> SearchUsers(int limit, int pageIndex, string? phone = null, string? name = null, string? nickname = null, string sortField = "Id", string sortOrder = "asc") {
-			if (phone.IsNullOrEmpty() && name.IsNullOrEmpty() && nickname.IsNullOrEmpty()) {
+			if (phone.IsNullOrEmpty() && name.IsNullOrEmpty() && nickname.IsNullOrEmpty() && sortField != "Id" && sortOrder != "asc") {
 				return (await GetTablePage(limit, pageIndex), limit);
 			}
 

@@ -108,7 +108,7 @@ namespace aspnetapp.Controllers.Web {
 
         // 根据条件进行套餐搜索
         public async Task<(List<StoreAccount>, int sum)> SearchStoreAccounts(int limit, int pageIndex, int? theStore = null, string? account = null, string sortField = "Id", string sortOrder = "asc") {
-			if ((theStore is null || theStore == 0) && account.IsNullOrEmpty()) {
+			if ((theStore is null || theStore == 0) && account.IsNullOrEmpty() && sortField != "Id" && sortOrder != "asc") {
 				return (await GetTablePage(limit, pageIndex), limit);
 			}
 

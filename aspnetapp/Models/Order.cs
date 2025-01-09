@@ -160,6 +160,12 @@
 		public string ReturnThePointName { get; set; }
 
 		/// <summary>
+		/// 车牌牌号
+		/// </summary>
+		[NotMapped]
+		public string? VehiclePlateNumber { get; set; }
+
+		/// <summary>
 		/// 订单状态枚举
 		/// </summary>
 		public enum EOrderStatus {

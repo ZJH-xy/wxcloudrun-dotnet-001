@@ -112,7 +112,7 @@ namespace aspnetapp.Controllers.Web {
 
         // 根据条件进行门店搜索
         public async Task<(List<Store>, int sum)> SearchStores(int limit, int pageIndex, string? name = null, string? address = null, string sortField = "Id", string sortOrder = "asc") {
-			if (name.IsNullOrEmpty() && address.IsNullOrEmpty()) {
+			if (name.IsNullOrEmpty() && address.IsNullOrEmpty() && sortField != "Id" && sortOrder != "asc") {
 				return (await GetTablePage(limit, pageIndex), limit);
 			}
 

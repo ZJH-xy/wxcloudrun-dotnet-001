@@ -54,6 +54,27 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		public static string? SearchStatus { get; set; }
 		public string? SearchStatusHtml { get; set; }
 
+		/// <summary>
+		/// 车辆
+		/// </summary>
+		[BindProperty(SupportsGet = true)]
+		public static int? SearchTheVehicle { get; set; }
+		public int? SearchTheVehicleHtml { get; set; }
+
+		/// <summary>
+		/// 租车点
+		/// </summary>
+		[BindProperty(SupportsGet = true)]
+		public static int? SearchTheRentalLocation { get; set; }
+		public int? SearchTheRentalLocationHtml { get; set; }
+
+		/// <summary>
+		/// 租车点名称
+		/// </summary>
+		[BindProperty(SupportsGet = true)]
+		public static string? SearchStoreName { get; set; }
+		public string? SearchStoreNameHtml { get; set; }
+
 		// 排序
 		[BindProperty(SupportsGet = true)]
 		public string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
@@ -70,10 +91,11 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnGetAsync() {
-			_logger.LogInformation("[OnGetAsync]正在获取限制为{Limit}的页面{PageIndex}的订单列表", PageIndex, Limit);
-
 			SearchUserPhone = "";
 			SearchStatus = "";
+			SearchTheVehicle = null;
+			SearchTheRentalLocation = null;
+			SearchStoreName = null;
 
 			try {
 				List = await _orderController.GetTablePage(Limit, PageIndex);
@@ -89,11 +111,9 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// </summary>
 		/// <returns></returns>
 		public async Task<IActionResult> OnPostSearchAsync() {
-			_logger.LogDebug("[OnPostSearchAsync]正在条件查询: UserPhone: {UserPhone}, Status: {Status}, SortField: {SortField}, SortOrder: {SortOrder}",
-							  SearchUserPhone, SearchStatus, SortField, SortOrder);
 
 			// 调用 OrderControllerWeb 中的 SearchOrders 方法，包含排序字段和顺序
-			(List, SearchSum) = await _orderController.SearchOrders(Limit, PageIndex, SearchUserPhone, SearchStatus, SortField, SortOrder);
+			(List, SearchSum) = await _orderController.SearchOrders(Limit, PageIndex, SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder);
 
 			return Page();
 		}
@@ -103,7 +123,6 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// </summary>
 		/// <returns></returns>
 		public async Task<IActionResult> OnPostUpdateOrderAsync() {
-			_logger.LogInformation("正在尝试使用ID更新订单{OrderId}", UpdatedOrder.Id);
 
 			//if (!ModelState.IsValid) {
 			//	_logger.LogWarning("表单验证失败。OrderId: {OrderId}", UpdatedOrder.Id);
@@ -113,8 +132,8 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 
 			var result = await _orderController.UpdateOrder(UpdatedOrder);
 			if (result is NotFoundResult) {
-				_logger.LogWarning("找不到订单。OrderId: {OrderId}", UpdatedOrder.Id);
-				ErrorMessage = "找不到订单";
+
+				ErrorMessage = $"找不到订单{UpdatedOrder.Id}";
 			} else if (result is StatusCodeResult status && status.StatusCode == 500) {
 				_logger.LogError("更新订单时出错。OrderId: {OrderId}", UpdatedOrder.Id);
 				ErrorMessage = "更新订单时出错。";
@@ -294,6 +313,9 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 
 			SearchUserPhone = requestData["SearchUserPhone"];
 			SearchStatus = requestData["SearchStatus"];
+			SearchTheVehicle = int.Parse(requestData["SearchTheVehicle"]);
+			SearchTheRentalLocation = int.Parse(requestData["SearchTheRentalLocation"]);
+			SearchStoreName = requestData["SearchStoreName"];
 
 			return new JsonResult(new { success = true, message = "成功" });
 		}
@@ -303,7 +325,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// </summary>
 		/// <returns></returns>
 		public async Task<JsonResult> OnGetSearchDataAsync() {
-			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus });
+			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation, SearchStoreName });
 		}
 	}
 }
