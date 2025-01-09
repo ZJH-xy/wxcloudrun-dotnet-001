@@ -4,598 +4,625 @@
 }
 
 <head>
-	<meta charset="utf-8" />
-	<link rel="stylesheet" href="~/css/table.css" />
-	<link rel="stylesheet" href="~/css/loading.css" />
-	<!-- 引用外部 jQuery -->
-	<script src="~/js/utils/jquery-3.6.0.min.js" defer></script>
-	<script src="~/js/loading.js" defer></script>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="~/css/table.css" />
+    <link rel="stylesheet" href="~/css/loading.css" />
+    <!-- 引用外部 jQuery -->
+    <script src="~/js/utils/jquery-3.6.0.min.js" defer></script>
+    <script src="~/js/loading.js" defer></script>
 </head>
 <header>
-	<h3>订单总览</h3>
+    <h3>订单总览</h3>
 </header>
 <body>
 
-	<!-- 加载动画 -->
-	<div class="box" id="loadding" style="display:none;">
-		<span></span>
-		<span></span>
-		<span></span>
-		<span></span>
-		<span></span>
-	</div>
-	<!-- 锁住页面的遮罩层 -->
-	<div id="overlay" style="display:none;"></div>
-
-	<!-- 显示错误消息 -->
-	@if (!string.IsNullOrEmpty(Model.ErrorMessage)) {
-		<div id="failMessage" class="failMessage">@Model.ErrorMessage</div>
-		@foreach (var error in ModelState.Values.SelectMany(v => v.Errors)) {
-			<div id="failMessage" class="failMessage">@error.ErrorMessage</div>
-		}
-		<script>
-			setTimeout(function () {
-				showMessage("failMessage", 4000);
-			}, 500)
-		</script>
-	}
-
-	<!-- 显示成功消息 -->
-	@if (!string.IsNullOrEmpty(Model.SuccessMessage)) {
-		<div id="successMessage" class="message">@Model.SuccessMessage</div>
-		<script>
-			setTimeout(function () {
-				showMessage("successMessage");
-			}, 500)
-		</script>
-	}
-
-	<div class="header">
-		<div class="header">
-			<form method="get">
-				<button type="submit">刷新</button>
-			</form>
-			<button onclick="exportFile()" class="editBtn export">导出</button>
-			<input type="month" name="UpdatedOrder.exportFileTime" value="" placeholder="导出时间" />
-
-
-		</div>
-		<form method="post" asp-page-handler="Search">
-			<input asp-for="SearchUserPhoneHtml" id="SearchUserPhoneHtml" value="" placeholder="手机号" />
-			<input asp-for="SearchStatusHtml" id="SearchStatusHtml" value="" placeholder="订单状态" />
-			<select asp-for="SortField">
-				<option value="Id">ID</option>
-				<option value="CreatedAt">创建时间</option>
-				<option value="UpdatedAt">更新时间</option>
-			</select>
-			<select asp-for="SortOrder">
-				<option value="asc">升序</option>
-				<option value="desc">降序</option>
-			</select>
-			<button type="submit" onclick="confirmChangeSearchData()">搜索</button>
-		</form>
-	</div>
-	<div class="table-container">
-		<table id="orderTable">
-			<tr>
-				<th>序号</th>
-				<th>订单编号</th>
-				<th>用户ID</th>
-				<th>用户手机号</th>
-				<th>用户身份证</th>
-				<th>起始时间</th>
-				<th>实际归时间</th>
-				<th>租用车辆ID</th>
-				<th>换车门店名称（ID）</th>
-				<th>还车门店名称（ID）</th>
-				<th>押金</th>
-				<th>租金</th>
-				<th>调度费</th>
-				<th>超时费</th>
-				<th>其他费用</th>
-				<th>已付金额</th>
-				<th>已退押金</th>
-				<th>订单状态</th>
-				<th>支付完成时间</th>
-				<th>备注</th>
-				<th>创建时间</th>
-				<th>更新时间</th>
-				<th>操作</th>
-			</tr>
-			@for (int i = 0; i < Model.List.Count; i++) {
-				<tr>
-					<form method="post" asp-page-handler="UpdateOrder" enctype="multipart/form-data">
-					<td>@(i + 1)</td>
-					<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedOrder.Id" value="@Model.List[i].Id" /></td>
-					<td><span id="@("TheUser" + i)">@Model.List[i].TheUser</span></td>
-					<td><span id="@("UserPhone" + i)">@Model.List[i].UserPhone</span></td>
-					<td><span id="@("IdentityCard" + i)">@Model.List[i].IdentityCard</span></td>
-					<td>
-							@if (@Model.List[i].ActualStartingTime != null) {
-							<span id="@("ActualStartingTime" + i)">@Model.List[i].ActualStartingTime</span>
-							} else {
-							<span>未开始</span>
-							}
-					</td>
-					<td>
-							@if (@Model.List[i].ActualReturnTime != null) {
-							<span id="@("ActualReturnTime" + i)">@Model.List[i].ActualReturnTime </span>
-							} else if (@Model.List[i].ActualStartingTime != null) {
-							<span>未归还</span>
-							} else {
-							<span>未归还</span>
-							}
-					</td>
-					<td><span id="@("TheVehicle" + i)">@Model.List[i].TheVehicle</span></td>
-					<td>
-							@if (@Model.List[i].TheRentalLocation != null) {
-								<span id="@("TheRentalLocation" + i)">@Model.List[i].RentalLocationName </span>
-								<span style="color:rgb(168,0,0)">(ID:@Model.List[i].TheRentalLocation)</span>
-									// RentalLocationName
-							} else {
-							<span>无</span>
-							}
-					</td>
-					<td>
-							@if (@Model.List[i].TheReturnThePoint != null) {
-								<span id="@("TheReturnThePoint" + i)">@Model.List[i].ReturnThePointName</span>
-								<span style="color:rgb(168,0,0)">(ID:@Model.List[i].TheReturnThePoint)</span>
-									// ReturnThePointName
-							} else if (@Model.List[i].ActualStartingTime != null) {
-							<span>未归还</span>
-							} else {
-							<span>无</span>
-							}
-					</td>
-					<td><span id="@("Deposit" + i)">@Model.List[i].Deposit</span></td>
-					<td><span id="@("Rent" + i)">@Model.List[i].Rent</span></td>
-					<td><span id="@("DispatchFee" + i)">@Model.List[i].DispatchFee</span></td>
-					<td><span id="@("OvertimeFee" + i)">@Model.List[i].OvertimeFee</span></td>
-					<td><input id="@("OtherFees" + i)" type="text" name="UpdatedOrder.OtherFees" value="@Model.List[i].OtherFees" placeholder="无" disabled /></td>
-					<td><span id="@("Paid" + i)">@Model.List[i].Paid</span></td>
-					<td><span id="@("DepositRefunded" + i)">@Model.List[i].DepositRefunded</span></td>
-					<td><span id="@("Status" + i)">@Model.List[i].Status</span></td>
-					<td>
-							@if (@Model.List[i].SuccessTime != null) {
-							<span id="@("SuccessTime" + i)">@Model.List[i].SuccessTime</span>
-							} else {
-							<span>无</span>
-							}
-					</td>
-					<td><textarea id="@("Notes" + i)" type="text" name="UpdatedOrder.Notes" value="@Model.List[i].Notes" disabled>@Model.List[i].Notes</textarea></td>
-
-					<td><span id="@("createdAt" + i)">@Model.List[i].CreatedAt</span></td>
-					<td><span id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</span></td>
-					<td>
-						<button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
-						<button id="@("save" + i)" type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;">保存</button>
-					</td>
-
-					<input type="hidden" name="UpdatedOrder.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
-					</form>
-				</tr>
-			}
-
-
-
-		</table>
-
-	</div>
-	<div class="bottom">
-		<div class="bottom-item">
-			<text id="page">第 * 页</text>
-			<text>，当前页共 @Model.List.Count 条数据</text>
-			@if (@Model.SearchSum != 0) {
-				<text>，共搜索到 @Model.SearchSum 条数据，</text>
-			}
-			<input id="PageCount" value="@Model.List.Count" style="display:none;" />
-			<input id="PageLimit" value="@Model.Limit" style="display:none;" />
-
-			<text id="pageSum"></text>
-			<a href="#" id="pageSumButton" onclick="loadPageSum()" style="font-size:small;">显示总页数</a>
-		</div>
-
-		<div class="bottom-item">
-
-			<form method="post" asp-page-handler="Search" id="pageForm">
-				<input placeholder="请输入页数" id="redirect" />
-				<button type="button" onclick="changePage(3)" class="editBtn">跳转</button>
-				<button type="button" onclick="changePage(2)" class="editBtn">首页</button>
-				<button type="button" onclick="changeEndPage()" class="editBtn">尾页</button>
-				<button type="button" onclick="changePage(0)">上一页</button>
-				<button type="button" onclick="changePage(1)">下一页</button>
-
-			</form>
-		</div>
-	</div>
-
-	<script>
-		// 页面加载完成后执行函数
-		window.onload = function () {
-			getSearchData();// 获取搜索框数据
-			loadIndexPage();// 加载页码
-			loadButton();// 加载按钮
-		};
-	</script>
-	<script>
-
-		const RESPONSEURL = `/Admin/Subpages/OrderManagement/OrderOverview`;
-		const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]').value;
-		const LENGTH = document.getElementById('PageCount').value;// 显示长度
-		// 更改页面
-		async function changePage(index) {
-			loadHTML();
-			//const SearchSum = document.getElementById("SearchSum");待修改
-			try {
-				const response = await fetch(`${RESPONSEURL}?handler=PageIndex`, {
-					method: 'Get',
-					headers: {
-						'Content-Type': 'application/json',
-						'RequestVerificationToken': TOKEN
-					},
-				});
-
-				if (!response.ok) {
-					throw new Error(`HTTP 错误！状态码: ${response.status}`);
-				}
-
-				const data = await response.json();  // 等待接口返回数据
-
-				if (data.success) {
-					var pageIndex = data.pageIndex;
-					const PageIndexTotal = document.getElementById('PageCount').value;
-					const PageLimit = document.getElementById('PageLimit').value;
-					if (index === 0) {
-						pageIndex--;
-						if (pageIndex < 1) {
-							return;
-						}
-					} else if (index === 1) {
-						pageIndex++;
-						if (PageIndexTotal < PageLimit) {
-							return;
-						}
-					} else if (index === 2) {
-						pageIndex = 1;
-
-					} else if (index > 1) {
-						const pageIndexRedirect = document.getElementById('redirect').value;
-						pageIndex = pageIndexRedirect;
-					}
-
-					await confirmChangePage(pageIndex);
-					cancelloadHTML();
-
-				} else {
-					alert("失败： " + (data.message || "未知错误"));
-				}
-
-			} catch (error) {
-				console.error("API 调用失败:", error);
-			}
-		}
-
-		// 跳转到尾页
-		async function changeEndPage(index) {
-			try {
-				const pageSum = await getPageSum();
-				if (pageSum) {
-					console.log('pageSum', pageSum);
-					await confirmChangePage(pageSum);
-				}
-			} catch (error) {
-				console.error('获取总页数失败:', error);
-			}
-		}
-
-		// 请求修改页面
-		async function confirmChangePage(pageIndex) {
-			loadHTML();
-			const requestData = {
-				"PageIndex": pageIndex
-			};
-			console.log("requestData", requestData);
-			try {
-				const response = await fetch(`${RESPONSEURL}?handler=ChangePage`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'RequestVerificationToken': TOKEN
-					},
-					body: JSON.stringify(requestData),
-				});
-
-				if (!response.ok) {
-					throw new Error(`HTTP 错误！状态码: ${response.status}`);
-				}
-				// 获取表单元素
-				var form = document.getElementById('pageForm');
-				// 提交表单
-				if (form) form.submit();
-
-				cancelloadHTML()
-
-			} catch (error) {
-				cancelloadHTML()
-				console.error("API 调用失败:", error);
-			}
-		}
-
-		// 获取当前页面页码
-		async function getIndexPage() {
-			try {
-				const response = await fetch(`${RESPONSEURL}?handler=PageIndex`, {
-					method: 'Get',
-					headers: {
-						'Content-Type': 'application/json',
-						'RequestVerificationToken': TOKEN
-					},
-				});
-
-				if (!response.ok) {
-					throw new Error(`HTTP 错误！状态码: ${response.status}`);
-				}
-
-				const data = await response.json();
-
-				if (data.success) {
-					var pageIndex = data.pageIndex;
-					document.getElementById('page').textContent = `第 ${pageIndex} 页`;
-
-					return pageIndex;
-
-				}
-
-			} catch (error) {
-				console.error("API 调用失败:", error);
-			}
-		}
-
-		// 加载当前页面页码
-		async function loadIndexPage() {
-			const IndexPage = await getIndexPage();
-			document.getElementById('page').textContent = `第 ${IndexPage} 页`;
-		}
-
-		// 导出文件
-		async function exportFile() {
-			loadHTML();
-			const dateValue = document.querySelector('input[name="UpdatedOrder.exportFileTime"]').value;
-			if (!dateValue) {
-				alert('请选择时间');
-				cancelloadHTML();
-				return;
-			}
-
-			const requestData = {
-				"Month": dateValue
-			};
-			console.log(requestData);
-
-			try {
-				const response = await fetch(`${RESPONSEURL}?handler=ExportToExcel`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'RequestVerificationToken': TOKEN
-					},
-					body: JSON.stringify(requestData),
-				});
-
-				if (!response.ok) {
-					throw new Error(`HTTP 错误！状态码: ${response.status}`);
-				}
-
-				// 处理文件下载
-				const blob = await response.blob(); // 将响应转换为 Blob 对象
-				const url = window.URL.createObjectURL(blob); // 创建一个对象 URL
-				const a = document.createElement('a'); // 创建一个链接元素
-				a.href = url; // 设置链接的 href 为对象 URL
-				a.download = '订单数据.xlsx'; // 设置下载文件名
-				document.body.appendChild(a); // 将链接添加到文档中
-				a.click(); // 模拟点击链接以下载文件
-				a.remove(); // 下载后移除链接
-				window.URL.revokeObjectURL(url); // 释放对象 URL
-
-			} catch (error) {
-				console.error('出错:', error);
-			} finally {
-				cancelloadHTML(); // 无论成功与否都取消加载动画
-			}
-		}
-		// 获取总页数
-		async function getPageSum() {
-			loadHTML();
-			try {
-				const response = await fetch(`${RESPONSEURL}?handler=PageSum`, {
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-						'RequestVerificationToken': TOKEN
-					},
-				});
-				if (!response.ok) {
-					throw new Error(`HTTP 错误！状态码: ${response.status}`);
-				}
-				const data = await response.json();
-				cancelloadHTML();
-
-				if (data.totalPages) {
-					return data.totalPages;
-				} else {
-					throw new Error("失败： " + (data.message || "未知错误"));
-				}
-			} catch (error) {
-				cancelloadHTML(); // 确保在出错时也取消加载动画
-				console.error('出错:', error);
-				return null; // 返回 null 表示没有有效结果
-			}
-		}
-
-		// 加载总页数
-		async function loadPageSum() {
-			const pageSum = await getPageSum();
-			// 更新总页数
-			document.getElementById('pageSum').textContent = `共 ${pageSum} 页`;
-			document.getElementById('pageSumButton').style.display = 'none';
-		}
-
-		// 加载按钮
-		function loadButton() {
-			// 获取所有文件上传控件
-			const fileInputs = document.querySelectorAll(".fileUpload");
-
-			fileInputs.forEach(input => {
-				input.addEventListener("change", function () {
-					const file = this.files[0];
-					if (file) {
-						const reader = new FileReader();
-
-						// 读取文件完成后设置预览图片的 src 属性
-						reader.onload = function (e) {
-							const preview = input.closest(".imageContainer").querySelector(".preview");
-							preview.src = e.target.result; // 设置预览图像的路径
-							preview.style.display = "block"; // 显示预览图片
-						};
-
-						// 读取文件为 Data URL
-						reader.readAsDataURL(file);
-					}
-				});
-			});
-
-			// 编辑按钮逻辑
-			const editButtons = document.querySelectorAll(".editBtn");
-			editButtons.forEach(button => {
-				button.addEventListener("click", function () {
-					const id = this.dataset.id;
-					console.log('id', id)
-					const container = document.querySelector(`.saveBtn[data-id="${id}"]`);
-					//const img = container.querySelector(".thumbnail");
-					//const fileInput = container.querySelector(".fileUpload");
-
-					// 隐藏旧图片
-					//if (img) img.style.display = "none";
-
-					// 显示文件上传控件
-					//fileInput.style.display = "block";
-
-					// 切换其他字段为可编辑状态
-					const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
-					inputs.forEach(input => input.disabled = false);
-
-					// 使 textarea 可编辑
-					const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedOrder.Notes']`);
-					if (textArea) textArea.disabled = false; // 使 textarea 可编辑
-
-					// 使状态下拉框可以编辑
-					//const selectState = container.closest("tr").querySelector("select[name='UpdatedVehicle.Status']");
-					//if (selectState) selectState.disabled = false;
-
-					// 切换按钮状态
-					this.style.display = "none"; // 隐藏编辑按钮
-					container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
-				});
-			});
-
-		}
-
-		// 打开模态窗口并加载点击的图片
-		function openModal(imgElement) {
-			var modal = document.getElementById("imageModal");
-			var modalImg = document.getElementById("modalImage");
-
-			// 设置模态窗口中的图片为当前点击的图片
-			modal.style.display = "flex"; // 使用 flexbox 居中
-			modalImg.src = imgElement.src; // 设置模态窗口图片源
-		}
-
-		// 关闭模态窗口
-		function closeModal() {
-			var modal = document.getElementById("imageModal");
-			modal.style.display = "none";
-		}
-
-		// 如果点击模态窗口外部区域，关闭模态窗口
-		window.onclick = function (event) {
-			var modal = document.getElementById("imageModal");
-			if (event.target === modal) {
-				modal.style.display = "none";
-			}
-		}
-
-
-		// 获取搜索输入框的数据
-		async function getSearchData() {
-			var searchUserPhone = document.getElementById('SearchUserPhoneHtml');
-			var searchStatus = document.getElementById('SearchStatusHtml');
-
-			try {
-				const response = await fetch(`${RESPONSEURL}?handler=SearchData`, {
-					method: 'Get',
-					headers: {
-						'Content-Type': 'application/json',
-						'RequestVerificationToken': TOKEN
-					},
-				});
-
-				if (!response.ok) {
-					throw new Error(`HTTP 错误！状态码: ${response.status}`);
-				}
-				const data = await response.json();
-
-				if (data.success) {
-					console.log('getdata', data)
-					setTimeout(function () {
-						searchUserPhone.value = data.searchUserPhone;
-						searchStatus.value = data.searchStatus;
-						console.log('搜索成功!')
-					}, 500)
-				} else {
-					alert(data.message + '请刷新页面后重试');
-				}
-			} catch (error) {
-				console.error("API 调用失败:", error);
-			} finally {
-				cancelloadHTML();
-			}
-		}
-
-		// 确认搜索
-		async function confirmChangeSearchData() {
-			loadHTML(); // 显示加载中
-			const SearchUserPhoneHtml = document.getElementById('SearchUserPhoneHtml').value;
-			const SearchStatusHtml = document.getElementById('SearchStatusHtml').value;
-			const requestData = {
-				"SearchUserPhone": SearchUserPhoneHtml,
-				"SearchStatus": SearchStatusHtml,
-			};
-			console.log("requestData", requestData);
-			try {
-				const response = await fetch(`${RESPONSEURL}?handler=ChangeSearchData`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						'RequestVerificationToken': TOKEN
-					},
-					body: JSON.stringify(requestData),
-				});
-
-				if (!response.ok) {
-					throw new Error(`HTTP 错误！状态码: ${response.status}`);
-				}
-				const data = await response.json();
-				if (data.success) {
-					getSearchData();
-				} else {
-					alert(data.message + '请刷新页面后重试');
-				}
-			} catch (error) {
-				console.error("API 调用失败:", error);
-			} finally {
-				cancelloadHTML();
-			}
-		}
-	</script>
+    <!-- 加载动画 -->
+    <div class="box" id="loadding" style="display:none;">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <!-- 锁住页面的遮罩层 -->
+    <div id="overlay" style="display:none;"></div>
+
+    <!-- 显示错误消息 -->
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div id="failMessage" class="failMessage">@Model.ErrorMessage</div>
+        @foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div id="failMessage" class="failMessage">@error.ErrorMessage</div>
+        }
+        <script>
+            setTimeout(function () {
+                showMessage("failMessage", 4000);
+            }, 500)
+        </script>
+    }
+
+    <!-- 显示成功消息 -->
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div id="successMessage" class="message">@Model.SuccessMessage</div>
+        <script>
+            setTimeout(function () {
+                showMessage("successMessage");
+            }, 500)
+        </script>
+    }
+
+    <div class="header">
+        <div class="header">
+            <form method="get">
+                <button type="submit">刷新</button>
+            </form>
+            <button onclick="exportFile()" class="editBtn export">导出</button>
+            <input type="month" name="UpdatedOrder.exportFileTime" value="" placeholder="导出时间" />
+
+
+        </div>
+        <form method="post" asp-page-handler="Search">
+            @* 			
+            <input asp-for="SearchUserPhoneHtml" id="SearchUserPhoneHtml" value="" placeholder="车辆编号" />
+            <input asp-for="SearchStatusHtml" id="SearchStatusHtml" value="" placeholder="门店名称" /> *@
+            <input asp-for="SearchUserPhoneHtml" id="SearchUserPhoneHtml" value="" placeholder="手机号" />
+            <input asp-for="SearchStatusHtml" id="SearchStatusHtml" value="" placeholder="订单状态" />
+            <select asp-for="SortField">
+                <option value="Id">ID</option>
+                <option value="CreatedAt">创建时间</option>
+                <option value="UpdatedAt">更新时间</option>
+            </select>
+            <select asp-for="SortOrder">
+                <option value="asc">升序</option>
+                <option value="desc">降序</option>
+            </select>
+            <button type="submit" onclick="confirmChangeSearchData()">搜索</button>
+        </form>
+    </div>
+    <div class="table-container">
+        <table id="orderTable">
+            <tr>
+                <th>序号</th>
+                <th>订单编号</th>
+                <th>用户ID</th>
+                <th>用户手机号</th>
+                <th>用户身份证</th>
+                <th>起始时间</th>
+                <th>实际归时间</th>
+                <th>租用车辆ID</th>
+                <th>换车门店名称（ID）</th>
+                <th>还车门店名称（ID）</th>
+                <th>押金</th>
+                <th>租金</th>
+                <th>调度费</th>
+                <th>超时费</th>
+                <th>其他费用</th>
+                <th>已付金额</th>
+                <th>已退押金</th>
+                <th>订单状态</th>
+                <th>支付完成时间</th>
+                <th>备注</th>
+                <th>创建时间</th>
+                <th>更新时间</th>
+                <th>操作</th>
+            </tr>
+            @for (int i = 0; i < Model.List.Count; i++)
+            {
+                <tr>
+                    <form method="post" asp-page-handler="UpdateOrder" enctype="multipart/form-data">
+                    <td>@(i + 1)</td>
+                    <td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedOrder.Id" value="@Model.List[i].Id" /></td>
+                    <td><span id="@("TheUser" + i)">@Model.List[i].TheUser</span></td>
+                    <td><span id="@("UserPhone" + i)">@Model.List[i].UserPhone</span></td>
+                    <td><span id="@("IdentityCard" + i)">@Model.List[i].IdentityCard</span></td>
+                    <td>
+                            @if (@Model.List[i].ActualStartingTime != null)
+                            {
+                            <span id="@("ActualStartingTime" + i)">@Model.List[i].ActualStartingTime</span>
+                            }
+                            else
+                            {
+                            <span>未开始</span>
+                            }
+                    </td>
+                    <td>
+                            @if (@Model.List[i].ActualReturnTime != null)
+                            {
+                            <span id="@("ActualReturnTime" + i)">@Model.List[i].ActualReturnTime </span>
+                            }
+                            else if (@Model.List[i].ActualStartingTime != null)
+                            {
+                            <span>未归还</span>
+                            }
+                            else
+                            {
+                            <span>未归还</span>
+                            }
+                    </td>
+                    <td><span id="@("TheVehicle" + i)">@Model.List[i].TheVehicle</span></td>
+                    <td>
+                            @if (@Model.List[i].TheRentalLocation != null)
+                            {
+                            <span id="@("TheRentalLocation" + i)">@Model.List[i].RentalLocationName </span>
+                            <span style="color:rgb(168,0,0)">(ID:@Model.List[i].TheRentalLocation)</span>
+                                // RentalLocationName
+                            }
+                            else
+                            {
+                            <span>无</span>
+                            }
+                    </td>
+                    <td>
+                            @if (@Model.List[i].TheReturnThePoint != null)
+                            {
+                            <span id="@("TheReturnThePoint" + i)">@Model.List[i].ReturnThePointName</span>
+                            <span style="color:rgb(168,0,0)">(ID:@Model.List[i].TheReturnThePoint)</span>
+                                // ReturnThePointName
+                            }
+                            else if (@Model.List[i].ActualStartingTime != null)
+                            {
+                            <span>未归还</span>
+                            }
+                            else
+                            {
+                            <span>无</span>
+                            }
+                    </td>
+                    <td><span id="@("Deposit" + i)">@Model.List[i].Deposit</span></td>
+                    <td><span id="@("Rent" + i)">@Model.List[i].Rent</span></td>
+                    <td><span id="@("DispatchFee" + i)">@Model.List[i].DispatchFee</span></td>
+                    <td><span id="@("OvertimeFee" + i)">@Model.List[i].OvertimeFee</span></td>
+                    <td><input id="@("OtherFees" + i)" type="text" name="UpdatedOrder.OtherFees" value="@Model.List[i].OtherFees" placeholder="无" disabled /></td>
+                    <td><span id="@("Paid" + i)">@Model.List[i].Paid</span></td>
+                    <td><span id="@("DepositRefunded" + i)">@Model.List[i].DepositRefunded</span></td>
+                    <td><span id="@("Status" + i)">@Model.List[i].Status</span></td>
+                    <td>
+                            @if (@Model.List[i].SuccessTime != null)
+                            {
+                            <span id="@("SuccessTime" + i)">@Model.List[i].SuccessTime</span>
+                            }
+                            else
+                            {
+                            <span>无</span>
+                            }
+                    </td>
+                    <td><textarea id="@("Notes" + i)" type="text" name="UpdatedOrder.Notes" value="@Model.List[i].Notes" disabled>@Model.List[i].Notes</textarea></td>
+
+                    <td><span id="@("createdAt" + i)">@Model.List[i].CreatedAt</span></td>
+                    <td><span id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</span></td>
+                    <td>
+                        <button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
+                        <button id="@("save" + i)" type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;">保存</button>
+                    </td>
+
+                    <input type="hidden" name="UpdatedOrder.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+                    </form>
+                </tr>
+            }
+
+
+
+        </table>
+
+    </div>
+    <div class="bottom">
+        <div class="bottom-item">
+            <text id="page">第 * 页</text>
+            <text>，当前页共 @Model.List.Count 条数据</text>
+            @if (@Model.SearchSum != 0)
+            {
+                <text>，共搜索到 @Model.SearchSum 条数据，</text>
+            }
+            <input id="PageCount" value="@Model.List.Count" style="display:none;" />
+            <input id="PageLimit" value="@Model.Limit" style="display:none;" />
+
+            <text id="pageSum"></text>
+            <a href="#" id="pageSumButton" onclick="loadPageSum()" style="font-size:small;">显示总页数</a>
+        </div>
+
+        <div class="bottom-item">
+
+            <form method="post" asp-page-handler="Search" id="pageForm">
+                <input placeholder="请输入页数" id="redirect" />
+                <button type="button" onclick="changePage(3)" class="editBtn">跳转</button>
+                <button type="button" onclick="changePage(2)" class="editBtn">首页</button>
+                <button type="button" onclick="changeEndPage()" class="editBtn">尾页</button>
+                <button type="button" onclick="changePage(0)">上一页</button>
+                <button type="button" onclick="changePage(1)">下一页</button>
+
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后执行函数
+        window.onload = function () {
+            getSearchData();// 获取搜索框数据
+            loadIndexPage();// 加载页码
+            loadButton();// 加载按钮
+        };
+    </script>
+    <script>
+
+        const RESPONSEURL = `/Admin/Subpages/OrderManagement/OrderOverview`;
+        const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        const LENGTH = document.getElementById('PageCount').value;// 显示长度
+        // 更改页面
+        async function changePage(index) {
+            loadHTML();
+            //const SearchSum = document.getElementById("SearchSum");待修改
+            try {
+                const response = await fetch(`${RESPONSEURL}?handler=PageIndex`, {
+                    method: 'Get',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': TOKEN
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP 错误！状态码: ${response.status}`);
+                }
+
+                const data = await response.json();  // 等待接口返回数据
+
+                if (data.success) {
+                    var pageIndex = data.pageIndex;
+                    const PageIndexTotal = document.getElementById('PageCount').value;
+                    const PageLimit = document.getElementById('PageLimit').value;
+                    if (index === 0) {
+                        pageIndex--;
+                        if (pageIndex < 1) {
+                            return;
+                        }
+                    } else if (index === 1) {
+                        pageIndex++;
+                        if (PageIndexTotal < PageLimit) {
+                            return;
+                        }
+                    } else if (index === 2) {
+                        pageIndex = 1;
+
+                    } else if (index > 1) {
+                        const pageIndexRedirect = document.getElementById('redirect').value;
+                        pageIndex = pageIndexRedirect;
+                    }
+
+                    await confirmChangePage(pageIndex);
+                    cancelloadHTML();
+
+                } else {
+                    alert("失败： " + (data.message || "未知错误"));
+                }
+
+            } catch (error) {
+                console.error("API 调用失败:", error);
+            }
+        }
+
+        // 跳转到尾页
+        async function changeEndPage(index) {
+            try {
+                const pageSum = await getPageSum();
+                if (pageSum) {
+                    console.log('pageSum', pageSum);
+                    await confirmChangePage(pageSum);
+                }
+            } catch (error) {
+                console.error('获取总页数失败:', error);
+            }
+        }
+
+        // 请求修改页面
+        async function confirmChangePage(pageIndex) {
+            loadHTML();
+            const requestData = {
+                "PageIndex": pageIndex
+            };
+            console.log("requestData", requestData);
+            try {
+                const response = await fetch(`${RESPONSEURL}?handler=ChangePage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': TOKEN
+                    },
+                    body: JSON.stringify(requestData),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP 错误！状态码: ${response.status}`);
+                }
+                // 获取表单元素
+                var form = document.getElementById('pageForm');
+                // 提交表单
+                if (form) form.submit();
+
+                cancelloadHTML()
+
+            } catch (error) {
+                cancelloadHTML()
+                console.error("API 调用失败:", error);
+            }
+        }
+
+        // 获取当前页面页码
+        async function getIndexPage() {
+            try {
+                const response = await fetch(`${RESPONSEURL}?handler=PageIndex`, {
+                    method: 'Get',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': TOKEN
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP 错误！状态码: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    var pageIndex = data.pageIndex;
+                    document.getElementById('page').textContent = `第 ${pageIndex} 页`;
+
+                    return pageIndex;
+
+                }
+
+            } catch (error) {
+                console.error("API 调用失败:", error);
+            }
+        }
+
+        // 加载当前页面页码
+        async function loadIndexPage() {
+            const IndexPage = await getIndexPage();
+            document.getElementById('page').textContent = `第 ${IndexPage} 页`;
+        }
+
+        // 导出文件
+        async function exportFile() {
+            loadHTML();
+            const dateValue = document.querySelector('input[name="UpdatedOrder.exportFileTime"]').value;
+            if (!dateValue) {
+                alert('请选择时间');
+                cancelloadHTML();
+                return;
+            }
+
+            const requestData = {
+                "Month": dateValue
+            };
+            console.log(requestData);
+
+            try {
+                const response = await fetch(`${RESPONSEURL}?handler=ExportToExcel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': TOKEN
+                    },
+                    body: JSON.stringify(requestData),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP 错误！状态码: ${response.status}`);
+                }
+
+                // 处理文件下载
+                const blob = await response.blob(); // 将响应转换为 Blob 对象
+                const url = window.URL.createObjectURL(blob); // 创建一个对象 URL
+                const a = document.createElement('a'); // 创建一个链接元素
+                a.href = url; // 设置链接的 href 为对象 URL
+                a.download = '订单数据.xlsx'; // 设置下载文件名
+                document.body.appendChild(a); // 将链接添加到文档中
+                a.click(); // 模拟点击链接以下载文件
+                a.remove(); // 下载后移除链接
+                window.URL.revokeObjectURL(url); // 释放对象 URL
+
+            } catch (error) {
+                console.error('出错:', error);
+            } finally {
+                cancelloadHTML(); // 无论成功与否都取消加载动画
+            }
+        }
+        // 获取总页数
+        async function getPageSum() {
+            loadHTML();
+            try {
+                const response = await fetch(`${RESPONSEURL}?handler=PageSum`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': TOKEN
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP 错误！状态码: ${response.status}`);
+                }
+                const data = await response.json();
+                cancelloadHTML();
+
+                if (data.totalPages) {
+                    return data.totalPages;
+                } else {
+                    throw new Error("失败： " + (data.message || "未知错误"));
+                }
+            } catch (error) {
+                cancelloadHTML(); // 确保在出错时也取消加载动画
+                console.error('出错:', error);
+                return null; // 返回 null 表示没有有效结果
+            }
+        }
+
+        // 加载总页数
+        async function loadPageSum() {
+            const pageSum = await getPageSum();
+            // 更新总页数
+            document.getElementById('pageSum').textContent = `共 ${pageSum} 页`;
+            document.getElementById('pageSumButton').style.display = 'none';
+        }
+
+        // 加载按钮
+        function loadButton() {
+            // 获取所有文件上传控件
+            const fileInputs = document.querySelectorAll(".fileUpload");
+
+            fileInputs.forEach(input => {
+                input.addEventListener("change", function () {
+                    const file = this.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+
+                        // 读取文件完成后设置预览图片的 src 属性
+                        reader.onload = function (e) {
+                            const preview = input.closest(".imageContainer").querySelector(".preview");
+                            preview.src = e.target.result; // 设置预览图像的路径
+                            preview.style.display = "block"; // 显示预览图片
+                        };
+
+                        // 读取文件为 Data URL
+                        reader.readAsDataURL(file);
+                    }
+                });
+            });
+
+            // 编辑按钮逻辑
+            const editButtons = document.querySelectorAll(".editBtn");
+            editButtons.forEach(button => {
+                button.addEventListener("click", function () {
+                    const id = this.dataset.id;
+                    console.log('id', id)
+                    const container = document.querySelector(`.saveBtn[data-id="${id}"]`);
+                    //const img = container.querySelector(".thumbnail");
+                    //const fileInput = container.querySelector(".fileUpload");
+
+                    // 隐藏旧图片
+                    //if (img) img.style.display = "none";
+
+                    // 显示文件上传控件
+                    //fileInput.style.display = "block";
+
+                    // 切换其他字段为可编辑状态
+                    const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
+                    inputs.forEach(input => input.disabled = false);
+
+                    // 使 textarea 可编辑
+                    const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedOrder.Notes']`);
+                    if (textArea) textArea.disabled = false; // 使 textarea 可编辑
+
+                    // 使状态下拉框可以编辑
+                    //const selectState = container.closest("tr").querySelector("select[name='UpdatedVehicle.Status']");
+                    //if (selectState) selectState.disabled = false;
+
+                    // 切换按钮状态
+                    this.style.display = "none"; // 隐藏编辑按钮
+                    container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
+                });
+            });
+
+        }
+
+        // 打开模态窗口并加载点击的图片
+        function openModal(imgElement) {
+            var modal = document.getElementById("imageModal");
+            var modalImg = document.getElementById("modalImage");
+
+            // 设置模态窗口中的图片为当前点击的图片
+            modal.style.display = "flex"; // 使用 flexbox 居中
+            modalImg.src = imgElement.src; // 设置模态窗口图片源
+        }
+
+        // 关闭模态窗口
+        function closeModal() {
+            var modal = document.getElementById("imageModal");
+            modal.style.display = "none";
+        }
+
+        // 如果点击模态窗口外部区域，关闭模态窗口
+        window.onclick = function (event) {
+            var modal = document.getElementById("imageModal");
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        }
+
+
+        // 获取搜索输入框的数据
+        async function getSearchData() {
+            var searchUserPhone = document.getElementById('SearchUserPhoneHtml');
+            var searchStatus = document.getElementById('SearchStatusHtml');
+
+            try {
+                const response = await fetch(`${RESPONSEURL}?handler=SearchData`, {
+                    method: 'Get',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': TOKEN
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP 错误！状态码: ${response.status}`);
+                }
+                const data = await response.json();
+
+                if (data.success) {
+                    console.log('getdata', data)
+                    setTimeout(function () {
+                        searchUserPhone.value = data.searchUserPhone;
+                        searchStatus.value = data.searchStatus;
+                        console.log('搜索成功!')
+                    }, 500)
+                } else {
+                    alert(data.message + '请刷新页面后重试');
+                }
+            } catch (error) {
+                console.error("API 调用失败:", error);
+            } finally {
+                cancelloadHTML();
+            }
+        }
+
+        // 确认搜索
+        async function confirmChangeSearchData() {
+            loadHTML(); // 显示加载中
+            const SearchUserPhoneHtml = document.getElementById('SearchUserPhoneHtml').value;
+            const SearchStatusHtml = document.getElementById('SearchStatusHtml').value;
+            const requestData = {
+                "SearchUserPhone": SearchUserPhoneHtml,
+                "SearchStatus": SearchStatusHtml,
+            };
+            console.log("requestData", requestData);
+            try {
+                const response = await fetch(`${RESPONSEURL}?handler=ChangeSearchData`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': TOKEN
+                    },
+                    body: JSON.stringify(requestData),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP 错误！状态码: ${response.status}`);
+                }
+                const data = await response.json();
+                if (data.success) {
+                    getSearchData();
+                } else {
+                    alert(data.message + '请刷新页面后重试');
+                }
+            } catch (error) {
+                console.error("API 调用失败:", error);
+            } finally {
+                cancelloadHTML();
+            }
+        }
+    </script>
 
 </body>
