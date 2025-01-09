@@ -85,8 +85,8 @@
 				<th>用户身份证</th>
 				<th>起始时间</th>
 				<th>实际归时间</th>
-				<th>租用车辆ID</th>
-				<th>换车门店名称（ID）</th>
+				<th>租用车辆车牌号（ID）</th>
+				<th>租车门店名称（ID）</th>
 				<th>还车门店名称（ID）</th>
 				<th>押金</th>
 				<th>租金</th>
@@ -126,7 +126,10 @@
 							<span>未归还</span>
 							}
 					</td>
-					<td><span id="@("TheVehicle" + i)">@Model.List[i].TheVehicle</span></td>
+					<td>
+						<span>@Model.List[i].VehiclePlateNumber</span>
+						<span id="@("TheVehicle" + i)" style="color:rgb(168,0,0)">(ID:@Model.List[i].TheVehicle)</span>
+					</td>
 					<td>
 							@if (@Model.List[i].TheRentalLocation != null) {
 								<span id="@("TheRentalLocation" + i)">@Model.List[i].RentalLocationName </span>

@@ -56,10 +56,16 @@ namespace aspnetapp.Controllers.Web {
 			//	.ToListAsync();
 
 			var orders = await _context.Order
-		.OrderBy(o => o.Id) // 根据订单ID排序，确保分页顺序一致
-		.Skip((pageIndex - 1) * limit) // 跳过前面页的数据
-		.Take(limit) // 获取当前页的数据
-		.ToListAsync();
+				.OrderBy(o => o.Id) // 根据订单ID排序，确保分页顺序一致
+				.Skip((pageIndex - 1) * limit) // 跳过前面页的数据
+				.Take(limit) // 获取当前页的数据
+				.ToListAsync();
+
+			// 查询所有涉及的车辆ID
+			var vehicleIds = orders
+				.Select(o => o.TheVehicle)
+				.Distinct()
+				.ToList();
 
 			// 查询所有涉及的门店信息以减少数据库查询次数
 			var storeIds = orders
@@ -73,14 +79,27 @@ namespace aspnetapp.Controllers.Web {
 				.Where(s => storeIds.Contains(s.Id))
 				.ToDictionaryAsync(s => s.Id, s => s.Name);
 
-			// 替换订单中的门店ID为名称
+			// 查询车辆信息
+			var vehicles = await _context.Vehicle
+				.Where(v => vehicleIds.Contains(v.Id))
+				.ToDictionaryAsync(v => v.Id, v => v.PlateNumber);
+
+			// 替换订单中的门店ID和车辆ID为名称和车牌号
 			foreach (var order in orders) {
 				if (stores.TryGetValue(order.TheRentalLocation, out var rentalLocationName)) {
 					order.RentalLocationName = rentalLocationName; // 设置租车点名称
 				}
 
+				//if (stores.TryGetValue(order.TheReturnThePoint, out var returnPointName)) {
+				//	order.ReturnThePointName = returnPointName; // 设置还车点名称
+				//}
+
 				if (order.TheReturnThePoint.HasValue && stores.TryGetValue(order.TheReturnThePoint.Value, out var returnPointName)) {
 					order.ReturnThePointName = returnPointName; // 设置还车点名称
+				}
+
+				if (vehicles.TryGetValue(order.TheVehicle, out var plateNumber)) {
+					order.VehiclePlateNumber = plateNumber; // 设置车辆车牌号
 				}
 			}
 
