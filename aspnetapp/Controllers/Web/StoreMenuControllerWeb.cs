@@ -137,7 +137,7 @@ namespace aspnetapp.Controllers.Web {
         /// <param name="sortOrder"></param>
         /// <returns></returns>
         public async Task<(List<StoreMenu>, int sum)> SearchStoreMenus(int limit, int pageIndex, int? theStore = null, string sortField = "Id", string sortOrder = "asc") {
-			if ((theStore is null || theStore == 0)) {
+			if ((theStore is null || theStore == 0) && sortField != "Id" && sortOrder != "asc") {
 				return (await GetTablePage(limit, pageIndex), limit);
 			}
 
