@@ -68,6 +68,13 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		public static int? SearchTheRentalLocation { get; set; }
 		public int? SearchTheRentalLocationHtml { get; set; }
 
+		/// <summary>
+		/// 租车点名称
+		/// </summary>
+		[BindProperty(SupportsGet = true)]
+		public static string? SearchStoreName { get; set; }
+		public string? SearchStoreNameHtml { get; set; }
+
 		// 排序
 		[BindProperty(SupportsGet = true)]
 		public string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
@@ -88,6 +95,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchStatus = "";
 			SearchTheVehicle = null;
 			SearchTheRentalLocation = null;
+			SearchStoreName = null;
 
 			try {
 				List = await _orderController.GetTablePage(Limit, PageIndex);
@@ -307,6 +315,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchStatus = requestData["SearchStatus"];
 			SearchTheVehicle = int.Parse(requestData["SearchTheVehicle"]);
 			SearchTheRentalLocation = int.Parse(requestData["SearchTheRentalLocation"]);
+			SearchStoreName = requestData["SearchStoreName"];
 
 			return new JsonResult(new { success = true, message = "成功" });
 		}
@@ -316,7 +325,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// </summary>
 		/// <returns></returns>
 		public async Task<JsonResult> OnGetSearchDataAsync() {
-			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation });
+			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation, SearchStoreName });
 		}
 	}
 }

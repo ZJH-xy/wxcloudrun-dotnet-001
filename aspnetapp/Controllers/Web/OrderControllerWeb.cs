@@ -64,7 +64,7 @@ namespace aspnetapp.Controllers.Web {
 		/// <summary>
 		/// 查询订单（支持多字段搜索）
 		/// </summary>
-		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, int? theVehicle = null, int? theRentalLocation = null, string sortField = "Id", string sortOrder = "asc") {
+		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, int? theVehicle = null, int? theRentalLocation = null, string? searchStoreName = null, string sortField = "Id", string sortOrder = "asc") {
 			if (userPhone.IsNullOrEmpty() && status.IsNullOrEmpty() && sortField != "Id" && sortOrder != "asc") {
 				return (await GetTablePage(limit, pageIndex), limit);
 			}
@@ -88,6 +88,17 @@ namespace aspnetapp.Controllers.Web {
 			}
 			if (theRentalLocation.HasValue) {
 				query = query.Where(o => o.TheRentalLocation == theRentalLocation);// 租车点
+			}
+
+			// 门店名称过滤
+			if (!string.IsNullOrEmpty(searchStoreName)) {
+				var storeIds = await _context.Store
+					.Where(s => !s.IsDelete && s.Name.Contains(searchStoreName))
+					.Select(s => s.Id)
+					.ToListAsync();
+
+				query = query.Where(o => storeIds.Contains(o.TheRentalLocation) ||
+										 (o.TheReturnThePoint.HasValue && storeIds.Contains(o.TheReturnThePoint.Value)));
 			}
 
 			// 排序逻辑
