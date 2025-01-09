@@ -113,7 +113,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		public async Task<IActionResult> OnPostSearchAsync() {
 
 			// 调用 OrderControllerWeb 中的 SearchOrders 方法，包含排序字段和顺序
-			(List, SearchSum) = await _orderController.SearchOrders(Limit, PageIndex, SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation, SortField, SortOrder);
+			(List, SearchSum) = await _orderController.SearchOrders(Limit, PageIndex, SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder);
 
 			return Page();
 		}

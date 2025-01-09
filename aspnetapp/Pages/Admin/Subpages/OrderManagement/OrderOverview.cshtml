@@ -66,7 +66,7 @@
         <form method="post" asp-page-handler="Search">
             <input asp-for="SearchTheVehicleHtml" id="SearchTheVehicleHtml" value="" placeholder="车辆编号" />
             <input asp-for="SearchTheRentalLocationHtml" id="SearchTheRentalLocationHtml" value="" placeholder="门店ID" />
-            @* <input asp-for="SearchStoreNameHtml" id="SearchStoreNameHtml" value="" placeholder="门店名称" /> *@
+            <input asp-for="SearchStoreNameHtml" id="SearchStoreNameHtml" value="" placeholder="门店名称" />
             <input asp-for="SearchUserPhoneHtml" id="SearchUserPhoneHtml" value="" placeholder="手机号" />
             <select asp-for="SearchStatusHtml" id="SearchStatusHtml">
                 <option value="">订单状态</option>
@@ -621,6 +621,9 @@
 
         // 获取搜索输入框的数据
         async function getSearchData() {
+            var SearchTheVehicle = document.getElementById('SearchTheVehicleHtml');
+            var SearchTheRentalLocation = document.getElementById('SearchTheRentalLocationHtml');
+            var SearchStoreName = document.getElementById('SearchStoreNameHtml');
             var searchUserPhone = document.getElementById('SearchUserPhoneHtml');
             var searchStatus = document.getElementById('SearchStatusHtml');
 
@@ -641,6 +644,9 @@
                 if (data.success) {
                     console.log('getdata', data)
                     setTimeout(function () {
+                        SearchTheVehicle.value = data.searchTheVehicle;
+                        SearchTheRentalLocation.value = data.searchTheRentalLocation;
+                        SearchStoreName.value = data.searchStoreName;
                         searchUserPhone.value = data.searchUserPhone;
                         searchStatus.value = data.searchStatus;
                         console.log('搜索成功!')
@@ -658,12 +664,17 @@
         // 确认搜索
         async function confirmChangeSearchData() {
             loadHTML(); // 显示加载中
+            const SearchUserPhoneHtml = document.getElementById('SearchUserPhoneHtml').value;
+            const SearchStatusHtml = document.getElementById('SearchStatusHtml').value;
+            const SearchTheRentalLocationHtml = document.getElementById('SearchTheRentalLocationHtml').value;
+            const SearchTheVehicleHtml = document.getElementById('SearchTheVehicleHtml').value;
+            const SearchStoreNameHtml = document.getElementById('SearchStoreNameHtml').value;
             const requestData = {
-                "SearchUserPhone": document.getElementById('SearchUserPhoneHtml').value,
-                "SearchStatus": document.getElementById('SearchStatusHtml').value,
-                "SearchTheRentalLocation": document.getElementById('SearchTheRentalLocationHtml').value,
-                "SearchTheVehicle": document.getElementById('SearchTheVehicleHtml').value,
-                // "SearchStoreName": document.getElementById('SearchStoreNameHtml').value,
+                "SearchUserPhone": SearchUserPhoneHtml,
+                "SearchStatus": SearchStatusHtml,
+                "SearchTheRentalLocation": SearchTheRentalLocationHtml,
+                "SearchTheVehicle": SearchTheVehicleHtml,
+                "SearchStoreName": SearchStoreNameHtml,
             };
             console.log("requestData", requestData);
             try {
