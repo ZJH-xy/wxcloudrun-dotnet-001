@@ -15,7 +15,10 @@ namespace aspnetapp.Controllers.Web {
             _wxSetting = wxSetting;
         }
 
-        public async Task<List<Vehicle>> GetTablePage(int limit, int pageIndex) {
+		/// <summary>
+		/// 分页查询车辆
+		/// </summary>
+		public async Task<List<Vehicle>> GetTablePage(int limit, int pageIndex) {
 			// 获取车辆列表
 			var vehicles = await _context.Vehicle
 				.Where(v => !v.IsDelete) // 过滤删除的车辆
@@ -24,35 +27,12 @@ namespace aspnetapp.Controllers.Web {
 				.Take(limit) // 获取当前页的数据
 				.ToListAsync();
 
-			// 获取所有相关门店的 ID
-			var storeIds = vehicles
-				.SelectMany(v => new[] { v.TheOriginalStore, v.TheCurrentStore })
-				.Where(id => id.HasValue)
-				.Select(id => id.Value)
-				.Distinct()
-				.ToList();
-
-			// 查询所有门店的名称
-			var stores = await _context.Store
-				.Where(s => storeIds.Contains(s.Id))
-				.ToDictionaryAsync(s => s.Id, s => s.Name);
-
-			// 替换车辆的门店ID为名称
-			foreach (var vehicle in vehicles) {
-				if (vehicle.TheOriginalStore.HasValue && stores.TryGetValue(vehicle.TheOriginalStore.Value, out var originalStoreName)) {
-					vehicle.OriginalStoreName = originalStoreName; // 设置原始门店名称
-				}
-
-				if (vehicle.TheCurrentStore.HasValue && stores.TryGetValue(vehicle.TheCurrentStore.Value, out var currentStoreName)) {
-					vehicle.CurrentStoreName = currentStoreName; // 设置当前门店名称
-				}
-			}
-
-			return vehicles;
+			// 填充门店名称
+			return await FillVehicleStoreNamesAsync(vehicles);
 		}
 
-        // 获取所有车辆列表
-        public async Task<List<Vehicle>> GetAllList() {
+		// 获取所有车辆列表
+		public async Task<List<Vehicle>> GetAllList() {
             return await _context.Vehicle.Where(s => !s.IsDelete).ToListAsync();
         }
 
@@ -196,7 +176,9 @@ namespace aspnetapp.Controllers.Web {
                 .Take(limit) // 获取当前页的数据
                 .ToListAsync();
 
-            return (results, sum);
+            await FillVehicleStoreNamesAsync(results);
+
+			return (results, sum);
         }
 
         // 更新车辆图片信息
@@ -234,5 +216,42 @@ namespace aspnetapp.Controllers.Web {
 
             return 0;
         }
-    }
+
+		/// <summary>
+		/// 填充车辆的门店名称
+		/// </summary>
+		/// <param name="vehicles">车辆列表</param>
+		/// <returns>填充好门店名称的车辆列表</returns>
+		public async Task<List<Vehicle>> FillVehicleStoreNamesAsync(List<Vehicle> vehicles) {
+			if (vehicles == null || !vehicles.Any())
+				return vehicles;
+
+			// 获取所有相关门店的 ID
+			var storeIds = vehicles
+				.SelectMany(v => new[] { v.TheOriginalStore, v.TheCurrentStore })
+				.Where(id => id.HasValue)
+				.Select(id => id.Value)
+				.Distinct()
+				.ToList();
+
+			// 查询门店名称
+			var stores = await _context.Store
+				.Where(s => storeIds.Contains(s.Id))
+				.ToDictionaryAsync(s => s.Id, s => s.Name);
+
+			// 填充门店名称
+			foreach (var vehicle in vehicles) {
+				if (vehicle.TheOriginalStore.HasValue && stores.TryGetValue(vehicle.TheOriginalStore.Value, out var originalStoreName)) {
+					vehicle.OriginalStoreName = originalStoreName; // 设置原始门店名称
+				}
+
+				if (vehicle.TheCurrentStore.HasValue && stores.TryGetValue(vehicle.TheCurrentStore.Value, out var currentStoreName)) {
+					vehicle.CurrentStoreName = currentStoreName; // 设置当前门店名称
+				}
+			}
+
+			return vehicles;
+		}
+
+	}
 }
