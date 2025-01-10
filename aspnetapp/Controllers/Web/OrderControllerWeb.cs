@@ -83,11 +83,11 @@ namespace aspnetapp.Controllers.Web {
 					query = query.Where(o => o.Status == parsedStatus);
 				}
 			}
-			if (!string.IsNullOrEmpty(theVehicle)) {
-				query = query.Where(o => o.TheVehicle == int.Parse(theVehicle));// 车辆
+			if (!string.IsNullOrEmpty(theVehicle) && int.TryParse(theVehicle, out int vehicleId)) {
+				query = query.Where(o => o.TheVehicle == vehicleId);// 车辆
 			}
-			if (!string.IsNullOrEmpty(theRentalLocation)) {
-				query = query.Where(o => o.TheRentalLocation == int.Parse(theRentalLocation));// 租车点
+			if (!string.IsNullOrEmpty(theRentalLocation) && int.TryParse(theRentalLocation, out int RentalLocationId)) {
+				query = query.Where(o => o.TheRentalLocation == RentalLocationId);// 租车点
 			}
 
 			// 门店名称过滤
