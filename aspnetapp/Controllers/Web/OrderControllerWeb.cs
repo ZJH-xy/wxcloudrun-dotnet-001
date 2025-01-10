@@ -105,6 +105,9 @@ namespace aspnetapp.Controllers.Web {
 			query = sortField.ToLower() switch {
 				"createdat" => sortOrder == "asc" ? query.OrderBy(o => o.CreatedAt) : query.OrderByDescending(o => o.CreatedAt),
 				"updatedat" => sortOrder == "asc" ? query.OrderBy(o => o.UpdatedAt) : query.OrderByDescending(o => o.UpdatedAt),
+				"actualStartingTime" => sortOrder == "asc" ? query.OrderBy(o => o.ActualStartingTime) : query.OrderByDescending(o => o.ActualStartingTime),
+				"actualReturnTime" => sortOrder == "asc" ? query.OrderBy(o => o.ActualReturnTime) : query.OrderByDescending(o => o.ActualReturnTime),
+				"successTime" => sortOrder == "asc" ? query.OrderBy(o => o.SuccessTime) : query.OrderByDescending(o => o.SuccessTime),
 				_ => sortOrder == "asc" ? query.OrderBy(o => o.Id) : query.OrderByDescending(o => o.Id),
 			};
 
