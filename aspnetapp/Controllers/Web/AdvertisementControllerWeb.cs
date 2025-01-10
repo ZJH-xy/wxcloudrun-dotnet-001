@@ -13,6 +13,29 @@ namespace aspnetapp.Controllers.Web {
 		}
 
 		/// <summary>
+		/// 删除（逻辑删除）
+		/// </summary>
+		/// <returns></returns>
+		public async Task<IActionResult> Delete(int id) {
+			var advertisement = await _context.Advertisement.FindAsync(id);
+			if (advertisement == null) {
+				return NotFound("not found.");
+			}
+
+			advertisement.IsDelete = true;
+
+			try {
+				_context.Advertisement.Update(advertisement);
+				await _context.SaveChangesAsync();
+
+				return Ok("deleted successfully.");
+			} catch (Exception ex) {
+				_logger.LogError(ex, "Error deleting Advertisement with ID {StoreId}", id);
+				return StatusCode(500, "Error deleting.");
+			}
+		}
+
+		/// <summary>
 		/// 分页获取
 		/// </summary>
 		/// <param name="limit"></param>

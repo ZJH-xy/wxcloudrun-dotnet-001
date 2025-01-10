@@ -1,3 +1,4 @@
+using aspnetapp.Controllers.Miniprogram;
 using aspnetapp.Controllers.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -62,6 +63,26 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 		[BindProperty(SupportsGet = true)]
 		public static string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
 		public string? SortOrderHtml { get; set; }
+
+		/// <summary>
+		/// 删除
+		/// </summary>
+		/// <returns></returns>
+		[HttpDelete]
+		[IgnoreAntiforgeryToken]
+		public async Task<JsonResult> OnDeleteDelAsync([FromBody] Dictionary<string, int> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+			int id = requestData["id"];
+			if (id == 0)
+				return new JsonResult(new { success = false, message = "ID不能为0" });
+
+
+			return new JsonResult(new { success = true, message = $"已删除行数：{await _noticeController.Delete(id)}" });
+		}
 
 		/// <summary>
 		/// 添加

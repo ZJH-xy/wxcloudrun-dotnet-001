@@ -9,6 +9,29 @@
 		}
 
 		/// <summary>
+		/// 删除（逻辑删除）
+		/// </summary>
+		/// <returns></returns>
+		public async Task<IActionResult> Delete(int id) {
+			var notice = await _context.Notice.FindAsync(id);
+			if (notice == null) {
+				return NotFound("not found.");
+			}
+
+			notice.IsDelete = true;
+
+			try {
+				_context.Notice.Update(notice);
+				await _context.SaveChangesAsync();
+
+				return Ok("deleted successfully.");
+			} catch (Exception ex) {
+				_logger.LogError(ex, "Error deleting Notice with ID {StoreId}", id);
+				return StatusCode(500, "Error deleting.");
+			}
+		}
+
+		/// <summary>
 		/// 分页获取
 		/// </summary>
 		/// <param name="limit"></param>
