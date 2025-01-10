@@ -51,3 +51,16 @@ function showMessage(elementId, duration = 2000) {
 	}, duration);
 }
 
+// 翻页提示
+function showPaginationTip(message) {
+	const tipElement = document.getElementById("paginationTips");
+	if (tipElement) {
+		tipElement.textContent = message;
+		tipElement.style.display = "block";
+
+		// 3 秒后隐藏提示
+		setTimeout(() => {
+			tipElement.style.display = "none";
+		}, 3000);
+	}
+}
