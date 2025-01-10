@@ -156,7 +156,7 @@
                 <span asp-validation-for="NewVehicle.Owner"></span>
             </td>
             <td style="display:none;" id="VehicleIntroduction">
-                <input asp-for="NewVehicle.VehicleIntroduction" placeholder="介绍" />
+                <textarea asp-for="NewVehicle.VehicleIntroduction" placeholder="介绍" type="text" value=""></textarea>
                 <span asp-validation-for="NewVehicle.VehicleIntroduction"></span>
             </td>
             <td style="display:none;" id="IsCase">
@@ -238,21 +238,6 @@
                             <option value=true>有</option>
                         </select>
                     </td>
-                    <td><!--发票-->
-                            @if (Model.List[i].Invoice.HasValue && Model.List[i].Invoice.Value)
-                            {
-                            <span name="UpdatedVehicle.Invoice" style="color:#07C160;">有</span>
-                            }
-                            else
-                            {
-                            <span>无</span>
-                            }
-                        <select id="selecInvoice" name="UpdatedVehicle.Invoice" disabled style="display:none;">
-                            <option value=@Model.List[i].Invoice>默认值</option>
-                            <option value=false>无</option>
-                            <option value=true>有</option>
-                        </select>
-                    </td>
                     <td><!--行驶证-->
                             @if (Model.List[i].Drivinglicense.HasValue && Model.List[i].Drivinglicense.Value)
                             {
@@ -268,7 +253,22 @@
                             <option value=true>有</option>
                         </select>
                     </td>
-
+                    <td>
+                        <!--发票-->
+                            @if (Model.List[i].Invoice.HasValue && Model.List[i].Invoice.Value)
+                            {
+                            <span name="UpdatedVehicle.Invoice" style="color:#07C160;">有</span>
+                            }
+                            else
+                            {
+                            <span>无</span>
+                            }
+                        <select id="selecInvoice" name="UpdatedVehicle.Invoice" disabled style="display:none;">
+                            <option value=@Model.List[i].Invoice>默认值</option>
+                            <option value=false>无</option>
+                            <option value=true>有</option>
+                        </select>
+                    </td>
                     <td><!--登记购入时间-->
                             @if (Model.List[i].PurchaseRegistrationTime.HasValue)
                             {
@@ -282,11 +282,12 @@
                     </td>
 
                     <td><input id="@("Owner" + i)" type="text" name="UpdatedVehicle.Owner" value="@Model.List[i].Owner" placeholder="无" disabled /></td>
-                    <td><input id="@("VehicleIntroduction" + i)" type="text" name="UpdatedVehicle.VehicleIntroduction" value="@Model.List[i].VehicleIntroduction" placeholder="无" disabled /></td>
+                        <td><textarea id="@("VehicleIntroduction" + i)" type="text" name="UpdatedVehicle.VehicleIntroduction" value="@Model.List[i].VehicleIntroduction" disabled style="width:100px;">@Model.List[i].VehicleIntroduction</textarea></td>
+
                     <td>
                             @if (Model.List[i].IsCase)
                             {
-                            <span name="UpdatedVehicle.IsCase" style="color:#07C160;">是</span>
+                            <span name="UpdatedVehicle.IsCase" style="color:red;">是</span>
                             }
                             else
                             {
@@ -954,6 +955,9 @@
                         selectState.disabled = false;
                         selectState.style.display = "block"
                     }
+                    // 使 textarea 可编辑
+                    const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedVehicle.VehicleIntroduction']`);
+                    if (textArea) textArea.disabled = false; // 使 textarea 可编辑
 
                     const PurchaseRegistrationTime = container.closest("tr").querySelector("input[name='UpdatedVehicle.PurchaseRegistrationTime']");
                     if (PurchaseRegistrationTime) {
