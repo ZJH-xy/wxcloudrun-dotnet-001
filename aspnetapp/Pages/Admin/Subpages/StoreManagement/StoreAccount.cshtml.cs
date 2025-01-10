@@ -56,15 +56,17 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         public static string? SearchAccount { get; set; }
         public string? SearchAccountHtml { get; set; }
 
-        // 排序
-        [BindProperty(SupportsGet = true)]
-        public string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
+		// 排序
+		[BindProperty(SupportsGet = true)]
+		public static string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
+		public string? SortFieldHtml { get; set; }
 
-        [BindProperty(SupportsGet = true)]
-        public string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
+		[BindProperty(SupportsGet = true)]
+		public static string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
+		public string? SortOrderHtml { get; set; }
 
-        // 图片上传
-        public string ImageName { get; set; }// 图片文件名
+		// 图片上传
+		public string ImageName { get; set; }// 图片文件名
         public static string FileId { get; set; } = "";
 
 
@@ -91,8 +93,10 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 
             SearchTheStore = null;
             SearchAccount = null;
+			SortField = "Id";
+			SortOrder = "asc";
 
-            try {
+			try {
                 List = await _storeAccountControllerWeb.GetTablePage(Limit, PageIndex);
 
             } catch (Exception ex) {
@@ -259,8 +263,10 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 
             SearchTheStore = int.Parse(requestData["SearchTheStore"]);
             SearchAccount = requestData["SearchAccount"];
+			SortField = requestData["SortField"];
+			SortOrder = requestData["SortOrder"];
 
-            return new JsonResult(new { success = true, message = "成功" });
+			return new JsonResult(new { success = true, message = "成功" });
         }
 
         /// <summary>
@@ -269,7 +275,7 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         /// <returns></returns>
         public async Task<JsonResult> OnGetSearchDataAsync() {
 
-            return new JsonResult(new { success = true, message = "成功", SearchTheStore, SearchAccount });
+            return new JsonResult(new { success = true, message = "成功", SearchTheStore, SearchAccount, SortField, SortOrder });
         }
     }
 }

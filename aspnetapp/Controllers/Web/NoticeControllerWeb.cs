@@ -113,7 +113,7 @@
 		/// <param name="sortOrder"></param>
 		/// <returns></returns>
 		public async Task<(List<Notice>, int sum)> SearchAsync(int limit, int pageIndex, string? title = null, string? content = null, string sortField = "Id", string sortOrder = "asc") {
-			if (title.IsNullOrEmpty() && content.IsNullOrEmpty() && sortField != "Id" && sortOrder != "asc") {
+			if (title.IsNullOrEmpty() && content.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc") {
 				return (await GetTablePageAsync(limit, pageIndex), limit);
 			}
 

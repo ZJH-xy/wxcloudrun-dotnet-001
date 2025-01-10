@@ -64,8 +64,8 @@ namespace aspnetapp.Controllers.Web {
 		/// <summary>
 		/// 查询订单（支持多字段搜索）
 		/// </summary>
-		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, int? theVehicle = null, int? theRentalLocation = null, string? searchStoreName = null, string sortField = "Id", string sortOrder = "asc") {
-			if (userPhone.IsNullOrEmpty() && status.IsNullOrEmpty() && sortField != "Id" && sortOrder != "asc") {
+		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, string? theVehicle = null, string? theRentalLocation = null, string? searchStoreName = null, string sortField = "Id", string sortOrder = "asc") {
+			if (userPhone.IsNullOrEmpty() && status.IsNullOrEmpty() && theVehicle.IsNullOrEmpty() && theRentalLocation.IsNullOrEmpty() && searchStoreName.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc") {
 				return (await GetTablePage(limit, pageIndex), limit);
 			}
 
@@ -83,17 +83,17 @@ namespace aspnetapp.Controllers.Web {
 					query = query.Where(o => o.Status == parsedStatus);
 				}
 			}
-			if (theVehicle.HasValue) {
-				query = query.Where(o => o.TheVehicle == theVehicle);// 车辆
+			if (!string.IsNullOrEmpty(theVehicle) && int.TryParse(theVehicle, out int vehicleId)) {
+				query = query.Where(o => o.TheVehicle == vehicleId);// 车辆
 			}
-			if (theRentalLocation.HasValue) {
-				query = query.Where(o => o.TheRentalLocation == theRentalLocation);// 租车点
+			if (!string.IsNullOrEmpty(theRentalLocation) && int.TryParse(theRentalLocation, out int RentalLocationId)) {
+				query = query.Where(o => o.TheRentalLocation == RentalLocationId);// 租车点
 			}
 
 			// 门店名称过滤
 			if (!string.IsNullOrEmpty(searchStoreName)) {
 				var storeIds = await _context.Store
-					.Where(s => !s.IsDelete && s.Name.Contains(searchStoreName))
+					.Where(s => s.Name.Contains(searchStoreName))
 					.Select(s => s.Id)
 					.ToListAsync();
 
@@ -105,6 +105,9 @@ namespace aspnetapp.Controllers.Web {
 			query = sortField.ToLower() switch {
 				"createdat" => sortOrder == "asc" ? query.OrderBy(o => o.CreatedAt) : query.OrderByDescending(o => o.CreatedAt),
 				"updatedat" => sortOrder == "asc" ? query.OrderBy(o => o.UpdatedAt) : query.OrderByDescending(o => o.UpdatedAt),
+				"actualStartingTime" => sortOrder == "asc" ? query.OrderBy(o => o.ActualStartingTime) : query.OrderByDescending(o => o.ActualStartingTime),
+				"actualReturnTime" => sortOrder == "asc" ? query.OrderBy(o => o.ActualReturnTime) : query.OrderByDescending(o => o.ActualReturnTime),
+				"successTime" => sortOrder == "asc" ? query.OrderBy(o => o.SuccessTime) : query.OrderByDescending(o => o.SuccessTime),
 				_ => sortOrder == "asc" ? query.OrderBy(o => o.Id) : query.OrderByDescending(o => o.Id),
 			};
 
@@ -125,16 +128,29 @@ namespace aspnetapp.Controllers.Web {
 		/// 更新订单信息
 		/// </summary>
 		public async Task<IActionResult> UpdateOrder(Order updatedOrder) {
-			_logger.LogInformation("Updating order with ID {OrderId}", updatedOrder.Id);
+			_logger.LogInformation("正在更新订单，订单ID：{OrderId}", updatedOrder.Id);
 
 			var order = await _context.Order.FindAsync(updatedOrder.Id);
 			if (order == null) {
-				_logger.LogWarning("Order with ID {OrderId} not found", updatedOrder.Id);
-				return NotFound("Order not found.");
+				_logger.LogWarning("未找到订单，订单ID：{OrderId}", updatedOrder.Id);
+				return NotFound("未找到指定的订单。");
 			}
 
 			// 更新订单属性
-			order.OtherFees = updatedOrder.OtherFees;
+
+			// 检查费用更改
+			if (order.Deposit != updatedOrder.Deposit || order.Rent != updatedOrder.Rent || order.OtherFees != updatedOrder.OtherFees) {
+				// 确认状态是否合法
+				if (order.Status != Order.EOrderStatus.待付款 && order.Status != Order.EOrderStatus.进行中 && order.Status != Order.EOrderStatus.侍补余) {
+					_logger.LogWarning("尝试在非法状态下更新订单费用，订单ID：{OrderId}, 当前状态：{OrderStatus}", updatedOrder.Id, order.Status);
+					return StatusCode(403, "订单完成前才可修改费用，请确保订单状态为待付款、进行中或侍补余。");
+				}
+
+				order.Deposit = updatedOrder.Deposit;
+				order.Rent = updatedOrder.Rent;
+				order.OtherFees = updatedOrder.OtherFees;
+			}
+
 			order.Notes = updatedOrder.Notes;
 			order.UpdatedAt = DateTime.Now;
 
@@ -144,17 +160,17 @@ namespace aspnetapp.Controllers.Web {
 			try {
 				_context.Order.Update(order);
 				await _context.SaveChangesAsync();
-				_logger.LogInformation("Order with ID {OrderId} updated successfully", updatedOrder.Id);
-				return Ok("Order updated successfully.");
+				_logger.LogInformation("订单更新成功，订单ID：{OrderId}", updatedOrder.Id);
+				return Ok("订单更新成功。");
 			} catch (DbUpdateConcurrencyException) {
-				_logger.LogWarning("Concurrency conflict occurred when updating order with ID {OrderId}", updatedOrder.Id);
-				return Conflict("Update failed due to concurrent changes.");
+				_logger.LogWarning("更新订单时发生并发冲突，订单ID：{OrderId}", updatedOrder.Id);
+				return Conflict("更新失败，记录已被其他用户修改。");
 			} catch (DbUpdateException ex) {
-				_logger.LogError(ex, "Error updating order with ID {OrderId}", updatedOrder.Id);
-				return StatusCode(500, "Error updating order.");
+				_logger.LogError(ex, "更新订单时发生数据库错误，订单ID：{OrderId}", updatedOrder.Id);
+				return StatusCode(500, "更新订单时发生数据库错误。");
 			} catch (Exception ex) {
-				_logger.LogError(ex, "Unexpected error updating order with ID {OrderId}", updatedOrder.Id);
-				return StatusCode(500, "Unexpected error updating order.");
+				_logger.LogError(ex, "更新订单时发生未知错误，订单ID：{OrderId}", updatedOrder.Id);
+				return StatusCode(500, "更新订单时发生未知错误。");
 			}
 		}
 

@@ -136,8 +136,8 @@ namespace aspnetapp.Controllers.Web {
         /// <param name="sortField"></param>
         /// <param name="sortOrder"></param>
         /// <returns></returns>
-        public async Task<(List<StoreMenu>, int sum)> SearchStoreMenus(int limit, int pageIndex, int? theStore = null, string sortField = "Id", string sortOrder = "asc") {
-			if ((theStore is null || theStore == 0) && sortField != "Id" && sortOrder != "asc") {
+        public async Task<(List<StoreMenu>, int sum)> SearchStoreMenus(int limit, int pageIndex, string? theStore = null, string sortField = "Id", string sortOrder = "asc") {
+			if ((theStore.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc")) {
 				return (await GetTablePage(limit, pageIndex), limit);
 			}
 
@@ -146,8 +146,8 @@ namespace aspnetapp.Controllers.Web {
             query.AsNoTracking();
 
             // 过滤条件
-            if (theStore > 0) {
-                query = query.Where(u => u.TheStore == theStore);
+            if (!string.IsNullOrEmpty(theStore) && int.TryParse(theStore, out int storeId)) {
+                query = query.Where(u => u.TheStore == storeId);
             }
 
             // 排序逻辑

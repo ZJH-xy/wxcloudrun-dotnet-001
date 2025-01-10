@@ -58,15 +58,15 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// 车辆
 		/// </summary>
 		[BindProperty(SupportsGet = true)]
-		public static int? SearchTheVehicle { get; set; }
-		public int? SearchTheVehicleHtml { get; set; }
+		public static string? SearchTheVehicle { get; set; }
+		public string? SearchTheVehicleHtml { get; set; }
 
 		/// <summary>
 		/// 租车点
 		/// </summary>
 		[BindProperty(SupportsGet = true)]
-		public static int? SearchTheRentalLocation { get; set; }
-		public int? SearchTheRentalLocationHtml { get; set; }
+		public static string? SearchTheRentalLocation { get; set; }
+		public string? SearchTheRentalLocationHtml { get; set; }
 
 		/// <summary>
 		/// 租车点名称
@@ -77,10 +77,12 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 
 		// 排序
 		[BindProperty(SupportsGet = true)]
-		public string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
+		public static string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
+		public string? SortFieldHtml { get; set; }
 
 		[BindProperty(SupportsGet = true)]
-		public string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
+		public static string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
+		public string? SortOrderHtml { get; set; }
 
         // 图片上传
         public string ImageName { get; set; } // 图片文件名
@@ -96,6 +98,8 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchTheVehicle = null;
 			SearchTheRentalLocation = null;
 			SearchStoreName = null;
+			SortField = "Id";
+			SortOrder = "asc";
 
 			try {
 				List = await _orderController.GetTablePage(Limit, PageIndex);
@@ -119,32 +123,27 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		}
 
 		/// <summary>
-		/// 更新
+		/// 提交更新订单的操作
 		/// </summary>
 		/// <returns></returns>
 		public async Task<IActionResult> OnPostUpdateOrderAsync() {
-
-			//if (!ModelState.IsValid) {
-			//	_logger.LogWarning("表单验证失败。OrderId: {OrderId}", UpdatedOrder.Id);
-			//	ErrorMessage = "表单验证失败，请检查输入内容";
-			//	return Page();
-			//}
-
 			var result = await _orderController.UpdateOrder(UpdatedOrder);
 			if (result is NotFoundResult) {
-
-				ErrorMessage = $"找不到订单{UpdatedOrder.Id}";
+				ErrorMessage = $"未找到订单，订单ID：{UpdatedOrder.Id}";
 			} else if (result is StatusCodeResult status && status.StatusCode == 500) {
-				_logger.LogError("更新订单时出错。OrderId: {OrderId}", UpdatedOrder.Id);
-				ErrorMessage = "更新订单时出错。";
-			} else if (result is ObjectResult objResult && objResult.StatusCode == 409) {
-				_logger.LogWarning("使用ID更新订单时发生并发冲突。OrderId: {OrderId}", UpdatedOrder.Id);
-				ErrorMessage = $"您尝试编辑的记录已被其他用户修改。请重新加载数据后重试，ID：{UpdatedOrder.Id}";
+				_logger.LogError("更新订单时发生错误，订单ID：{OrderId}", UpdatedOrder.Id);
+				ErrorMessage = "更新订单时发生错误。";
+			} else if (result is ObjectResult objResult && objResult.StatusCode == 403) {
+				_logger.LogWarning("订单状态非法，无法更新费用，订单ID：{OrderId}", UpdatedOrder.Id);
+				ErrorMessage = $"订单状态非法，费用修改失败，请检查订单状态后重试。订单ID：{UpdatedOrder.Id}";
+			} else if (result is ObjectResult objResultConflict && objResultConflict.StatusCode == 409) {
+				_logger.LogWarning("更新订单时发生并发冲突，订单ID：{OrderId}", UpdatedOrder.Id);
+				ErrorMessage = $"您尝试编辑的记录已被其他用户修改，请重新加载数据后重试。订单ID：{UpdatedOrder.Id}";
 			} else {
-				_logger.LogInformation("ID为{OrderId}的订单已成功更新", UpdatedOrder.Id);
+				_logger.LogInformation("订单更新成功，订单ID：{OrderId}", UpdatedOrder.Id);
 				// 计算行号
 				var rowIndex = List.FindIndex(order => order.Id == UpdatedOrder.Id) + 1; // 行号从1开始
-				SuccessMessage = $"保存成功，已更新 ID：{UpdatedOrder.Id}";
+				SuccessMessage = $"保存成功，订单已更新，订单ID：{UpdatedOrder.Id}";
 			}
 
 			List = await _orderController.GetTablePage(Limit, PageIndex); // 刷新订单列表
@@ -313,11 +312,13 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 
 			SearchUserPhone = requestData["SearchUserPhone"];
 			SearchStatus = requestData["SearchStatus"];
-			SearchTheVehicle = int.Parse(requestData["SearchTheVehicle"]);
-			SearchTheRentalLocation = int.Parse(requestData["SearchTheRentalLocation"]);
+			SearchTheVehicle = requestData["SearchTheVehicle"];
+			SearchTheRentalLocation = requestData["SearchTheRentalLocation"];
 			SearchStoreName = requestData["SearchStoreName"];
+            SortField = requestData["SortField"];
+            SortOrder = requestData["SortOrder"];
 
-			return new JsonResult(new { success = true, message = "成功" });
+            return new JsonResult(new { success = true, message = "成功" });
 		}
 
 		/// <summary>
@@ -325,7 +326,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// </summary>
 		/// <returns></returns>
 		public async Task<JsonResult> OnGetSearchDataAsync() {
-			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation, SearchStoreName });
+			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder });
 		}
 	}
 }

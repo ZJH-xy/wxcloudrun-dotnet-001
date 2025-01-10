@@ -15,7 +15,6 @@
 	<!-- 引用外部 jQuery -->
 	<script src="/js/utils/jquery-3.6.0.min.js" defer></script>
 	@* https://code.jquery.com/jquery-3.6.0.min.js *@
-	<script src="~/js/loading.js" defer></script>
 </head>
 <header>
 	<h3>门店总览</h3>
@@ -68,10 +67,10 @@
 		<form method="post" asp-page-handler="Search">
 			<input asp-for="SearchNameHtml" id="SearchNameHtml" value="" placeholder="名称" />
 			<input asp-for="SearchAddressHtml" id="SearchAddressHtml" value="" placeholder="地址" />
-			<select asp-for="SortField">
+			<select asp-for="SortFieldHtml" id="SortFieldHtml">
 				<option value="Id">ID</option>
 			</select>
-			<select asp-for="SortOrder">
+			<select asp-for="SortOrderHtml" id="SortOrderHtml">
 				<option value="asc">升序</option>
 				<option value="desc">降序</option>
 			</select>
@@ -148,7 +147,7 @@
 			@for (int i = 0; i < Model.List.Count; i++) {
 				<tr>
 					<form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data" id="@("form" + i)">
-					<td>@(i + 1)</td>
+					<td><span>@(i + 1)</span></td>
 					<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
 					<td><input id="@("Name" + i)" type="text" name="UpdatedStore.Name" value="@Model.List[i].Name" placeholder="无" disabled /></td>
 					<td><input id="@("BusinessHoursStart" + i)" type="time" name="UpdatedStore.BusinessHoursStart" value="@Model.List[i].BusinessHoursStart" placeholder="无" disabled /></td>
@@ -229,13 +228,16 @@
 
 		</table>
 	</div>
+	@if (Model.List.Count == 0){
+		<span style="width: 100%;display:flex;justify-content: center;">当前页无任何数据!</span>
+	}
 	<div class="bottom">
 		<div class="bottom-item">
 			<text id="page">第 * 页</text>
 			<text>，当前页共 @Model.List.Count 条数据</text>
-			@if (@Model.SearchSum != 0) {
+@* 			@if (@Model.SearchSum != 0) {
 				<text>，共搜索到 @Model.SearchSum 条数据，</text>
-			}
+			} *@
 			<input id="PageCount" value="@Model.List.Count" style="display:none;" />
 			<input id="PageLimit" value="@Model.Limit" style="display:none;" />
 
@@ -252,10 +254,12 @@
 				<button type="button" onclick="changeEndPage()" class="editBtn">尾页</button>
 				<button type="button" onclick="changePage(0)">上一页</button>
 				<button type="button" onclick="changePage(1)">下一页</button>
+				<span id="paginationTips" style="color: red; display: none; font-size: 14px; margin-top: 10px;"></span>
 
 			</form>
 		</div>
 	</div>
+	<script src="~/js/loading.js"></script>
 
 	<script>
 		// 页面加载完成后执行函数
@@ -488,85 +492,85 @@
 			}
 		}
 
-		// 更改页面
+		// 显示分页提示（支持自定义提示时长）
+		function showPaginationTip(message, duration = 3000) {
+			const tipElement = document.getElementById("paginationTips");
+			if (tipElement) {
+				tipElement.textContent = message;
+				tipElement.style.display = "block";
+
+				// 自动隐藏提示
+				setTimeout(() => {
+					tipElement.style.display = "none";
+				}, duration);
+			}
+		}
+
+		// 更改页面*
 		async function changePage(index) {
-			loadHTML();
-			//const SearchSum = document.getElementById("SearchSum");待修改
 			try {
-				const response = await fetch(`${RESPONSEURL}?handler=PageIndex`, {
-					method: 'Get',
-					headers: {
-						'Content-Type': 'application/json',
-						'RequestVerificationToken': TOKEN
-					},
-				});
+				loadHTML();
 
-				if (!response.ok) {
-					throw new Error(`HTTP 错误！状态码: ${response.status}`);
-				}
+				const currentPage = await getIndexPage(); // 获取当前页码
+				const totalPage = await getPageSum(); // 获取总页数
 
-				const data = await response.json();  // 等待接口返回数据
+				let pageIndex = currentPage;
 
-				if (data.success) {
-					var pageIndex = data.pageIndex;
-					const PageIndexTotal = document.getElementById('PageCount').value;
-					const PageLimit = document.getElementById('PageLimit').value;
-					if (index === 0) {
-						pageIndex--;
-						if (pageIndex < 1) {
-							return;
-						}
-					} else if (index === 1) {
-						pageIndex++;
-						if (PageIndexTotal < PageLimit) {
-							return;
-						}
-					} else if (index === 2) {
-						pageIndex = 1;
-
-					} else if (index > 1) {
-						const pageIndexRedirect = document.getElementById('redirect').value;
-						pageIndex = pageIndexRedirect;
+				if (index === 0) {
+					if (currentPage <= 1) {
+						showPaginationTip("已经是第一页！");
+						return; // 不执行后续逻辑
 					}
+					pageIndex = currentPage - 1;
+				} else if (index === 1) {
+					if (currentPage >= totalPage) {
+						showPaginationTip("已经是最后一页！");
+						return; // 不执行后续逻辑
+					}
+					pageIndex = currentPage + 1;
+				} else if (index === 2) {
+					pageIndex = 1; // 首页
+				} else if (index > 2) {
+					const pageIndexRedirect = document.getElementById('redirect').value;
+					pageIndex = Math.min(totalPage, Math.max(1, parseInt(pageIndexRedirect))); // 输入跳转页
+				}
 
+				if (pageIndex !== currentPage) {
 					await confirmChangePage(pageIndex);
-					cancelloadHTML();
-
 				} else {
-					alert("失败： " + (data.message || "未知错误"));
+					console.warn("目标页码与当前页码相同，无需跳转。");
 				}
 
 			} catch (error) {
-				console.error("API 调用失败:", error);
+				console.error("更改页面失败:", error);
+			} finally {
+				cancelloadHTML();
 			}
 		}
 
-		// 跳转到尾页
-		async function changeEndPage(index) {
+		// 跳转到尾页*
+		async function changeEndPage() {
 			try {
-				const pageSum = await getPageSum();
-				if (pageSum) {
-					console.log('pageSum', pageSum);
-					await confirmChangePage(pageSum);
-				}
+				loadHTML();
+				const totalPage = await getPageSum(); // 获取总页数
+				await confirmChangePage(totalPage); // 跳转到尾页
 			} catch (error) {
-				console.error('获取总页数失败:', error);
+				console.error("跳转到尾页失败:", error);
+			} finally {
+				cancelloadHTML();
 			}
 		}
 
-		// 请求修改页面
+		// 确认修改页面*
 		async function confirmChangePage(pageIndex) {
-			loadHTML();
-			const requestData = {
-				"PageIndex": pageIndex
-			};
-			console.log("requestData", requestData);
+			const requestData = { PageIndex: pageIndex };
+
 			try {
 				const response = await fetch(`${RESPONSEURL}?handler=ChangePage`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						'RequestVerificationToken': TOKEN
+						'RequestVerificationToken': TOKEN,
 					},
 					body: JSON.stringify(requestData),
 				});
@@ -578,23 +582,26 @@
 				var form = document.getElementById('pageForm');
 				// 提交表单
 				if (form) form.submit();
-
-				cancelloadHTML()
-
+				const data = await response.json();
+				if (data.success) {
+					console.log(`页面成功跳转到第 ${pageIndex} 页`);
+				} else {
+					throw new Error(data.message || "未知错误");
+				}
 			} catch (error) {
-				cancelloadHTML()
-				console.error("API 调用失败:", error);
+				console.error("确认修改页面失败:", error);
+				alert(`跳转失败：${error.message}`);
 			}
 		}
 
-		// 获取当前页面页码
+		// 获取当前页码*
 		async function getIndexPage() {
 			try {
 				const response = await fetch(`${RESPONSEURL}?handler=PageIndex`, {
-					method: 'Get',
+					method: 'GET',
 					headers: {
 						'Content-Type': 'application/json',
-						'RequestVerificationToken': TOKEN
+						'RequestVerificationToken': TOKEN,
 					},
 				});
 
@@ -603,19 +610,44 @@
 				}
 
 				const data = await response.json();
-
 				if (data.success) {
-					var pageIndex = data.pageIndex;
-					document.getElementById('page').textContent = `第 ${pageIndex} 页`;
-
-					return pageIndex;
-
+					return data.pageIndex;
+				} else {
+					throw new Error(data.message || "无法获取当前页码");
 				}
-
 			} catch (error) {
-				console.error("API 调用失败:", error);
+				console.error("获取当前页码失败:", error);
+				return 1; // 默认返回首页
 			}
 		}
+
+		// 获取总页数*
+		async function getPageSum() {
+			try {
+				const response = await fetch(`${RESPONSEURL}?handler=PageSum`, {
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+						'RequestVerificationToken': TOKEN,
+					},
+				});
+
+				if (!response.ok) {
+					throw new Error(`HTTP 错误！状态码: ${response.status}`);
+				}
+
+				const data = await response.json();
+				if (data.success) {
+					return data.pageSum;
+				} else {
+					throw new Error(data.message || "无法获取总页数");
+				}
+			} catch (error) {
+				console.error("获取总页数失败:", error);
+				return 1; // 默认总页数为 1
+			}
+		}
+
 
 		// 加载当前页面页码
 		async function loadIndexPage() {
@@ -757,7 +789,8 @@
 		async function getSearchData() {
 			var SearchName = document.getElementById('SearchNameHtml');
 			var SearchAddress = document.getElementById('SearchAddressHtml');
-
+			var sortField = document.getElementById('SortFieldHtml');
+			var sortOrder = document.getElementById('SortOrderHtml');
 			try {
 				const response = await fetch(`${RESPONSEURL}?handler=SearchData`, {
 					method: 'Get',
@@ -776,6 +809,8 @@
 					console.log('getdata', data)
 					SearchName.value = data.searchName;
 					SearchAddress.value = data.searchAddress;
+					sortField.value = data.sortField;
+					sortOrder.value = data.sortOrder;
 					setTimeout(function () {
 						console.log('搜索成功!')
 					}, 500)
@@ -794,9 +829,13 @@
 			loadHTML(); // 显示加载中
 			const SearchName = document.getElementById('SearchNameHtml').value;
 			const SearchAddress = document.getElementById('SearchAddressHtml').value;
+			const SortFieldHtml = document.getElementById('SortFieldHtml').value;
+			const SortOrderHtml = document.getElementById('SortOrderHtml').value;
 			const requestData = {
 				"SearchName": SearchName,
 				"SearchAddress": SearchAddress,
+				"SortField": SortFieldHtml,
+				"SortOrder": SortOrderHtml,
 			};
 			console.log("requestData", requestData);
 			try {
