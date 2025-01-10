@@ -492,6 +492,19 @@
 			}
 		}
 
+		// 显示分页提示（支持自定义提示时长）
+		function showPaginationTip(message, duration = 3000) {
+			const tipElement = document.getElementById("paginationTips");
+			if (tipElement) {
+				tipElement.textContent = message;
+				tipElement.style.display = "block";
+
+				// 自动隐藏提示
+				setTimeout(() => {
+					tipElement.style.display = "none";
+				}, duration);
+			}
+		}
 
 		// 更改页面*
 		async function changePage(index) {

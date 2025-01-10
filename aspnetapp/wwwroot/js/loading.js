@@ -1,16 +1,4 @@
-﻿// 显示分页提示（支持自定义提示时长）
-function showPaginationTip(message, duration = 3000) {
-	const tipElement = document.getElementById("paginationTips");
-	if (tipElement) {
-		tipElement.textContent = message;
-		tipElement.style.display = "block";
-
-		// 自动隐藏提示
-		setTimeout(() => {
-			tipElement.style.display = "none";
-		}, duration);
-	}
-}
+﻿
 
 // 显示加载中
 async function loadHTML(timeout = 10000) {
