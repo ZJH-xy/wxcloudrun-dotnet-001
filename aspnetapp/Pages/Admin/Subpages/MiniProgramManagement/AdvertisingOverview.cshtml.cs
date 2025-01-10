@@ -61,10 +61,12 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 
 		// 排序
 		[BindProperty(SupportsGet = true)]
-		public string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
+		public static string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
+		public string? SortFieldHtml { get; set; }
 
 		[BindProperty(SupportsGet = true)]
-		public string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
+		public static string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
+		public string? SortOrderHtml { get; set; }
 
 		// 图片上传
 		public string ImageName { get; set; } // 图片文件名
@@ -315,7 +317,7 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 		/// 获取查询数据
 		/// </summary>
 		public async Task<JsonResult> OnGetSearchDataAsync() {
-			return new JsonResult(new { success = true, message = "成功", SearchTitle, SearchContent });
+			return new JsonResult(new { success = true, message = "成功", SearchTitle, SearchContent, SortField, SortOrder });
 		}
 
 		/// <summary>
@@ -328,6 +330,8 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 
 			SearchTitle = requestData["SearchTitle"];
 			SearchContent = requestData["SearchContent"];
+			SortField = requestData["SortField"];
+			SortOrder = requestData["SortOrder"];
 
 			return new JsonResult(new { success = true, message = "成功" });
 		}
