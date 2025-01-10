@@ -143,6 +143,9 @@
 				<text>，共搜索到 @Model.SearchSum 条数据，</text>
 			} *@
 
+            @if (@Model.SearchSum != 0) {
+                <span>，共搜索到 @Model.SearchSum 条数据</span>
+            }
 			<input id="PageCount" value="@Model.List.Count" style="display:none;" />
 			<input id="PageLimit" value="@Model.Limit" style="display:none;" />
 
