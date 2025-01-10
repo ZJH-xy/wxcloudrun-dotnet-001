@@ -1,31 +1,55 @@
-﻿// 显示加载中
-async function loadHTML() {
-	document.getElementById('loadding').style.display = 'block';
-	lockPage();
-	setTimeout(() => {
-		cancelloadHTML();
-	}, 10000);
+﻿// 显示分页提示（支持自定义提示时长）
+function showPaginationTip(message, duration = 3000) {
+	const tipElement = document.getElementById("paginationTips");
+	if (tipElement) {
+		tipElement.textContent = message;
+		tipElement.style.display = "block";
 
+		// 自动隐藏提示
+		setTimeout(() => {
+			tipElement.style.display = "none";
+		}, duration);
+	}
+}
+
+// 显示加载中
+async function loadHTML(timeout = 10000) {
+	const loaddingElement = document.getElementById('loadding');
+	if (loaddingElement) {
+		loaddingElement.style.display = 'block';
+		lockPage();
+
+		// 设置超时自动取消加载
+		setTimeout(() => {
+			cancelloadHTML();
+		}, timeout);
+	}
 }
 // 取消显示加载中
 function cancelloadHTML() {
-	var loadding = document.getElementById('loadding');
-	if (loadding) {
-		loadding.style.display = 'none';
+	const loaddingElement = document.getElementById('loadding');
+	if (loaddingElement) {
+		loaddingElement.style.display = 'none';
 	}
 	unlockPage();
 }
 
+// 锁定页面（显示遮罩层）
 function lockPage() {
-	document.getElementById('overlay').style.opacity = '0.3'; // 设置遮罩层为半透明
-	document.getElementById('overlay').style.display = 'block';
-
+	const overlay = document.getElementById('overlay');
+	if (overlay) {
+		overlay.style.opacity = '0.3'; // 设置半透明
+		overlay.style.display = 'block'; // 显示遮罩层
+	}
 }
 
+// 解锁页面（隐藏遮罩层）
 function unlockPage() {
-	document.getElementById('overlay').style.opacity = '0'; // 隐藏遮罩层
-	document.getElementById('overlay').style.display = 'none';
-
+	const overlay = document.getElementById('overlay');
+	if (overlay) {
+		overlay.style.opacity = '0'; // 透明度为 0
+		overlay.style.display = 'none'; // 隐藏遮罩层
+	}
 }
 
 
@@ -41,26 +65,16 @@ function showMessage(elementId, duration = 2000) {
 
 	// 显示指定消息
 	const message = document.getElementById(elementId);
-	message.classList.remove('hidden');
-	message.classList.add('visible');
+	if (message) {
+		message.classList.remove('hidden');
+		message.classList.add('visible');
 
-	// 自动隐藏消息
-	setTimeout(() => {
-		message.classList.remove('visible');
-		message.classList.add('hidden');
-	}, duration);
-}
-
-// 翻页提示
-function showPaginationTip(message) {
-	const tipElement = document.getElementById("paginationTips");
-	if (tipElement) {
-		tipElement.textContent = message;
-		tipElement.style.display = "block";
-
-		// 3 秒后隐藏提示
+		// 自动隐藏消息
 		setTimeout(() => {
-			tipElement.style.display = "none";
-		}, 3000);
+			message.classList.remove('visible');
+			message.classList.add('hidden');
+		}, duration);
 	}
 }
+
+

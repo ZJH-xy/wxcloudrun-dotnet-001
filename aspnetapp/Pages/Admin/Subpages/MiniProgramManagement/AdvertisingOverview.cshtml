@@ -118,7 +118,7 @@
 				<tr>
 					<form method="post" asp-page-handler="Update" enctype="multipart/form-data">
 					<td>@(i + 1)</td>
-					<td>
+					<td style="display:none;">
 						@* <span id="@("id" + i)">@Model.List[i].Id</span> *@
 						<input type="hidden" name="UpdatedAdvertisement.Id" value="@Model.List[i].Id" />
 					</td>
@@ -183,6 +183,9 @@
 		</table>
 
 	</div>
+	@if (Model.List.Count == 0){
+		<span style="width: 100%;display:flex;justify-content: center;">当前页无任何数据!</span>
+	}
 	<div class="bottom">
 		<div class="bottom-item">
 			<text id="page">第 * 页</text>

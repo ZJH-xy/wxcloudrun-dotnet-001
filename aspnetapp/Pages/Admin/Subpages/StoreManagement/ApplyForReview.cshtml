@@ -89,6 +89,9 @@
 
 
 	</div>
+	@if (Model.List.Count == 0){
+		<span style="width: 100%;display:flex;justify-content: center;">当前页无任何数据!</span>
+	}
 	<script>
 
 		const RESPONSEURL = `/Admin/Subpages/StoreManagement/ApplyForReview`;

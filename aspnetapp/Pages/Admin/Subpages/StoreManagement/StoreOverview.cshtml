@@ -15,7 +15,6 @@
 	<!-- 引用外部 jQuery -->
 	<script src="/js/utils/jquery-3.6.0.min.js" defer></script>
 	@* https://code.jquery.com/jquery-3.6.0.min.js *@
-	<script src="~/js/loading.js" defer></script>
 </head>
 <header>
 	<h3>门店总览</h3>
@@ -229,6 +228,9 @@
 
 		</table>
 	</div>
+	@if (Model.List.Count == 0){
+		<span style="width: 100%;display:flex;justify-content: center;">当前页无任何数据!</span>
+	}
 	<div class="bottom">
 		<div class="bottom-item">
 			<text id="page">第 * 页</text>
@@ -257,6 +259,7 @@
 			</form>
 		</div>
 	</div>
+	<script src="~/js/loading.js"></script>
 
 	<script>
 		// 页面加载完成后执行函数
