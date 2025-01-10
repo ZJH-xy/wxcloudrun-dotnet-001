@@ -189,10 +189,16 @@
 					<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedVehicle.Id" value="@Model.List[i].Id" /></td>
 
 					<td>
-						<input id="@("TheOriginalStore" + i)" type="text" name="UpdatedVehicle.TheOriginalStore" value="(ID:@Model.List[i].TheOriginalStore) @Model.List[i].OriginalStoreName" placeholder="无" disabled />
+						<span>@Model.List[i].OriginalStoreName</span><br />
+						<div style="color:rgb(168,0,0)">
+							ID:<input id="@("TheOriginalStore" + i)" type="text" name="UpdatedVehicle.TheOriginalStore" value="@Model.List[i].TheOriginalStore" placeholder="无" disabled />
+						</div>
 					</td>
 					<td>
-						<input id="@("TheCurrentStore" + i)" type="text" name="UpdatedVehicle.TheCurrentStore" value="(ID:@Model.List[i].TheCurrentStore) @Model.List[i].CurrentStoreName" placeholder="无" disabled />
+						<span>@Model.List[i].CurrentStoreName</span><br />
+						<div style="color:rgb(168,0,0)">
+						ID:<input id="@("TheCurrentStore" + i)" type="text" name="UpdatedVehicle.TheCurrentStore" value="@Model.List[i].TheCurrentStore" placeholder="无" disabled />
+						</div>
 					</td>
 
 					<td><input id="@("plateNumber" + i)" type="text" name="UpdatedVehicle.PlateNumber" value="@Model.List[i].PlateNumber" placeholder="无" disabled /></td>
