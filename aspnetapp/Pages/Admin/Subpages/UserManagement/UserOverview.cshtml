@@ -62,8 +62,9 @@
             <button onclick="exportFile()" class="editBtn export">导出</button>
         </div>
         <form method="post" asp-page-handler="Search">
-            <input asp-for="SearchPhoneHtml" id="SearchPhoneHtml" value="" placeholder="手机号" />
-            <input asp-for="SearchNameHtml" id="SearchNameHtml" value="" placeholder="姓名" />
+			<input asp-for="SearchIdentityCardHtml" id="SearchIdentityCardHtml" value="" placeholder="身份证" />
+			<input asp-for="SearchPhoneHtml" id="SearchPhoneHtml" value="" placeholder="手机号" />
+			<input asp-for="SearchNameHtml" id="SearchNameHtml" value="" placeholder="姓名" />
             <input asp-for="SearchNicknameHtml" id="SearchNicknameHtml" value="" placeholder="昵称" />
             <select asp-for="SortField">
                 <option value="Id">ID</option>
@@ -584,7 +585,8 @@
 
 		// 获取搜索输入框的数据
 		async function getSearchData() {
-			var SearchPhone = document.getElementById('SearchPhoneHtml');
+			var SearchIdentityCard = document.getElementById('SearchIdentityCardHtml');
+			var SearchPhone = document.getElementById('SearchPhoneHtml'); 
 			var SearchName = document.getElementById('SearchNameHtml');
 			var SearchNickname = document.getElementById('SearchNicknameHtml');
 
@@ -605,6 +607,7 @@
 				if (data.success) {
 					console.log('getdata', data)
 					setTimeout(function () {
+						SearchIdentityCard.value = data.searchIdentityCard;
 						SearchPhone.value = data.searchPhone;
 						SearchName.value = data.searchName;
 						SearchNickname.value = data.searchNickname;
@@ -623,10 +626,12 @@
 		// 确认搜索
 		async function confirmChangeSearchData() {
 			loadHTML(); // 显示加载中
-			const SearchPhone = document.getElementById('SearchPhoneHtml').value;
+			const SearchIdentityCard = document.getElementById('SearchIdentityCardHtml').value;
+			const SearchPhone = document.getElementById('SearchPhoneHtml').value; 
 			const SearchName = document.getElementById('SearchNameHtml').value;
 			const SearchNickname = document.getElementById('SearchNicknameHtml').value;
 			const requestData = {
+				"SearchIdentityCard": SearchIdentityCard,
 				"SearchPhone": SearchPhone,
 				"SearchName": SearchName,
 				"SearchNickname": SearchNickname
