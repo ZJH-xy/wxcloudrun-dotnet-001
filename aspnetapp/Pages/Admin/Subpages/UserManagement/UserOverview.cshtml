@@ -66,14 +66,14 @@
 			<input asp-for="SearchPhoneHtml" id="SearchPhoneHtml" value="" placeholder="手机号" />
 			<input asp-for="SearchNameHtml" id="SearchNameHtml" value="" placeholder="姓名" />
             <input asp-for="SearchNicknameHtml" id="SearchNicknameHtml" value="" placeholder="昵称" />
-            <select asp-for="SortField">
+			<select asp-for="SortFieldHtml" id="SortFieldHtml">
                 <option value="Id">ID</option>
                 <option value="Phone">手机号</option>
                 <option value="Name">姓名</option>
                 <option value="CreatedAt">创建时间</option>
                 <option value="UpdatedAt">更新时间</option>
             </select>
-            <select asp-for="SortOrder">
+			<select asp-for="SortOrderHtml" id="SortOrderHtml">
                 <option value="asc">升序</option>
                 <option value="desc">降序</option>
             </select>
