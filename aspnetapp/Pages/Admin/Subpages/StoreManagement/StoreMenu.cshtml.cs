@@ -102,8 +102,10 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
             //_logger.LogInformation("[OnGetAsync]正在获取限制为{Limit}的页面{PageIndex}的门店列表", PageIndex, Limit);
 
             SearchTheStore = null;
+			SortField = "Id";
+			SortOrder = "asc";
 
-            try {
+			try {
                 List = await _storeMenuControllerWeb.GetTablePage(Limit, PageIndex);
 
             } catch (Exception ex) {

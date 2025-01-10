@@ -83,6 +83,8 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 
 			SearchTitle = null;
 			SearchContent = null;
+			SortField = "Id";
+			SortOrder = "asc";
 
 			try {
 				List = await _noticeController.GetTablePageAsync(Limit, PageIndex);

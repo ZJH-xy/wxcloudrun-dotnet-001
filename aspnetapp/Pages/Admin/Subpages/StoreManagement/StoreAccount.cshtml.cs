@@ -93,8 +93,10 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 
             SearchTheStore = null;
             SearchAccount = null;
+			SortField = "Id";
+			SortOrder = "asc";
 
-            try {
+			try {
                 List = await _storeAccountControllerWeb.GetTablePage(Limit, PageIndex);
 
             } catch (Exception ex) {

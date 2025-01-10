@@ -98,6 +98,8 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchTheVehicle = null;
 			SearchTheRentalLocation = null;
 			SearchStoreName = null;
+			SortField = "Id";
+			SortOrder = "asc";
 
 			try {
 				List = await _orderController.GetTablePage(Limit, PageIndex);

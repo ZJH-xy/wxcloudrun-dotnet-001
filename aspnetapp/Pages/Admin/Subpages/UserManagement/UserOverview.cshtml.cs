@@ -164,6 +164,8 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 			SearchName = "";
 			SearchNickname = "";
 			SearchIdentityCard = "";
+			SortField = "Id";
+			SortOrder = "asc";
 
 			try {
 				List = await _userController.GetTablePage(Limit, PageIndex);

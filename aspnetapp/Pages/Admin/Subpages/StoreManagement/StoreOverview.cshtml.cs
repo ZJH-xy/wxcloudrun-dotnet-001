@@ -192,8 +192,10 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 
             SearchName = "";
             SearchAddress = "";
+			SortField = "Id";
+			SortOrder = "asc";
 
-            try {
+			try {
                 List = await _storeControllerWeb.GetTablePage(Limit, PageIndex);
 
             } catch (Exception ex) {

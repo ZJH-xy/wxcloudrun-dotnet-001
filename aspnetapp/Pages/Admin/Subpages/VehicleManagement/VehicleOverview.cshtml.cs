@@ -157,6 +157,8 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 
 			SearchPlateNumber = "";
 			SearchOwner = "";
+			SortField = "Id";
+			SortOrder = "asc";
 
 			try {
 				List = await _vehicleController.GetTablePage(Limit, PageIndex);
