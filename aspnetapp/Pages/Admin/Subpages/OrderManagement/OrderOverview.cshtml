@@ -64,10 +64,10 @@
 
         </div>
         <form method="post" asp-page-handler="Search">
-            <input asp-for="SearchTheVehicleHtml" id="SearchTheVehicleHtml" value="" placeholder="车辆编号" />
-            <input asp-for="SearchTheRentalLocationHtml" id="SearchTheRentalLocationHtml" value="" placeholder="门店ID" />
-            <input asp-for="SearchStoreNameHtml" id="SearchStoreNameHtml" value="" placeholder="门店名称" />
-            <input asp-for="SearchUserPhoneHtml" id="SearchUserPhoneHtml" value="" placeholder="手机号" />
+            <input type="number" asp-for="SearchTheVehicleHtml" id="SearchTheVehicleHtml" value="" placeholder="车辆编号" />
+            <input type="number" asp-for="SearchTheRentalLocationHtml" id="SearchTheRentalLocationHtml" value="" placeholder="门店ID" />
+            <input type="text"asp-for="SearchStoreNameHtml" id="SearchStoreNameHtml" value="" placeholder="门店名称" />
+            <input type="number" asp-for="SearchUserPhoneHtml" id="SearchUserPhoneHtml" value="" placeholder="手机号" />
             <select asp-for="SearchStatusHtml" id="SearchStatusHtml">
                 <option value="">订单状态</option>
                 <option value="已取消">已取消</option>
@@ -82,7 +82,7 @@
                 <option value="已补余">已补余</option>
             </select>
             <select asp-for="SortField">
-                <option value="Id">ID</option>
+                <option value="Id">订单编号</option>
                 <option value="CreatedAt">创建时间</option>
                 <option value="UpdatedAt">更新时间</option>
             </select>
@@ -674,8 +674,8 @@
             const requestData = {
                 "SearchUserPhone": SearchUserPhoneHtml,
                 "SearchStatus": SearchStatusHtml,
-                "SearchTheRentalLocation": SearchTheRentalLocationHtml,
                 "SearchTheVehicle": SearchTheVehicleHtml,
+                "SearchTheRentalLocation": SearchTheRentalLocationHtml,
                 "SearchStoreName": SearchStoreNameHtml,
             };
             console.log("requestData", requestData);
