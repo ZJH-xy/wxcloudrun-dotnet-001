@@ -188,8 +188,8 @@
                             <span>无</span>
                             }
                     </td>
-                    <td><span id="@("Deposit" + i)">@Model.List[i].Deposit</span></td>
-                    <td><span id="@("Rent" + i)">@Model.List[i].Rent</span></td>
+                    <td><input id="@("Deposit" + i)" type="text" name="UpdatedOrder.Deposit" value="@Model.List[i].Deposit" placeholder="无" disabled /></td>
+                    <td><input id="@("Rent" + i)" type="text" name="UpdatedOrder.Rent" value="@Model.List[i].Rent" placeholder="无" disabled /></td>
                     <td><span id="@("DispatchFee" + i)">@Model.List[i].DispatchFee</span></td>
                     <td><span id="@("OvertimeFee" + i)">@Model.List[i].OvertimeFee</span></td>
                     <td><input id="@("OtherFees" + i)" type="text" name="UpdatedOrder.OtherFees" value="@Model.List[i].OtherFees" placeholder="无" disabled /></td>
@@ -320,6 +320,21 @@
         const RESPONSEURL = `/Admin/Subpages/OrderManagement/OrderOverview`;
         const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]').value;
         const LENGTH = document.getElementById('PageCount').value;// 显示长度
+
+        // 显示分页提示（支持自定义提示时长）
+        function showPaginationTip(message, duration = 3000) {
+            const tipElement = document.getElementById("paginationTips");
+            if (tipElement) {
+                tipElement.textContent = message;
+                tipElement.style.display = "block";
+
+                // 自动隐藏提示
+                setTimeout(() => {
+                    tipElement.style.display = "none";
+                }, duration);
+            }
+        }
+
         // 更改页面*
         async function changePage(index) {
             try {
