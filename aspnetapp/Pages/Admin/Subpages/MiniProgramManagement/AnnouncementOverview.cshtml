@@ -108,18 +108,18 @@
 				<tr>
 					<form method="post" asp-page-handler="Update" enctype="multipart/form-data">
 					<td>@(i + 1)</td>
-                    <td>
-                        @* <span id="@("id" + i)">@Model.List[i].Id</span> *@
+                    <td style="display:none;">
+                        <span id="@("id" + i)">@Model.List[i].Id</span>
                         <input type="hidden" name="UpdatedNotice.Id" value="@Model.List[i].Id" />
                     </td>
-                    <td><input id="@("Title" + i)" type="text" name="UpdatedNotice.Title" value="@Model.List[i].Title" placeholder="无" disabled /></td>
-                    <td><textarea id="@("Content" + i)" type="text" name="UpdatedNotice.Content" value="@Model.List[i].Content" disabled>@Model.List[i].Content</textarea></td>
+                    <td><input id="@("Title" + i)" type="text" name="UpdatedNotice.Title" value="@Model.List[i].Title" placeholder="无" disabled style="width:100px;" /></td>
+                    <td><textarea id="@("Content" + i)" type="text" name="UpdatedNotice.Content" value="@Model.List[i].Content" disabled style="width:200px;height:100px;">@Model.List[i].Content</textarea></td>
 
                     <td><span>@Model.List[i].CreatedAt</span></td>
                     <td><span>@Model.List[i].UpdatedAt</span></td>
                     <td>
 						<button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
-						<button id="@("save" + i)" type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;" >保存</button>
+                        <button id="@("save" + i)" type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;" onclick="saveClick(event)">保存</button>
 						<button id="@("delete" + i)" type="button" class="deleteBtn" data-id="@Model.List[i].Id" style="display: none;" onclick="confirmDelete(event)">删除</button>
 					</td>
 
@@ -160,7 +160,7 @@
                 <button type="button" onclick="changeEndPage()" class="editBtn">尾页</button>
                 <button type="button" onclick="changePage(0)">上一页</button>
                 <button type="button" onclick="changePage(1)">下一页</button>
-
+                <span id="paginationTips" style="color: red; display: none; font-size: 14px; margin-top: 10px;"></span>
 			</form>
 		</div>
 	</div>
@@ -178,6 +178,11 @@
         const RESPONSEURL = `/Admin/Subpages/MiniProgramManagement/AdvertisingOverview`;
         const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]').value;
         const LENGTH = document.getElementById('PageCount').value;// 显示长度
+
+        // 保存数据
+        function saveClick(event) {
+            loadHTML(); // 显示加载中
+        }
 
         // 处理删除按钮点击事件
         async function confirmDelete(event) {
@@ -230,7 +235,6 @@
             }
         }
 
-
         // 添加一行数据
         function showAddRowDataBtn() {
             // 获取表单内所有的 <td> 元素
@@ -253,84 +257,71 @@
 
         }
 
-        // 更改页面
+        // 更改页面*
         async function changePage(index) {
-            loadHTML();
             try {
-                const response = await fetch(`${RESPONSEURL}?handler=PageIndex`, {
-                    method: 'Get',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': TOKEN
-                    },
-                });
+                loadHTML();
 
-                if (!response.ok) {
-                    throw new Error(`HTTP 错误！状态码: ${response.status}`);
-                }
+                const currentPage = await getIndexPage(); // 获取当前页码
+                const totalPage = await getPageSum(); // 获取总页数
 
-                const data = await response.json();  
+                let pageIndex = currentPage;
 
-                if (data.success) {
-                    var pageIndex = data.pageIndex;
-                    const PageIndexTotal = document.getElementById('PageCount').value;
-                    const PageLimit = document.getElementById('PageLimit').value;
-                    if (index === 0) {
-                        pageIndex--;
-                        if (pageIndex < 1) {
-                            return;
-                        }
-                    } else if (index === 1) {
-                        pageIndex++;
-                        if (PageIndexTotal < PageLimit) {
-                            return;
-                        }
-                    } else if (index === 2) {
-                        pageIndex = 1;
-
-                    } else if (index > 1) {
-                        const pageIndexRedirect = document.getElementById('redirect').value;
-                        pageIndex = pageIndexRedirect;
+                if (index === 0) {
+                    if (currentPage <= 1) {
+                        showPaginationTip("已经是第一页！");
+                        return; // 不执行后续逻辑
                     }
+                    pageIndex = currentPage - 1;
+                } else if (index === 1) {
+                    if (currentPage >= totalPage) {
+                        showPaginationTip("已经是最后一页！");
+                        return; // 不执行后续逻辑
+                    }
+                    pageIndex = currentPage + 1;
+                } else if (index === 2) {
+                    pageIndex = 1; // 首页
+                } else if (index > 2) {
+                    const pageIndexRedirect = document.getElementById('redirect').value;
+                    pageIndex = Math.min(totalPage, Math.max(1, parseInt(pageIndexRedirect))); // 输入跳转页
+                }
 
+                if (pageIndex !== currentPage) {
                     await confirmChangePage(pageIndex);
-                    cancelloadHTML();
-
                 } else {
-                    alert("失败： " + (data.message || "未知错误"));
+                    console.warn("目标页码与当前页码相同，无需跳转。");
                 }
 
             } catch (error) {
-                console.error("API 调用失败:", error);
+                console.error("更改页面失败:", error);
+            } finally {
+                cancelloadHTML();
             }
         }
-
-        // 跳转到尾页
-        async function changeEndPage(index) {
+        // 跳转到尾页*
+        async function changeEndPage() {
             try {
-                const pageSum = await getPageSum();
-                if (pageSum) {
-                    console.log('pageSum', pageSum);
-                    await confirmChangePage(pageSum);
-                }
+                loadHTML();
+                const totalPage = await getPageSum(); // 获取总页数
+                await confirmChangePage(totalPage); // 跳转到尾页
             } catch (error) {
-                console.error('获取总页数失败:', error);
+                console.error("跳转到尾页失败:", error);
+            } finally {
+                cancelloadHTML();
             }
         }
 
-        // 请求修改页面
+
+        // 确认修改页面*
         async function confirmChangePage(pageIndex) {
-            loadHTML();
-            const requestData = {
-                "PageIndex": pageIndex
-            };
-            console.log("requestData", requestData);
+            const requestData = { PageIndex: pageIndex };
+
             try {
                 const response = await fetch(`${RESPONSEURL}?handler=ChangePage`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': TOKEN
+                        'RequestVerificationToken': TOKEN,
                     },
                     body: JSON.stringify(requestData),
                 });
@@ -342,23 +333,26 @@
                 var form = document.getElementById('pageForm');
                 // 提交表单
                 if (form) form.submit();
-                
-                cancelloadHTML()
-
+                const data = await response.json();
+                if (data.success) {
+                    console.log(`页面成功跳转到第 ${pageIndex} 页`);
+                } else {
+                    throw new Error(data.message || "未知错误");
+                }
             } catch (error) {
-                cancelloadHTML()
-                console.error("API 调用失败:", error);
+                console.error("确认修改页面失败:", error);
+                alert(`跳转失败：${error.message}`);
             }
         }
 
-        // 获取当前页面页码
+        // 获取当前页码*
         async function getIndexPage() {
             try {
                 const response = await fetch(`${RESPONSEURL}?handler=PageIndex`, {
-                    method: 'Get',
+                    method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': TOKEN
+                        'RequestVerificationToken': TOKEN,
                     },
                 });
 
@@ -367,17 +361,14 @@
                 }
 
                 const data = await response.json();
-
                 if (data.success) {
-                    var pageIndex = data.pageIndex;
-                    document.getElementById('page').textContent = `第 ${pageIndex} 页`;
-
-                    return pageIndex;
-
+                    return data.pageIndex;
+                } else {
+                    throw new Error(data.message || "无法获取当前页码");
                 }
-
             } catch (error) {
-                console.error("API 调用失败:", error);
+                console.error("获取当前页码失败:", error);
+                return 1; // 默认返回首页
             }
         }
 
@@ -393,9 +384,8 @@
 
         }
 
-        // 获取总页数
+        // 获取总页数*
         async function getPageSum() {
-            loadHTML();
             try {
                 const response = await fetch(`${RESPONSEURL}?handler=PageSum`, {
                     method: 'GET',
@@ -408,19 +398,17 @@
                     throw new Error(`HTTP 错误！状态码: ${response.status}`);
                 }
                 const data = await response.json();
-                cancelloadHTML();
-
                 if (data.totalPages) {
                     return data.totalPages;
                 } else {
-                    throw new Error("失败： " + (data.message || "未知错误"));
+                    throw new Error(data.message || "无法获取总页数");
                 }
             } catch (error) {
-                cancelloadHTML(); 
-                console.error("API 调用失败:", error);
-                return null;
+                console.error("获取总页数失败:", error);
+                return 1; // 默认总页数为 1
             }
         }
+
 
         // 加载总页数
         async function loadPageSum() {
