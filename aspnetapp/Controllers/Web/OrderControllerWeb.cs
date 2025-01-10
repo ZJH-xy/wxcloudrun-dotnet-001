@@ -64,7 +64,7 @@ namespace aspnetapp.Controllers.Web {
 		/// <summary>
 		/// 查询订单（支持多字段搜索）
 		/// </summary>
-		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, int? theVehicle = null, int? theRentalLocation = null, string? searchStoreName = null, string sortField = "Id", string sortOrder = "asc") {
+		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, string? theVehicle = null, string? theRentalLocation = null, string? searchStoreName = null, string sortField = "Id", string sortOrder = "asc") {
 			if (userPhone.IsNullOrEmpty() && status.IsNullOrEmpty() && sortField != "Id" && sortOrder != "asc") {
 				return (await GetTablePage(limit, pageIndex), limit);
 			}
@@ -83,11 +83,11 @@ namespace aspnetapp.Controllers.Web {
 					query = query.Where(o => o.Status == parsedStatus);
 				}
 			}
-			if (theVehicle.HasValue) {
-				query = query.Where(o => o.TheVehicle == theVehicle);// 车辆
+			if (!string.IsNullOrEmpty(theVehicle)) {
+				query = query.Where(o => o.TheVehicle == int.Parse(theVehicle));// 车辆
 			}
-			if (theRentalLocation.HasValue) {
-				query = query.Where(o => o.TheRentalLocation == theRentalLocation);// 租车点
+			if (!string.IsNullOrEmpty(theRentalLocation)) {
+				query = query.Where(o => o.TheRentalLocation == int.Parse(theRentalLocation));// 租车点
 			}
 
 			// 门店名称过滤

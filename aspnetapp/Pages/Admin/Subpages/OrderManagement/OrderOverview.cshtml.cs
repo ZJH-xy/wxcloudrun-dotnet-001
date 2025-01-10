@@ -58,15 +58,15 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// 车辆
 		/// </summary>
 		[BindProperty(SupportsGet = true)]
-		public static int? SearchTheVehicle { get; set; }
-		public int? SearchTheVehicleHtml { get; set; }
+		public static string? SearchTheVehicle { get; set; }
+		public string? SearchTheVehicleHtml { get; set; }
 
 		/// <summary>
 		/// 租车点
 		/// </summary>
 		[BindProperty(SupportsGet = true)]
-		public static int? SearchTheRentalLocation { get; set; }
-		public int? SearchTheRentalLocationHtml { get; set; }
+		public static string? SearchTheRentalLocation { get; set; }
+		public string? SearchTheRentalLocationHtml { get; set; }
 
 		/// <summary>
 		/// 租车点名称
@@ -308,8 +308,8 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 
 			SearchUserPhone = requestData["SearchUserPhone"];
 			SearchStatus = requestData["SearchStatus"];
-			SearchTheVehicle = int.Parse(requestData["SearchTheVehicle"]);
-			SearchTheRentalLocation = int.Parse(requestData["SearchTheRentalLocation"]);
+			SearchTheVehicle = requestData["SearchTheVehicle"];
+			SearchTheRentalLocation = requestData["SearchTheRentalLocation"];
 			SearchStoreName = requestData["SearchStoreName"];
 
 			return new JsonResult(new { success = true, message = "成功" });
