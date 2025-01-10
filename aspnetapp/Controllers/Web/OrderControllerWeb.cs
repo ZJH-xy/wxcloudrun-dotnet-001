@@ -125,22 +125,22 @@ namespace aspnetapp.Controllers.Web {
 		/// 更新订单信息
 		/// </summary>
 		public async Task<IActionResult> UpdateOrder(Order updatedOrder) {
-			_logger.LogInformation("Updating order with ID {OrderId}", updatedOrder.Id);
+			_logger.LogInformation("正在更新订单，订单ID：{OrderId}", updatedOrder.Id);
 
 			var order = await _context.Order.FindAsync(updatedOrder.Id);
 			if (order == null) {
-				_logger.LogWarning("Order with ID {OrderId} not found", updatedOrder.Id);
-				return NotFound("Order not found.");
+				_logger.LogWarning("未找到订单，订单ID：{OrderId}", updatedOrder.Id);
+				return NotFound("未找到指定的订单。");
 			}
 
 			// 更新订单属性
 
-			// 费用更改
+			// 检查费用更改
 			if (order.Deposit != updatedOrder.Deposit || order.Rent != updatedOrder.Rent || order.OtherFees != updatedOrder.OtherFees) {
-				// 如更改金额
+				// 确认状态是否合法
 				if (order.Status != Order.EOrderStatus.待付款 && order.Status != Order.EOrderStatus.进行中 && order.Status != Order.EOrderStatus.侍补余) {
-					// 状态不合法
-					return StatusCode(403, "请在订单完成前更改");
+					_logger.LogWarning("尝试在非法状态下更新订单费用，订单ID：{OrderId}, 当前状态：{OrderStatus}", updatedOrder.Id, order.Status);
+					return StatusCode(403, "订单完成前才可修改费用，请确保订单状态为待付款、进行中或侍补余。");
 				}
 
 				order.Deposit = updatedOrder.Deposit;
@@ -157,17 +157,17 @@ namespace aspnetapp.Controllers.Web {
 			try {
 				_context.Order.Update(order);
 				await _context.SaveChangesAsync();
-				_logger.LogInformation("Order with ID {OrderId} updated successfully", updatedOrder.Id);
-				return Ok("Order updated successfully.");
+				_logger.LogInformation("订单更新成功，订单ID：{OrderId}", updatedOrder.Id);
+				return Ok("订单更新成功。");
 			} catch (DbUpdateConcurrencyException) {
-				_logger.LogWarning("Concurrency conflict occurred when updating order with ID {OrderId}", updatedOrder.Id);
-				return Conflict("Update failed due to concurrent changes.");
+				_logger.LogWarning("更新订单时发生并发冲突，订单ID：{OrderId}", updatedOrder.Id);
+				return Conflict("更新失败，记录已被其他用户修改。");
 			} catch (DbUpdateException ex) {
-				_logger.LogError(ex, "Error updating order with ID {OrderId}", updatedOrder.Id);
-				return StatusCode(500, "Error updating order.");
+				_logger.LogError(ex, "更新订单时发生数据库错误，订单ID：{OrderId}", updatedOrder.Id);
+				return StatusCode(500, "更新订单时发生数据库错误。");
 			} catch (Exception ex) {
-				_logger.LogError(ex, "Unexpected error updating order with ID {OrderId}", updatedOrder.Id);
-				return StatusCode(500, "Unexpected error updating order.");
+				_logger.LogError(ex, "更新订单时发生未知错误，订单ID：{OrderId}", updatedOrder.Id);
+				return StatusCode(500, "更新订单时发生未知错误。");
 			}
 		}
 
