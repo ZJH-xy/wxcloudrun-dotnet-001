@@ -97,7 +97,7 @@ namespace aspnetapp.Controllers.Web {
 		/// <param name="sortField"></param>
 		/// <param name="sortOrder"></param>
 		/// <returns></returns>
-		public async Task<(List<User>, int sum)> SearchUsers(int limit, int pageIndex, string? phone = null, string? name = null, string? nickname = null, string sortField = "Id", string sortOrder = "asc") {
+		public async Task<(List<User>, int sum)> SearchUsers(int limit, int pageIndex, string? phone = null, string? name = null, string? nickname = null, string? searchIdentityCard = null, string sortField = "Id", string sortOrder = "asc") {
 			if (phone.IsNullOrEmpty() && name.IsNullOrEmpty() && nickname.IsNullOrEmpty() && sortField != "Id" && sortOrder != "asc") {
 				return (await GetTablePage(limit, pageIndex), limit);
 			}
@@ -116,6 +116,9 @@ namespace aspnetapp.Controllers.Web {
 			}
 			if (!string.IsNullOrEmpty(nickname)) {
 				query = query.Where(u => u.Nickname.Contains(nickname));
+			}
+			if (!string.IsNullOrEmpty(searchIdentityCard)) {
+				query = query.Where(u => u.IdentityCard.Contains(searchIdentityCard));
 			}
 
 			// 排序逻辑

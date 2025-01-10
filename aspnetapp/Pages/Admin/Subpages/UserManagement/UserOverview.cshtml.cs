@@ -56,6 +56,10 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 		public static string? SearchNickname { get; set; }
 		public string? SearchNicknameHtml { get; set; }
 
+		[BindProperty(SupportsGet = true)]
+		public static string? SearchIdentityCard { get; set; }
+		public string? SearchIdentityCardHtml { get; set; }
+
 		// 排序
 		[BindProperty(SupportsGet = true)]
 		public string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
@@ -157,6 +161,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 			SearchPhone = "";
 			SearchName = "";
 			SearchNickname = "";
+			SearchIdentityCard = "";
 
 			try {
 				List = await _userController.GetTablePage(Limit, PageIndex);
@@ -175,7 +180,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 		public async Task<IActionResult> OnPostSearchAsync() {
 
 			// 调用 UserControllerWeb 中的 SearchUsers 方法，包含排序字段和顺序
-			(List, SearchSum) = await _userController.SearchUsers(Limit, PageIndex, SearchPhone, SearchName, SearchNickname, SortField, SortOrder);
+			(List, SearchSum) = await _userController.SearchUsers(Limit, PageIndex, SearchPhone, SearchName, SearchNickname, SearchIdentityCard, SortField, SortOrder);
 
 			return Page();
 		}
@@ -346,6 +351,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 			SearchPhone = requestData["SearchPhone"];
 			SearchName = requestData["SearchName"];
 			SearchNickname = requestData["SearchNickname"];
+			SearchIdentityCard = requestData["SearchIdentityCard"];
 
 			return new JsonResult(new { success = true, message = "成功" });
 		}
@@ -356,7 +362,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 		/// <returns></returns>
 		public async Task<JsonResult> OnGetSearchDataAsync() {
 
-			return new JsonResult(new { success = true, message = "成功", SearchPhone, SearchName, SearchNickname });
+			return new JsonResult(new { success = true, message = "成功", SearchPhone, SearchName, SearchNickname, SearchIdentityCard });
 		}
 	}
 }
