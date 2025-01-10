@@ -100,9 +100,7 @@ input {
     height: 30px;
     width: 100px;
 }
-th,
-td,
-tr,
+
 textarea,
 td > input {
     width: 100%;
