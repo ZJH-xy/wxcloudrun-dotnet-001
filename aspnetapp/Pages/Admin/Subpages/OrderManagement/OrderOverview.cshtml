@@ -81,7 +81,7 @@
                 <option value="侍补余">侍补余</option>
                 <option value="已补余">已补余</option>
             </select>
-            <select asp-for="SortField">
+            <select asp-for="SortField" id="SortFieldHtml">
                 <option value="Id">订单编号</option>
                 <option value="ActualStartingTime">起始时间</option>
                 <option value="ActualReturnTime">实际归时间</option>
@@ -89,7 +89,7 @@
                 <option value="CreatedAt">创建时间</option>
                 <option value="UpdatedAt">更新时间</option>
             </select>
-            <select asp-for="SortOrder">
+            <select asp-for="SortOrder" id="SortOrderHtml">
                 <option value="asc">升序</option>
                 <option value="desc">降序</option>
             </select>
@@ -505,6 +505,7 @@
                 cancelloadHTML(); // 无论成功与否都取消加载动画
             }
         }
+        
         // 获取总页数*
         async function getPageSum() {
             try {
@@ -631,7 +632,8 @@
             var SearchStoreName = document.getElementById('SearchStoreNameHtml');
             var searchUserPhone = document.getElementById('SearchUserPhoneHtml');
             var searchStatus = document.getElementById('SearchStatusHtml');
-
+            var sortField = document.getElementById('SortFieldHtml');
+            var sortOrder = document.getElementById('SortOrderHtml');
             try {
                 const response = await fetch(`${RESPONSEURL}?handler=SearchData`, {
                     method: 'Get',
@@ -654,6 +656,8 @@
                         SearchStoreName.value = data.searchStoreName;
                         searchUserPhone.value = data.searchUserPhone;
                         searchStatus.value = data.searchStatus;
+                        sortField.value = data.sortField;
+                        sortOrder.value = data.sortOrder;
                         console.log('搜索成功!')
                     }, 500)
                 } else {
@@ -674,12 +678,17 @@
             const SearchTheRentalLocationHtml = document.getElementById('SearchTheRentalLocationHtml').value;
             const SearchTheVehicleHtml = document.getElementById('SearchTheVehicleHtml').value;
             const SearchStoreNameHtml = document.getElementById('SearchStoreNameHtml').value;
+            const SortFieldHtml = document.getElementById('SortFieldHtml').value;
+            const SortOrderHtml = document.getElementById('SortOrderHtml').value;
             const requestData = {
                 "SearchUserPhone": SearchUserPhoneHtml,
                 "SearchStatus": SearchStatusHtml,
                 "SearchTheVehicle": SearchTheVehicleHtml,
                 "SearchTheRentalLocation": SearchTheRentalLocationHtml,
                 "SearchStoreName": SearchStoreNameHtml,
+                "SortField": SortFieldHtml,
+                "SortOrder": SortOrderHtml,
+
             };
             console.log("requestData", requestData);
             try {

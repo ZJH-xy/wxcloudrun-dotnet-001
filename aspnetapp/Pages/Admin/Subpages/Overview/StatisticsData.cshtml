@@ -421,7 +421,6 @@
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
-
                 },
             });
 
@@ -432,31 +431,42 @@
             const data = await response.json();  // 等待接口返回数据
 
             if (data.success) {
-                // cancelloadHTML();// 取消显示加载中
-                const sourceData = JSON.parse(data.vehicleStateDistribution)
+                // cancelloadHTML(); // 取消显示加载中
+                const sourceData = JSON.parse(data.vehicleStateDistribution);
                 console.log("接口返回数据:", sourceData);
-                const data1 = [];
-                const data2 = [];
+
+                const labels = [];
+                const values = [];
+
+                // 定义状态与颜色的映射
+                const statusColors = {
+                    "空闲": "#07C160",      // 绿色
+                    "已出租": "#FF9800",    // 橙色
+                    "充电中": "#2196F3",    // 蓝色
+                    "故障": "#F44336",      // 红色
+                    "锁定": "#9E9E9E",      // 灰色
+                    "待确认": "#FFC107"     // 黄色
+                };
+
+                // 提取状态和对应值
                 sourceData.forEach(item => {
-                    data1.push(item.Item1);
-                    data2.push(item.Item2);
+                    labels.push(item.Item1); // Item1 是状态名称
+                    values.push(item.Item2);  // Item2 是状态值
                 });
-                function getRandomColor() {
-                    // 随机生成一个整数，并转换为16进制字符串
-                    const randomColor = Math.floor(Math.random() * 16777215).toString(16);
-                    // 通过padStart确保结果为6位数，不足的用0填充
-                    return `#${randomColor.padStart(6, '0')}`;
-                }
+
+                // 构建颜色数组
+                const backgroundColors = labels.map(label => statusColors[label] || "#000000"); // 默认颜色
+
                 // 车辆状态分布饼图
                 var ctx5 = document.getElementById('vehicleStatusChart').getContext('2d');
                 var vehicleStatusChart = new Chart(ctx5, {
                     type: 'pie',
                     data: {
-                        labels: data1,
+                        labels: labels,
                         datasets: [{
-                            data: data2,
-                            backgroundColor: [getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor()],
-                            hoverBackgroundColor: [getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor(), getRandomColor()]
+                            data: values,
+                            backgroundColor: backgroundColors,
+                            hoverBackgroundColor: backgroundColors
                         }]
                     },
                     options: {
@@ -477,9 +487,7 @@
                     }
                 });
             }
-
         }
-
         // 获取门店数据
         async function getStoreData(event) {
 
@@ -556,7 +564,7 @@
 
         }
 
-        
+     
 
         // 订单状态饼图
         var ctx4 = document.getElementById('orderStatusChart').getContext('2d');
