@@ -94,6 +94,9 @@
                 <th>行驶证</th>
                 <th>发票</th>
                 <th>购入登记时间</th>
+                <th>车主</th>
+                <th>介绍</th>
+                <th>是否涉案</th>
                 <th>车辆型号</th>
                 <th>车辆图片</th>
                 <th>状态修改</th>
@@ -147,6 +150,18 @@
             <td style="display:none;" id="PurchaseRegistrationTime">
                 <input asp-for="NewVehicle.PurchaseRegistrationTime" placeholder="购入登记时间" type="datetime-local" />
                 <span asp-validation-for="NewVehicle.PurchaseRegistrationTime"></span>
+            </td>
+            <td style="display:none;" id="Owner">
+                <input asp-for="NewVehicle.Owner" placeholder="车主" />
+                <span asp-validation-for="NewVehicle.Owner"></span>
+            </td>
+            <td style="display:none;" id="VehicleIntroduction">
+                <input asp-for="NewVehicle.VehicleIntroduction" placeholder="介绍" />
+                <span asp-validation-for="NewVehicle.VehicleIntroduction"></span>
+            </td>
+            <td style="display:none;" id="IsCase">
+                <input asp-for="NewVehicle.IsCase" placeholder="是否涉案" />
+                <span asp-validation-for="NewVehicle.IsCase"></span>
             </td>
             <td style="display:none;" id="Model">
                 <select id="selectModel" name="NewVehicle.Model">
@@ -208,7 +223,7 @@
 
                     <td><input id="@("plateNumber" + i)" type="text" name="UpdatedVehicle.PlateNumber" value="@Model.List[i].PlateNumber" placeholder="无" disabled /></td>
                     <td><input id="@("frameNumber" + i)" type="text" name="UpdatedVehicle.FrameNumber" value="@Model.List[i].FrameNumber" placeholder="无" disabled /></td>
-                    <td>
+                    <td><!--合格证-->
                             @if (Model.List[i].Certificate.HasValue && Model.List[i].Certificate.Value)
                             {
                             <span name="UpdatedVehicle.Certificate" style="color:#07C160;">有</span>
@@ -223,22 +238,7 @@
                             <option value=true>有</option>
                         </select>
                     </td>
-                    <td>
-                            @if (Model.List[i].Drivinglicense.HasValue && Model.List[i].Drivinglicense.Value)
-                            {
-                            <span name="UpdatedVehicle.Drivinglicense" style="color:#07C160;">有</span>
-                            }
-                            else
-                            {
-                            <span>无</span>
-                            }
-                        <select id="selecDrivinglicense" name="UpdatedVehicle.Drivinglicense" disabled style="display:none;">
-                            <option value=@Model.List[i].Drivinglicense>默认值</option>
-                            <option value=false>无</option>
-                            <option value=true>有</option>
-                        </select>
-                    </td>
-                    <td>
+                    <td><!--发票-->
                             @if (Model.List[i].Invoice.HasValue && Model.List[i].Invoice.Value)
                             {
                             <span name="UpdatedVehicle.Invoice" style="color:#07C160;">有</span>
@@ -253,7 +253,23 @@
                             <option value=true>有</option>
                         </select>
                     </td>
-                    <td>
+                    <td><!--行驶证-->
+                            @if (Model.List[i].Drivinglicense.HasValue && Model.List[i].Drivinglicense.Value)
+                            {
+                            <span name="UpdatedVehicle.Drivinglicense" style="color:#07C160;">有</span>
+                            }
+                            else
+                            {
+                            <span>无</span>
+                            }
+                        <select id="selecDrivinglicense" name="UpdatedVehicle.Drivinglicense" disabled style="display:none;">
+                            <option value=@Model.List[i].Drivinglicense>默认值</option>
+                            <option value=false>无</option>
+                            <option value=true>有</option>
+                        </select>
+                    </td>
+
+                    <td><!--登记购入时间-->
                             @if (Model.List[i].PurchaseRegistrationTime.HasValue)
                             {
                                 var formattedDateTime = Model.List[i].PurchaseRegistrationTime.Value.ToString("yyyy-MM-ddTHH:mm");
@@ -261,9 +277,28 @@
                             }
                             else
                             {
-                            <span>无</span>
+                            <input type="datetime-local" name="UpdatedVehicle.PurchaseRegistrationTime" value="" placeholder="无" style="width:100%;" readonly id="purchaseRegistrationTime_@Model.List[i].Id" />
                             }
                     </td>
+
+                    <td><input id="@("Owner" + i)" type="text" name="UpdatedVehicle.Owner" value="@Model.List[i].Owner" placeholder="无" disabled /></td>
+                    <td><input id="@("VehicleIntroduction" + i)" type="text" name="UpdatedVehicle.VehicleIntroduction" value="@Model.List[i].VehicleIntroduction" placeholder="无" disabled /></td>
+                    <td>
+                            @if (Model.List[i].IsCase)
+                            {
+                            <span name="UpdatedVehicle.IsCase" style="color:#07C160;">是</span>
+                            }
+                            else
+                            {
+                            <span>否</span>
+                            }
+                        <select id="IsCase" name="UpdatedVehicle.IsCase" disabled style="display:none;">
+                            <option value=@Model.List[i].IsCase>默认值</option>
+                            <option value=false>否</option>
+                            <option value=true>是</option>
+                        </select>
+                    </td>
+
                     <td>
                         <span id="model_@Model.List[i].Id" name="UpdatedVehicle.Model">@Model.List[i].Model</span>
                         <select id="selecModel" name="UpdatedVehicle.Model" disabled style="display:none;">
@@ -555,6 +590,9 @@
                 "Certificate",
                 "Drivinglicense",
                 "Invoice",
+                "Owner",
+                "VehicleIntroduction",
+                "IsCase",
                 "PurchaseRegistrationTime",
                 "Model",
                 "State",
@@ -942,6 +980,11 @@
                         selectDrivinglicense.disabled = false;
                         selectDrivinglicense.style.display = "block"
                     }
+                    const selectIsCase = container.closest("tr").querySelector("select[name='UpdatedVehicle.IsCase']");
+                    if (selectIsCase) {
+                        selectIsCase.disabled = false;
+                        selectIsCase.style.display = "block"
+                    } 
                     // 切换按钮状态
                     this.style.display = "none"; // 隐藏编辑按钮
                     container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
