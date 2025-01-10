@@ -83,6 +83,9 @@
             </select>
             <select asp-for="SortField">
                 <option value="Id">订单编号</option>
+                <option value="ActualStartingTime">起始时间</option>
+                <option value="ActualReturnTime">实际归时间</option>
+                <option value="SuccessTime">支付完成时间</option>
                 <option value="CreatedAt">创建时间</option>
                 <option value="UpdatedAt">更新时间</option>
             </select>
@@ -281,10 +284,10 @@
         <div class="bottom-item">
             <text id="page">第 * 页</text>
             <text>，当前页共 @Model.List.Count 条数据</text>
-            @if (@Model.SearchSum != 0)
+@*             @if (@Model.SearchSum != 0)
             {
                 <text>，共搜索到 @Model.SearchSum 条数据，</text>
-            }
+            } *@
             <input id="PageCount" value="@Model.List.Count" style="display:none;" />
             <input id="PageLimit" value="@Model.Limit" style="display:none;" />
 
