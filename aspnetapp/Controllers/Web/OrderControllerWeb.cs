@@ -134,7 +134,20 @@ namespace aspnetapp.Controllers.Web {
 			}
 
 			// 更新订单属性
-			order.OtherFees = updatedOrder.OtherFees;
+
+			// 费用更改
+			if (order.Deposit != updatedOrder.Deposit || order.Rent != updatedOrder.Rent || order.OtherFees != updatedOrder.OtherFees) {
+				// 如更改金额
+				if (order.Status != Order.EOrderStatus.待付款 && order.Status != Order.EOrderStatus.进行中 && order.Status != Order.EOrderStatus.侍补余) {
+					// 状态不合法
+					return StatusCode(403, "请在订单完成前更改");
+				}
+
+				order.Deposit = updatedOrder.Deposit;
+				order.Rent = updatedOrder.Rent;
+				order.OtherFees = updatedOrder.OtherFees;
+			}
+
 			order.Notes = updatedOrder.Notes;
 			order.UpdatedAt = DateTime.Now;
 
