@@ -48,8 +48,8 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 
         // 数据
         [BindProperty(SupportsGet = true)]
-        public static int? SearchTheStore { get; set; }
-        public int? SearchTheStoreHtml { get; set; }
+        public static string? SearchTheStore { get; set; }
+        public string? SearchTheStoreHtml { get; set; }
 
 		// 排序
 		[BindProperty(SupportsGet = true)]
@@ -269,7 +269,7 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
                 return new JsonResult(new { success = false, message = "请求数据为空！" });
             }
 
-            SearchTheStore = int.Parse(requestData["SearchTheStore"]);
+            SearchTheStore = requestData["SearchTheStore"];
 			SortField = requestData["SortField"];
 			SortOrder = requestData["SortOrder"];
 
