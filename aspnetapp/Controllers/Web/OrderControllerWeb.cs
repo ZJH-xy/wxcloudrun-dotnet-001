@@ -65,7 +65,7 @@ namespace aspnetapp.Controllers.Web {
 		/// 查询订单（支持多字段搜索）
 		/// </summary>
 		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, string? theVehicle = null, string? theRentalLocation = null, string? searchStoreName = null, string sortField = "Id", string sortOrder = "asc") {
-			if (userPhone.IsNullOrEmpty() && status.IsNullOrEmpty() && sortField != "Id" && sortOrder != "asc") {
+			if (userPhone.IsNullOrEmpty() && status.IsNullOrEmpty() && theVehicle.IsNullOrEmpty() && theRentalLocation.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc") {
 				return (await GetTablePage(limit, pageIndex), limit);
 			}
 
