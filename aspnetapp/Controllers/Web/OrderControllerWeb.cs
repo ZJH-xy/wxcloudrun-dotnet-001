@@ -93,7 +93,7 @@ namespace aspnetapp.Controllers.Web {
 			// 门店名称过滤
 			if (!string.IsNullOrEmpty(searchStoreName)) {
 				var storeIds = await _context.Store
-					.Where(s => !s.IsDelete && s.Name.Contains(searchStoreName))
+					.Where(s => s.Name.Contains(searchStoreName))
 					.Select(s => s.Id)
 					.ToListAsync();
 
