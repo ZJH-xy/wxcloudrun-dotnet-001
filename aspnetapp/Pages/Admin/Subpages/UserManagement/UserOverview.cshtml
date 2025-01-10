@@ -603,7 +603,8 @@
 			var SearchPhone = document.getElementById('SearchPhoneHtml'); 
 			var SearchName = document.getElementById('SearchNameHtml');
 			var SearchNickname = document.getElementById('SearchNicknameHtml');
-
+			var sortField = document.getElementById('SortFieldHtml');
+			var sortOrder = document.getElementById('SortOrderHtml');
 			try {
 				const response = await fetch(`${RESPONSEURL}?handler=SearchData`, {
 					method: 'Get',
@@ -625,6 +626,8 @@
 						SearchPhone.value = data.searchPhone;
 						SearchName.value = data.searchName;
 						SearchNickname.value = data.searchNickname;
+						sortField.value = data.sortField;
+						sortOrder.value = data.sortOrder;
 						console.log('搜索成功!')
 					}, 500)
 				} else {
@@ -644,11 +647,15 @@
 			const SearchPhone = document.getElementById('SearchPhoneHtml').value; 
 			const SearchName = document.getElementById('SearchNameHtml').value;
 			const SearchNickname = document.getElementById('SearchNicknameHtml').value;
+			const SortFieldHtml = document.getElementById('SortFieldHtml').value;
+			const SortOrderHtml = document.getElementById('SortOrderHtml').value;
 			const requestData = {
 				"SearchIdentityCard": SearchIdentityCard,
 				"SearchPhone": SearchPhone,
 				"SearchName": SearchName,
-				"SearchNickname": SearchNickname
+				"SearchNickname": SearchNickname,
+				"SortField": SortFieldHtml,
+				"SortOrder": SortOrderHtml,
 			};
 			console.log("requestData", requestData);
 			try {
