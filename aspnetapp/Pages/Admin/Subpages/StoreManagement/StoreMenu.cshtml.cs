@@ -51,18 +51,20 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         public static int? SearchTheStore { get; set; }
         public int? SearchTheStoreHtml { get; set; }
 
-        // 排序
-        [BindProperty(SupportsGet = true)]
-        public string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
+		// 排序
+		[BindProperty(SupportsGet = true)]
+		public static string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
+		public string? SortFieldHtml { get; set; }
 
-        [BindProperty(SupportsGet = true)]
-        public string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
+		[BindProperty(SupportsGet = true)]
+		public static string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
+		public string? SortOrderHtml { get; set; }
 
-        /// <summary>
-        /// 添加
-        /// </summary>
-        /// <returns></returns>
-        [HttpPost]
+		/// <summary>
+		/// 添加
+		/// </summary>
+		/// <returns></returns>
+		[HttpPost]
         public async Task<IActionResult> OnPostAddStoreAsync() {
             await _storeMenuControllerWeb.AddStoreAsync(NewStoreMenu);
             SuccessMessage = $"添加成功";
@@ -261,15 +263,17 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         /// <returns></returns>
         [HttpPost]
         [IgnoreAntiforgeryToken]
-        public async Task<JsonResult> OnPostChangeSearchDataAsync([FromBody] Dictionary<string, int> requestData) {
+        public async Task<JsonResult> OnPostChangeSearchDataAsync([FromBody] Dictionary<string, string> requestData) {
             // 确保接收到的数据被正确绑定
             if (requestData == null || !requestData.Any()) {
                 return new JsonResult(new { success = false, message = "请求数据为空！" });
             }
 
-            SearchTheStore = requestData["SearchTheStore"];
+            SearchTheStore = int.Parse(requestData["SearchTheStore"]);
+			SortField = requestData["SortField"];
+			SortOrder = requestData["SortOrder"];
 
-            return new JsonResult(new { success = true, message = "成功" });
+			return new JsonResult(new { success = true, message = "成功" });
         }
 
         /// <summary>
@@ -278,7 +282,7 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         /// <returns></returns>
         public async Task<JsonResult> OnGetSearchDataAsync() {
 
-            return new JsonResult(new { success = true, message = "成功", SearchTheStore });
+            return new JsonResult(new { success = true, message = "成功", SearchTheStore, SortField, SortOrder });
         }
     }
 }
