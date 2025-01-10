@@ -77,12 +77,12 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 
 		// 排序
 		[BindProperty(SupportsGet = true)]
-		public string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
-        public string? SortFieldHtml {get;set;}
+		public static string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
+		public string? SortFieldHtml { get; set; }
 
-    [BindProperty(SupportsGet = true)]
-		public string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
-        public string? SortOrderHtml { get; set; }
+		[BindProperty(SupportsGet = true)]
+		public static string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
+		public string? SortOrderHtml { get; set; }
 
         // 图片上传
         public string ImageName { get; set; } // 图片文件名
@@ -98,6 +98,8 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchTheVehicle = null;
 			SearchTheRentalLocation = null;
 			SearchStoreName = null;
+			SortField = null;
+			SortOrder = null;
 
 			try {
 				List = await _orderController.GetTablePage(Limit, PageIndex);
@@ -324,7 +326,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// </summary>
 		/// <returns></returns>
 		public async Task<JsonResult> OnGetSearchDataAsync() {
-			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation, SearchStoreName,SortField, SortOrder });
+			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder });
 		}
 	}
 }
