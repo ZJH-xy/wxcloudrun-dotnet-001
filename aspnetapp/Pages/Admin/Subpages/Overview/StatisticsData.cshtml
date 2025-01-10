@@ -97,8 +97,8 @@
 
     <div class="statistics" id="content">
         <!-- 销售统计卡片 -->
-        <div class="card" onclick="changeIframeSrc('Subpages/OrderManagement/OrderOverview')" style="cursor: pointer;">
-            <div class="card-header">销售统计</div>
+        <div class="card" >
+            <div class="card-header" onclick="changeIframeSrc('Subpages/OrderManagement/OrderOverview')" style="cursor: pointer;">销售统计</div>
             <div class="stat-card">
                 <i class="fas fa-dollar-sign"></i>
                 <span>¥ 0</span>
@@ -108,8 +108,8 @@
             </div>
         </div>
         <!-- 订单趋势分析 -->
-        <div class="card" onclick="changeIframeSrc('Subpages/OrderManagement/OrderOverview')" style="cursor: pointer;">
-            <div class="card-header">订单趋势分析</div>
+        <div class="card" >
+            <div class="card-header" onclick="changeIframeSrc('Subpages/OrderManagement/OrderOverview')" style="cursor: pointer;">订单趋势分析</div>
             <div class="stat-card">
                 <i class="fas fa-credit-card"></i>
                 <span>@Model.OrderSum</span>
@@ -119,8 +119,8 @@
             </div>
         </div>
         <!-- 用户增长卡片 -->
-        <div class="card" onclick="changeIframeSrc('Subpages/UserManagement/UserOverview')" style="cursor: pointer;">
-            <div class="card-header">用户增长</div>
+        <div class="card" >
+            <div class="card-header" onclick="changeIframeSrc('Subpages/UserManagement/UserOverview')" style="cursor: pointer;">用户增长</div>
             <div class="stat-card">
                 <i class="fas fa-users"></i>
                 <span>@Model.UserSum</span>
@@ -150,8 +150,8 @@
         </div>
         </div> *@
         <!-- 车辆状态分布 -->
-        <div class="card" onclick="changeIframeSrc('Subpages/VehicleManagement/VehicleOverview')" style="cursor: pointer;">
-            <div class="card-header">车辆状态分布</div>
+        <div class="card" >
+            <div class="card-header" onclick="changeIframeSrc('Subpages/VehicleManagement/VehicleOverview')" style="cursor: pointer;">车辆状态分布</div>
             <div class="chart-container">
                 <canvas id="vehicleStatusChart"></canvas>
             </div>

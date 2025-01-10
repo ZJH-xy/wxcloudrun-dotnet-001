@@ -65,11 +65,11 @@
 		<form method="post" asp-page-handler="Search">
             <input asp-for="SearchTheStoreHtml" id="SearchTheStoreHtml" value="" placeholder="门店ID" />
 
-			<select asp-for="SortField">
-				<option value="Id">ID</option>
+            <select asp-for="SortFieldHtml" id="SortFieldHtml">
+                <option value="Id">ID</option>
 			</select>
-			<select asp-for="SortOrder">
-				<option value="asc">升序</option>
+            <select asp-for="SortOrderHtml" id="SortOrderHtml">
+                <option value="asc">升序</option>
 				<option value="desc">降序</option>
 			</select>
 			<button type="submit" onclick="confirmChangeSearchData()">搜索</button>
@@ -497,7 +497,8 @@
         // 获取搜索输入框的数据
         async function getSearchData() {
             var searchTheStore = document.getElementById('SearchTheStoreHtml');
-
+            var sortField = document.getElementById('SortFieldHtml');
+            var sortOrder = document.getElementById('SortOrderHtml');
             try {
                 const response = await fetch(`${RESPONSEURL}?handler=SearchData`, {
                     method: 'Get',
@@ -515,6 +516,8 @@
                 if (data.success) {
                     console.log('getSearchData', data)
                     searchTheStore.value = data.searchTheStore;
+                    sortField.value = data.sortField;
+                    sortOrder.value = data.sortOrder;
                     setTimeout(function () {
                         console.log('搜索成功!')
                     }, 500)
@@ -531,10 +534,13 @@
         // 确认搜索
         async function confirmChangeSearchData() {
             loadHTML(); // 显示加载中            
-            var searchTheStore = document.getElementById('SearchTheStoreHtml').value
-
+            const searchTheStore = document.getElementById('SearchTheStoreHtml').value
+            const SortFieldHtml = document.getElementById('SortFieldHtml').value;
+            const SortOrderHtml = document.getElementById('SortOrderHtml').value;
             const requestData = {
                 "SearchTheStore": searchTheStore,
+                "SortField": SortFieldHtml,
+                "SortOrder": SortOrderHtml,
 
             };
             console.log("requestData", requestData);

@@ -66,10 +66,10 @@
 			<input asp-for="SearchTitleHtml" id="SearchTitleHtml" value="" placeholder="标题" />
 			<input asp-for="SearchContentHtml" id="SearchContentHtml" value="" placeholder="内容" />
 
-			<select asp-for="SortField">
+			<select asp-for="SortFieldHtml" id="SortFieldHtml">
 				<option value="Id">ID</option>
 			</select>
-			<select asp-for="SortOrder">
+			<select asp-for="SortOrderHtml" id="SortOrderHtml">
 				<option value="asc">升序</option>
 				<option value="desc">降序</option>
 			</select>
@@ -669,7 +669,8 @@
 		async function getSearchData() {
 			var SearchTitle = document.getElementById('SearchTitleHtml').value;
 			var SearchContent = document.getElementById('SearchContentHtml').value;
-
+			var sortField = document.getElementById('SortFieldHtml');
+			var sortOrder = document.getElementById('SortOrderHtml');
 			try {
 				const response = await fetch(`${RESPONSEURL}?handler=SearchData`, {
 					method: 'Get',
@@ -688,6 +689,8 @@
 					console.log('getdata', data)
 					SearchTitle = data.searchTitle;
 					SearchContent = data.searchContent;
+					sortField.value = data.sortField;
+					sortOrder.value = data.sortOrder;
 					setTimeout(function () {
 						console.log('搜索成功!')
 					}, 500)
@@ -704,10 +707,13 @@
 		// 确认搜索
 		async function confirmChangeSearchData() {
 			loadHTML(); // 显示加载中
-			var SearchTheStore = document.getElementById('SearchTheStoreHtml').value
-
+			const SearchTheStore = document.getElementById('SearchTheStoreHtml').value
+			const SortFieldHtml = document.getElementById('SortFieldHtml').value;
+			const SortOrderHtml = document.getElementById('SortOrderHtml').value;
 			const requestData = {
 				"SearchTheStore": SearchTheStore,
+				"SortField": SortFieldHtml,
+				"SortOrder": SortOrderHtml,
 
 			};
 			console.log("requestData", requestData);

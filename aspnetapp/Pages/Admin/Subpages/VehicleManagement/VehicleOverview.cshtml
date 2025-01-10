@@ -68,12 +68,12 @@
             <input asp-for="SearchPlateNumberHtml" id="SearchPlateNumberHtml" value="" placeholder="车牌号" />
             <input asp-for="SearchOwnerHtml" id="SearchOwnerHtml" value="" placeholder="车主" />
 
-            <select asp-for="SortField">
+            <select asp-for="SortFieldHtml" id="SortFieldHtml">
                 <option value="platenumber">车牌号</option>
                 <option value="createdat">创建时间</option>
                 <option value="updatedAt">更新时间</option>
             </select>
-            <select asp-for="SortOrder">
+            <select asp-for="SortOrderHtml" id="SortOrderHtml">
                 <option value="asc">升序</option>
                 <option value="desc">降序</option>
             </select>
@@ -977,7 +977,8 @@
         async function getSearchData() {
             var SearchPlateNumberHtml = document.getElementById('SearchPlateNumberHtml');
             var SearchOwnerHtml = document.getElementById('SearchOwnerHtml');
-
+            var sortField = document.getElementById('SortFieldHtml');
+            var sortOrder = document.getElementById('SortOrderHtml');
             try {
                 const response = await fetch(`${RESPONSEURL}?handler=SearchData`, {
                     method: 'Get',
@@ -997,6 +998,8 @@
                     setTimeout(function () {
                         SearchPlateNumberHtml.value = data.searchPlateNumber;
                         SearchOwnerHtml.value = data.searchOwner;
+                        sortField.value = data.sortField;
+                        sortOrder.value = data.sortOrder;
                         console.log('搜索成功!')
                     }, 500)
                 } else {
@@ -1014,9 +1017,13 @@
             loadHTML(); // 显示加载中
             const SearchPlateNumber = document.getElementById('SearchPlateNumberHtml').value;
             const SearchOwner = document.getElementById('SearchOwnerHtml').value;
+            const SortFieldHtml = document.getElementById('SortFieldHtml').value;
+            const SortOrderHtml = document.getElementById('SortOrderHtml').value;
             const requestData = {
                 "SearchPlateNumber": SearchPlateNumber,
                 "SearchOwner": SearchOwner,
+                "SortField": SortFieldHtml,
+                "SortOrder": SortOrderHtml,
             };
             console.log("requestData", requestData);
             try {

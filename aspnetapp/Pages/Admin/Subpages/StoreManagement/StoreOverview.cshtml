@@ -67,10 +67,10 @@
 		<form method="post" asp-page-handler="Search">
 			<input asp-for="SearchNameHtml" id="SearchNameHtml" value="" placeholder="名称" />
 			<input asp-for="SearchAddressHtml" id="SearchAddressHtml" value="" placeholder="地址" />
-			<select asp-for="SortField">
+			<select asp-for="SortFieldHtml" id="SortFieldHtml">
 				<option value="Id">ID</option>
 			</select>
-			<select asp-for="SortOrder">
+			<select asp-for="SortOrderHtml" id="SortOrderHtml">
 				<option value="asc">升序</option>
 				<option value="desc">降序</option>
 			</select>
@@ -789,7 +789,8 @@
 		async function getSearchData() {
 			var SearchName = document.getElementById('SearchNameHtml');
 			var SearchAddress = document.getElementById('SearchAddressHtml');
-
+			var sortField = document.getElementById('SortFieldHtml');
+			var sortOrder = document.getElementById('SortOrderHtml');
 			try {
 				const response = await fetch(`${RESPONSEURL}?handler=SearchData`, {
 					method: 'Get',
@@ -808,6 +809,8 @@
 					console.log('getdata', data)
 					SearchName.value = data.searchName;
 					SearchAddress.value = data.searchAddress;
+					sortField.value = data.sortField;
+					sortOrder.value = data.sortOrder;
 					setTimeout(function () {
 						console.log('搜索成功!')
 					}, 500)
@@ -826,9 +829,13 @@
 			loadHTML(); // 显示加载中
 			const SearchName = document.getElementById('SearchNameHtml').value;
 			const SearchAddress = document.getElementById('SearchAddressHtml').value;
+			const SortFieldHtml = document.getElementById('SortFieldHtml').value;
+			const SortOrderHtml = document.getElementById('SortOrderHtml').value;
 			const requestData = {
 				"SearchName": SearchName,
 				"SearchAddress": SearchAddress,
+				"SortField": SortFieldHtml,
+				"SortOrder": SortOrderHtml,
 			};
 			console.log("requestData", requestData);
 			try {
