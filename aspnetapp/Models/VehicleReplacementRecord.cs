@@ -55,16 +55,19 @@
 		/// <summary>
 		/// 换车门店名称
 		/// </summary>
+		[NotMapped]
 		public string StoreName { get; set; }
 
 		/// <summary>
 		/// 旧车辆车牌号
 		/// </summary>
+		[NotMapped]
 		public string OldVehiclePlateNumber { get; set; }
 
 		/// <summary>
 		/// 新车辆车牌号
 		/// </summary>
+		[NotMapped]
 		public string NewVehiclePlateNumber { get; set; }
 
 		/// <summary>
