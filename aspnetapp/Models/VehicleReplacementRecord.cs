@@ -27,6 +27,11 @@
 		public int TheNewVehicles { get; set; }
 
 		/// <summary>
+		/// 换车门店（逻辑指向门店）
+		/// </summary>
+		public int TheStore { get; set; }
+
+		/// <summary>
 		/// 换车记录状态
 		/// </summary>
 		public Estates State { get; set; }
