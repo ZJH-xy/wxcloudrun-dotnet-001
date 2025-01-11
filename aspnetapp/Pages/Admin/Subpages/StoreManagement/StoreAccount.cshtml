@@ -583,7 +583,7 @@
                 }
                 const data = await response.json();
                 if (data.success) {
-                    getSearchData();
+                    await getSearchData();
                 } else {
                     alert(data.message + '请刷新页面后重试');
                 }

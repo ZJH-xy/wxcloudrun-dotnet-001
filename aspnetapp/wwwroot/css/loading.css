@@ -82,7 +82,7 @@
     transform: translateX(-50%);
     padding: 15px 30px;
     opacity: 0;
-    transition: opacity 5s ease, transform 5s ease;
+    transition: opacity 1s ease, transform 1s ease;
     justify-content: center;
     align-items: center;
     display: flex;
