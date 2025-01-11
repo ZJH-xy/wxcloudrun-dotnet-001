@@ -38,15 +38,29 @@ namespace aspnetapp.Controllers.API.Miniprogram
 			}
 
             List<VehicleBasic> vehiclesBasicsList = new();
+			List<int> downloadPositionList = new();// 有图片的位置
+			List<FileItem> fileidList = new();// 文件下载链接的列表
 
-            foreach (Vehicle vehicle in vehicleList) {
-				VehicleBasic vehicleBasic = new(vehicle);
+			for (int i = 0; i < vehicleList.Count; ++i) {
+				vehiclesBasicsList.Add(new(vehicleList[i]));
+				if (!vehicleList[i].Pictures.IsNullOrEmpty()) {
+					// 如有图片则放入列表
+					fileidList.Add(new FileItem {
+						fileid = vehicleList[i].Pictures,
+						max_age = 7200
+					});
+					downloadPositionList.Add(i);
+				}
+			}
 
-                // 获取图片下载
-				vehicleBasic.Pictures = vehicleBasic.Pictures is not null ? await GetImageDownload(vehicleBasic.Pictures) : null;
+            if (fileidList.Count > 0) {
+				// 下载链接
+				Result_File_List[] downloadLinkArray = await GetImageDownload(fileidList);
 
-				vehiclesBasicsList.Add(vehicleBasic);
-            }
+				for (int i = 0; i < downloadLinkArray.Length; ++i) {
+					vehiclesBasicsList[downloadPositionList[i]].Pictures = downloadLinkArray[i].download_url;
+				}
+			}
 
             return StatusCode(200, vehiclesBasicsList);
         }
@@ -95,7 +109,25 @@ namespace aspnetapp.Controllers.API.Miniprogram
                 return StatusCode(404);
 
             return StatusCode(200, vehicle);
-        }
+		}
+
+		/// <summary>
+		/// 获取图片文件下载链接（多个）
+		/// </summary>
+		/// <param name="fileidList"></param>
+		/// <returns></returns>
+		private async Task<Result_File_List[]> GetImageDownload(List<FileItem> fileidList) {
+			var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+			var envId = _wxSetting.Value.Env;
+
+			var re = await TcbApi.BatchDownloadFileAsync(appId, envId, fileidList);
+
+			if (re.errcode != ReturnCode.请求成功) {
+				_logger.LogError("{errmsg},获取下载链接失败{fileidList}", re.errmsg, fileidList.ToJson());
+			}
+
+			return re.file_list;
+		}
 
 		/// <summary>
 		/// 获取图片文件下载链接
@@ -123,7 +155,7 @@ namespace aspnetapp.Controllers.API.Miniprogram
 			return re.file_list.First().download_url;
 		}
 	}
-    public struct VehicleBasic {
+    public class VehicleBasic {
         public VehicleBasic(Vehicle store) {
             VehicleId = store.Id;
             Model = store.Model;

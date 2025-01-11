@@ -5,74 +5,98 @@ using System.Security.Claims;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
-    [Route("store")]
-    [ApiController]
-    public class StoreAPI : ControllerBase {
-        private readonly MyDbContext _dbContext;
-        private readonly ILogger<StoreAPI> _logger;
-        private readonly StoreController _storeController;
-        private readonly FavoritesStoreController _favoritesStoreController;
+	[Route("store")]
+	[ApiController]
+	public class StoreAPI : ControllerBase {
+		private readonly MyDbContext _dbContext;
+		private readonly ILogger<StoreAPI> _logger;
+		private readonly StoreController _storeController;
+		private readonly FavoritesStoreController _favoritesStoreController;
 		private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;
 
 		public StoreAPI(MyDbContext dbContext, ILogger<StoreAPI> logger, IOptionsSnapshot<WeixinSetting> wxSetting) {
-            _dbContext = dbContext;
-            _logger = logger;
-            _storeController = new(_dbContext);
-            _favoritesStoreController = new(_dbContext);
+			_dbContext = dbContext;
+			_logger = logger;
+			_storeController = new(_dbContext);
+			_favoritesStoreController = new(_dbContext);
 			_wxSetting = wxSetting;
 		}
 
-        /// <summary>
-        /// 获取门店名称
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        [HttpGet("name/{id}")]
-        public async Task<IActionResult> GetStoreName(int id) {
-            Store? store;
-            try {
-                store = await _dbContext.Store.FirstOrDefaultAsync(s => s.Id == id);
+		/// <summary>
+		/// 获取门店名称
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		[HttpGet("name/{id}")]
+		public async Task<IActionResult> GetStoreName(int id) {
+			Store? store;
+			try {
+				store = await _dbContext.Store.FirstOrDefaultAsync(s => s.Id == id);
 
-            } catch (Exception e) {
-                _logger.LogError(e, "获取门店{StoreId}名称", id);
-                return StatusCode(500);
+			} catch (Exception e) {
+				_logger.LogError(e, "获取门店{StoreId}名称", id);
+				return StatusCode(500);
 			}
 
-            if (store is null)
-                return StatusCode(404);
+			if (store is null)
+				return StatusCode(404);
 
-            return StatusCode(200, store.Name);
-        }
+			return StatusCode(200, store.Name);
+		}
 
-        /// <summary>
-        /// 获取所有门店
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("a")]
-        public async Task<IActionResult> GetStores() {
-            List<Store> storeList;
-            try {
-                storeList = await _storeController.GetAllStore();
+		/// <summary>
+		/// 获取所有门店
+		/// </summary>
+		/// <returns></returns>
+		[HttpGet("a")]
+		public async Task<IActionResult> GetStores() {
+			List<Store> storeList;
+			try {
+				storeList = await _storeController.GetAllStore();
 
-            } catch (Exception e) {
-                _logger.LogError(e, "获取所有门店");
+			} catch (Exception e) {
+				_logger.LogError(e, "获取所有门店失败");
 
-                return StatusCode(500);
+				return StatusCode(500);
 			}
 
-            List<StoreBasic> storeBasicList = new();
+			List<StoreBasic> storeBasicList = new();
+			List<int> downloadPositionList = new();// 有图片的位置
+			List<FileItem> fileidList = new();// 文件下载链接的列表
 
-            foreach (Store store in storeList) {
-                StoreBasic storeBasic = new(store);
+			for (int i = 0; i < storeList.Count; ++i) {
+				storeBasicList.Add(new(storeList[i]));
+				if (!storeList[i].Pictures.IsNullOrEmpty()) {
+					// 如有图片则放入列表
+					fileidList.Add(new FileItem {
+						fileid = storeList[i].Pictures,
+						max_age = 7200
+					});
+					downloadPositionList.Add(i);
+				}
+			}
+
+			if (fileidList.Count > 0) {
+				// 下载链接
+				Result_File_List[] downloadLinkArray = await GetImageDownload(fileidList);
+
+				for (int i = 0; i < downloadLinkArray.Length; ++i) {
+					storeBasicList[downloadPositionList[i]].Pictures = downloadLinkArray[i].download_url;
+				}
+			}
+
+			// 单个获取方法
+			/*foreach (Store store in storeList) {
+				StoreBasic storeBasic = new(store);
 
 				// 获取图片下载
 				storeBasic.Pictures = storeBasic.Pictures is not null ? await GetImageDownload(storeBasic.Pictures) : null;
 
 				storeBasicList.Add(storeBasic);
-            }
+			}*/
 
-            return StatusCode(200, storeBasicList);
-        }
+			return StatusCode(200, storeBasicList);
+		}
 
 		/// <summary>
 		/// 获取门店套餐
@@ -80,35 +104,54 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		/// <param name="storeId"></param>
 		/// <returns></returns>
 		[HttpGet("storeMenus/{storeId}")]
-        public async Task<IActionResult> CalculateRent(int storeId) {
+		public async Task<IActionResult> CalculateRent(int storeId) {
 
-            return StatusCode(200, await _dbContext.StoreMenus.Where(sm => sm.TheStore == storeId && !sm.IsDelete).ToListAsync());
-        }
+			// 获取门店当前的套餐
+			return StatusCode(200, await _dbContext.StoreMenus.Where(sm => sm.TheStore == storeId && !sm.IsDelete).ToListAsync());
+		}
 
-        /// <summary>
-        /// 收藏门店
-        /// </summary>
-        /// <returns></returns>
-        [Authorize]
-        [HttpPost("favorites/{storeId}")]
-        public async Task<IActionResult> AddFavoritesStore(int storeId) {
-            List<UserFavoritesStore> list = await _favoritesStoreController.GetByUserId(GetUserIdInt());
+		/// <summary>
+		/// 收藏门店
+		/// </summary>
+		/// <returns></returns>
+		[Authorize(Roles = "user")]// 只有用户能访问
+		[HttpPost("favorites/{storeId}")]
+		public async Task<IActionResult> AddFavoritesStore(int storeId) {
+			List<UserFavoritesStore> list = await _favoritesStoreController.GetByUserId(GetUserIdInt());
 
-            /*foreach (UserFavoritesStore store in list) {
+			/*foreach (UserFavoritesStore store in list) {
                 if (store.Id == storeId) {
                     return StatusCode(403, "不可重复收藏");
                 }
             }*/
 
-            if (list.Any(s => s.TheStore == storeId))
-                return StatusCode(403, "不可重复收藏");
+			if (list.Any(s => s.TheStore == storeId))
+				return StatusCode(403, "不可重复收藏");
 
-            await _favoritesStoreController.AddFavoritesStore(GetUserIdInt(), storeId);
-            return StatusCode(200);
-        }
+			await _favoritesStoreController.AddFavoritesStore(GetUserIdInt(), storeId);
+			return StatusCode(200);
+		}
 
 		/// <summary>
-		/// 获取图片文件下载链接
+		/// 获取图片文件下载链接（多个）
+		/// </summary>
+		/// <param name="fileidList"></param>
+		/// <returns></returns>
+		private async Task<Result_File_List[]> GetImageDownload(List<FileItem> fileidList) {
+			var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+			var envId = _wxSetting.Value.Env;
+
+			var re = await TcbApi.BatchDownloadFileAsync(appId, envId, fileidList);
+
+			if (re.errcode != ReturnCode.请求成功) {
+				_logger.LogError("{errmsg},获取下载链接失败{fileidList}", re.errmsg, fileidList.ToJson());
+			}
+
+			return re.file_list;
+		}
+
+		/// <summary>
+		/// 获取图片文件下载链接（单个）
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <returns></returns>
@@ -138,34 +181,34 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		/// </summary>
 		/// <returns></returns>
 		public int GetUserIdInt() {
-            return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-        }
-    }
+			return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+		}
+	}
 
-    public struct StoreBasic {
-        public StoreBasic(Store store) {
-            StoreId = store.Id;
-            Name = store.Name;
-            BusinessHoursStart = store.BusinessHoursStart;
-            BusinessHoursBegin = store.BusinessHoursEnd;
-            BusinessStatus = store.BusinessStatus;
-            Telephone = store.Telephone;
-            Address = store.Address;
-            GpsLongitude = store.GpsLongitude;
-            GpsLatitude = store.GpsLatitude;
-            Pictures = store.Pictures;
-            Introduce = store.Introduce;
-        }
-        public int StoreId { get; init; }// 门店编号
-        public string Name { get; set; } = string.Empty;// 门店名称
-        public TimeSpan BusinessHoursStart { get; set; }// 营业开始时间
-        public TimeSpan BusinessHoursBegin { get; set; }// 营业结束时间
-        public bool BusinessStatus { get; set; }// 营业状态
-        public string? Telephone { get; set; }// 联系电话
-        public string? Address { get; set; }// 门店地址
-        public double GpsLongitude { get; init; }// Longitude 经度，范围 [-180, 180]
-        public double GpsLatitude { get; init; }// Latitude 纬度，范围 [-90, 90]
-        public string? Pictures { get; set; }// 门店图片
-        public string? Introduce { get; set; }// 介绍
-    }
+	public class StoreBasic {
+		public StoreBasic(Store store) {
+			StoreId = store.Id;
+			Name = store.Name;
+			BusinessHoursStart = store.BusinessHoursStart;
+			BusinessHoursBegin = store.BusinessHoursEnd;
+			BusinessStatus = store.BusinessStatus;
+			Telephone = store.Telephone;
+			Address = store.Address;
+			GpsLongitude = store.GpsLongitude;
+			GpsLatitude = store.GpsLatitude;
+			Pictures = store.Pictures;
+			Introduce = store.Introduce;
+		}
+		public int StoreId { get; init; }// 门店编号
+		public string Name { get; set; } = string.Empty;// 门店名称
+		public TimeSpan BusinessHoursStart { get; set; }// 营业开始时间
+		public TimeSpan BusinessHoursBegin { get; set; }// 营业结束时间
+		public bool BusinessStatus { get; set; }// 营业状态
+		public string? Telephone { get; set; }// 联系电话
+		public string? Address { get; set; }// 门店地址
+		public double GpsLongitude { get; init; }// Longitude 经度，范围 [-180, 180]
+		public double GpsLatitude { get; init; }// Latitude 纬度，范围 [-90, 90]
+		public string? Pictures { get; set; }// 门店图片
+		public string? Introduce { get; set; }// 介绍
+	}
 }

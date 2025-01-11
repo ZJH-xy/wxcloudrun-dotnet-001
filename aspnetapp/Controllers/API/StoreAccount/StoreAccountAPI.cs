@@ -14,6 +14,7 @@ using Senparc.CO2NET.Utilities;
 using Senparc.Weixin.TenPayV3;
 using Senparc.CO2NET.Extensions;
 using Microsoft.Extensions.Logging;
+using System.Xml.Linq;
 
 namespace aspnetapp.Controllers.API.StoreAccount
 {
@@ -294,7 +295,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "根据商家帐号Id{VehicleReplacementRecordId}获取门店", GetUserIdInt());
                 return StatusCode(500);
-				
 			}
             if (newVehicle.TheCurrentStore != storeId)// 车辆当前所在门店
                 return StatusCode(403, "车辆不在当前门店");
@@ -329,6 +329,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             /* 换车记录表VehicleReplacementRecord 更新 */
             vrr.State = VehicleReplacementRecord.Estates.已完成;
+            vrr.TheStore = GetUserIdInt();
             vrr.UpdatedAt = now;
 
             try {
@@ -339,7 +340,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 _logger.LogError(e, "更换车辆事务失败，订单表{OrderId}，换车记录表{换车记录表VehicleReplacementRecordId}", order.Id, vrr.Id);
                 await transaction.RollbackAsync();// 回滚事务
                 return StatusCode(500);
-				
 			}
 
             return StatusCode(200);
@@ -582,14 +582,21 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             return StatusCode(200);
         }
-        #endregion
+		#endregion
 
-        #region 商家提交地址审核
-        [HttpPost("reviewMerchantAddress")]
+		#region 商家提交地址审核
+		/// <summary>
+		/// 商家提交地址审核
+		/// </summary>
+		/// <param name="data"></param>
+		/// <returns></returns>
+		[HttpPost("reviewMerchantAddress")]
         public async Task<IActionResult> PostReviewMerchantAddress(GetAddress data) {
             var reviewMerchantAddress = new ReviewMerchantAddress() {
                 TheStore = GetUserIdInt(),
-                GpsLongitude = data.GpsLongitude,
+				Name = data.Name,
+				Address = data.Address,
+				GpsLongitude = data.GpsLongitude,
                 GpsLatitude = data.GpsLatitude,
             };
 
@@ -854,7 +861,9 @@ namespace aspnetapp.Controllers.API.StoreAccount
         /// Latitude 纬度，范围 [-90, 90]
         /// </summary>
         public double GpsLatitude { get; set; }
-    }
+		public string Name { get; set; }
+		public string Address { get; set; }
+	}
 
     /// <summary>
     /// 确认订单格式
