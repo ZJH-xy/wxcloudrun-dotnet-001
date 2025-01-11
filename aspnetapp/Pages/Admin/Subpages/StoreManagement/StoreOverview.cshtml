@@ -149,9 +149,10 @@
 					<form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data" id="@("form" + i)">
 					<td><span>@(i + 1)</span></td>
 					<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
-					<td><input id="@("Name" + i)" type="text" name="UpdatedStore.Name" value="@Model.List[i].Name" placeholder="无" disabled /></td>
-					<td><input id="@("BusinessHoursStart" + i)" type="time" name="UpdatedStore.BusinessHoursStart" value="@Model.List[i].BusinessHoursStart" placeholder="无" disabled /></td>
-					<td><input id="@("BusinessHoursEnd" + i)" type="time" name="UpdatedStore.BusinessHoursEnd" value="@Model.List[i].BusinessHoursEnd" placeholder="无" disabled /></td>
+					<td><span id="edit">@Model.List[i].Name</span><input type="text" name="UpdatedStore.Name" value="@Model.List[i].Name" style="display:none" disabled /></td>
+					<td><span id="edit">@Model.List[i].BusinessHoursStart</span><input type="time" name="UpdatedStore.BusinessHoursStart" value="@Model.List[i].BusinessHoursStart" style="display:none" disabled /></td>
+					<td><span id="edit">@Model.List[i].BusinessHoursEnd</span><input type="time" name="UpdatedStore.BusinessHoursEnd" value="@Model.List[i].BusinessHoursEnd" style="display:none" disabled /></td>
+
 					<td>
 							@if (@Model.List[i].BusinessStatus) {
 							<span style="color:#07C160;">正常营业</span>
@@ -161,11 +162,13 @@
 							}
 
 					</td>
-					<td><input id="@("Telephone" + i)" type="text" name="UpdatedStore.Telephone" value="@Model.List[i].Telephone" placeholder="无" disabled /></td>
-					<td><input id="@("WeChat" + i)" type="text" name="UpdatedStore.WeChat" value="@Model.List[i].WeChat" placeholder="无" disabled /></td>
-					<td><input id="@("Address" + i)" type="text" name="UpdatedStore.Address" value="@Model.List[i].Address" placeholder="无" disabled /></td>
-					<td><input id="@("GpsLongitude" + i)" type="text" name="UpdatedStore.GpsLongitude" value="@Model.List[i].GpsLongitude" placeholder="无" disabled /></td>
-					<td><input id="@("GpsLatitude" + i)" type="text" name="UpdatedStore.GpsLatitude" value="@Model.List[i].GpsLatitude" placeholder="无" disabled /></td>
+					<td><span id="edit">@Model.List[i].Telephone</span><input type="text" name="UpdatedStore.Telephone" value="@Model.List[i].Telephone" style="display:none" disabled /></td>
+					<td><span id="edit">@Model.List[i].WeChat</span><input type="text" name="UpdatedStore.WeChat" value="@Model.List[i].WeChat" style="display:none" disabled /></td>
+					<td><span id="edit">@Model.List[i].Address</span><input type="text" name="UpdatedStore.Address" value="@Model.List[i].Address" style="display:none" disabled /></td>
+					<td><span id="edit">@Model.List[i].GpsLongitude</span><input type="text" name="UpdatedStore.GpsLongitude" value="@Model.List[i].GpsLongitude" style="display:none" disabled /></td>
+					<td><span id="edit">@Model.List[i].GpsLatitude</span><input type="text" name="UpdatedStore.GpsLatitude" value="@Model.List[i].GpsLatitude" style="display:none" disabled /></td>
+
+
 					<td>
 						<div class="imageContainer" data-id="@Model.List[i].Id">
 							<!-- 常驻显示的图片 -->
@@ -205,12 +208,12 @@
 							</div>
 						</div>
 					</td>
-					<td><textarea id="@("Introduce" + i)" type="text" name="UpdatedStore.Introduce" value="@Model.List[i].Introduce" disabled>@Model.List[i].Introduce</textarea></td>
-					<td><span id="@("createdAt" + i)">@Model.List[i].CreatedAt</span></td>
-					<td><span id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</span></td>
+					<td><span id="edit">@Model.List[i].Introduce</span><textarea name="UpdatedStore.Introduce" style="display:none" disabled>@Model.List[i].Introduce</textarea></td>
+					<td><span>@Model.List[i].CreatedAt</span></td>
+					<td><span>@Model.List[i].UpdatedAt</span></td>
 					<!-- 门店为true不显示 -->
 					<td style="display:none;">
-						<input id="@("IsDelete" + i)" type="hidden" name="UpdatedStore.IsDelete" value="false" />
+						<input type="hidden" name="UpdatedStore.IsDelete" value="false" />
 					</td>
 
 					<td>
@@ -730,7 +733,7 @@
 			editButtons.forEach(button => {
 				button.addEventListener("click", function () {
 					const id = this.dataset.id;
-					console.log('id', id)
+					console.log('id', id);
 					const container = document.querySelector(`.imageContainer[data-id="${id}"]`);
 					const img = container.querySelector(".thumbnail");
 					const fileInput = container.querySelector(".fileUpload");
@@ -742,24 +745,28 @@
 					fileInput.style.display = "block";
 
 					// 切换其他字段为可编辑状态
-					const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
-					inputs.forEach(input => input.disabled = false);
+					const spans = container.closest("tr").querySelectorAll("span");
+					const inputs = container.closest("tr").querySelectorAll("input, textarea");
 
-					// 使 textarea 可编辑
-					const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedStore.Introduce']`);
-					if (textArea) textArea.disabled = false; // 使 textarea 可编辑
+					// 只显示id为edit的span
+					spans.forEach(span => {
+						if (span.id === "edit") {
+							span.style.display = "none";  // 隐藏其他span
+						} 
+					});
 
-					// 使状态下拉框可以编辑
-					const selectState = container.closest("tr").querySelector("select[name='UpdatedStore.Status']");
-					if (selectState) selectState.disabled = false;
+					inputs.forEach(input => {
+						input.disabled = false;      // 启用input
+						input.style.display = "inline-block";  // 显示input
+					});
 
 					// 切换按钮状态
-					this.style.display = "none"; // 隐藏编辑按钮
+					this.style.display = "none";  // 隐藏编辑按钮
 					container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
 					container.closest("tr").querySelector(".deleteBtn").style.display = "inline-block";
-
 				});
 			});
+
 
 		}
 
