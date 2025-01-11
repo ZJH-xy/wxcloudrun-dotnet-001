@@ -295,7 +295,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
             } catch (Exception e) {
                 _logger.LogError(e, "根据商家帐号Id{VehicleReplacementRecordId}获取门店", GetUserIdInt());
                 return StatusCode(500);
-				
 			}
             if (newVehicle.TheCurrentStore != storeId)// 车辆当前所在门店
                 return StatusCode(403, "车辆不在当前门店");
@@ -330,6 +329,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             /* 换车记录表VehicleReplacementRecord 更新 */
             vrr.State = VehicleReplacementRecord.Estates.已完成;
+            vrr.TheStore = GetUserIdInt();
             vrr.UpdatedAt = now;
 
             try {
@@ -340,7 +340,6 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 _logger.LogError(e, "更换车辆事务失败，订单表{OrderId}，换车记录表{换车记录表VehicleReplacementRecordId}", order.Id, vrr.Id);
                 await transaction.RollbackAsync();// 回滚事务
                 return StatusCode(500);
-				
 			}
 
             return StatusCode(200);

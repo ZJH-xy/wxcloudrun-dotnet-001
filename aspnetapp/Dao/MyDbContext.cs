@@ -27,6 +27,7 @@
     public DbSet<Advertisement> Advertisement { get; set; } = null!;
     public DbSet<ReviewMerchantAddress> ReviewMerchantAddress { get; set; } = null!;
     public DbSet<OrderEvaluate> OrderEvaluate { get; set; } = null!;
+    public DbSet<OrderLog> OrderLog { get; set; } = null!;
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
         // 如果未配置，则使用 _databaseConfig 配置
