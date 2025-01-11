@@ -163,8 +163,8 @@
                 @* <input asp-for="NewVehicle.IsCase" placeholder="请选择是否涉案" /> *@
                 <span style="color:gray;">请选择是否涉案</span><br />
                 <select id="IsCase" name="NewVehicle.IsCase">
-                    <option value=false>无</option>
-                    <option value=true>有</option>
+                    <option value=false>否</option>
+                    <option value=true>是</option>
                 </select>
                 <span asp-validation-for="NewVehicle.IsCase"></span>
             </td>
@@ -258,7 +258,7 @@
                             <span>无</span>
                             }
                         <select id="selecCertificate" name="UpdatedVehicle.Certificate" disabled style="display:none;">
-                            <option value=@Model.List[i].Certificate>默认值</option>
+                            <option value=@Model.List[i].Certificate>请选择</option>
                             <option value=false>无</option>
                             <option value=true>有</option>
                         </select>
@@ -273,7 +273,7 @@
                             <span>无</span>
                             }
                         <select id="selecDrivinglicense" name="UpdatedVehicle.Drivinglicense" disabled style="display:none;">
-                            <option value=@Model.List[i].Drivinglicense>默认值</option>
+                            <option value=@Model.List[i].Drivinglicense>请选择</option>
                             <option value=false>无</option>
                             <option value=true>有</option>
                         </select>
@@ -289,7 +289,7 @@
                             <span>无</span>
                             }
                         <select id="selecInvoice" name="UpdatedVehicle.Invoice" disabled style="display:none;">
-                            <option value=@Model.List[i].Invoice>默认值</option>
+                            <option value=@Model.List[i].Invoice>请选择</option>
                             <option value=false>无</option>
                             <option value=true>有</option>
                         </select>
@@ -333,7 +333,7 @@
                             <span>否</span>
                             }
                         <select id="IsCase" name="UpdatedVehicle.IsCase" disabled style="display:none;">
-                            <option value=@Model.List[i].IsCase>默认值</option>
+                            <option value=@Model.List[i].IsCase>请选择</option>
                             <option value=false>否</option>
                             <option value=true>是</option>
                         </select>
