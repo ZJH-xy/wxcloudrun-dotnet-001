@@ -12,9 +12,9 @@
     <script src="~/js/loading.js" defer></script>
 </head>
 <header>
-    <h3>订单总览</h3>
+    <h3>换车记录</h3>
 </header>
-<body>
+@* <body>
 
     <!-- 加载动画 -->
     <div class="box" id="loadding" style="display:none;">
@@ -281,10 +281,6 @@
         <div class="bottom-item">
             <text id="page">第 * 页</text>
             <text>，当前页共 @Model.List.Count 条数据</text>
-@*             @if (@Model.SearchSum != 0)
-            {
-                <text>，共搜索到 @Model.SearchSum 条数据，</text>
-            } *@
             @if (@Model.SearchSum != 0) {
                 <span>，共搜索到 @Model.SearchSum 条数据</span>
             }
@@ -719,3 +715,4 @@
     </script>
 
 </body>
+ *@
