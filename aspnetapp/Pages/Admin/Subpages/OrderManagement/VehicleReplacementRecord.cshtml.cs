@@ -108,56 +108,74 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		}
 
 		/// <summary>
-		/// 导出功能
+		/// 导出换车记录到 Excel
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>Excel 文件</returns>
 		[HttpPost]
 		[IgnoreAntiforgeryToken]
 		public async Task<IActionResult> OnPostExportToExcelAsync([FromBody] Dictionary<string, string> requestData) {
-			// 解析月份字符串
-			string monthString = requestData["Month"];
-			if (!DateTime.TryParse(monthString, out DateTime targetMonth)) {
-				return BadRequest("无效的月份格式");
-			}
+			try {
+				// 解析月份字符串
+				if (!requestData.TryGetValue("Month", out string monthString) ||
+					!DateTime.TryParse(monthString, out DateTime targetMonth)) {
+					return BadRequest("无效的月份格式");
+				}
 
-			// 获取该月份的第一天和最后一天
-			DateTime startOfMonth = new DateTime(targetMonth.Year, targetMonth.Month, 1);
-			DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+				// 获取该月份的第一天和最后一天
+				DateTime startOfMonth = new DateTime(targetMonth.Year, targetMonth.Month, 1);
+				DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
 
-			// 获取换车记录表
-			List<VehicleReplacementRecord> excelList = await _vehicleReplacementRecordControllerWeb.GetAllReplacementRecordsByMonth(startOfMonth, endOfMonth);
+				// 获取换车记录数据
+				List<VehicleReplacementRecord> excelList = await _vehicleReplacementRecordControllerWeb.GetAllReplacementRecordsByMonth(startOfMonth, endOfMonth);
 
-			// 创建一个新的工作簿
-			IWorkbook workbook = new XSSFWorkbook();
-			ISheet sheet = workbook.CreateSheet("换车记录数据");
+				// 创建一个新的工作簿
+				IWorkbook workbook = new XSSFWorkbook();
+				ISheet sheet = workbook.CreateSheet("换车记录数据");
 
-			// 创建表头行
-			IRow headerRow = sheet.CreateRow(0);
-			headerRow.CreateCell(0).SetCellValue("序号");
-			headerRow.CreateCell(1).SetCellValue("换车记录 ID");
+				// 表头定义
+				var headers = new[] {
+					"序号", "换车记录 ID", "订单编号", "旧车辆 ID", "新车辆 ID", "换车门店 ID",
+					"状态", "创建时间", "更新时间"
+				};
 
-			// 填充数据
-			for (int i = 0; i < excelList.Count; i++) {
-				var row = sheet.CreateRow(i + 1);
-				row.CreateCell(0).SetCellValue(i + 1);
-				row.CreateCell(1).SetCellValue(excelList[i].Id.ToString());
-				row.CreateCell(24).SetCellValue(excelList[i].CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
-				row.CreateCell(25).SetCellValue(excelList[i].UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
-			}
+				// 创建表头行
+				IRow headerRow = sheet.CreateRow(0);
+				for (int col = 0; col < headers.Length; col++) {
+					headerRow.CreateCell(col).SetCellValue(headers[col]);
+				}
 
-			// 固定列宽
-			for (int col = 0; col < 26; col++) {
-				sheet.SetColumnWidth(col, 20 * 256); // 设置固定宽度，单位为 1/256 个字符宽度
-			}
+				// 填充数据
+				for (int i = 0; i < excelList.Count; i++) {
+					var record = excelList[i];
+					var row = sheet.CreateRow(i + 1);
 
-			// 将工作簿保存到内存流
-			using (var memoryStream = new MemoryStream()) {
+					row.CreateCell(0).SetCellValue(i + 1); // 序号
+					row.CreateCell(1).SetCellValue(record.Id); // 换车记录 ID
+					row.CreateCell(2).SetCellValue(record.TheOrder); // 订单编号
+					row.CreateCell(3).SetCellValue(record.TheOldVehicles); // 旧车辆 ID
+					row.CreateCell(4).SetCellValue(record.TheNewVehicles); // 新车辆 ID
+					row.CreateCell(5).SetCellValue(record.TheStore); // 换车门店 ID
+					row.CreateCell(6).SetCellValue(record.State.ToString()); // 状态
+					row.CreateCell(7).SetCellValue(record.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")); // 创建时间
+					row.CreateCell(8).SetCellValue(record.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss")); // 更新时间
+				}
+
+				// 设置列宽
+				for (int col = 0; col < headers.Length; col++) {
+					sheet.AutoSizeColumn(col); // 根据内容自动调整列宽
+				}
+
+				// 将工作簿保存到内存流
+				using var memoryStream = new MemoryStream();
 				workbook.Write(memoryStream);
-				var fileName = "换车记录数据.xlsx";
+				var fileName = $"换车记录数据_{targetMonth:yyyyMM}.xlsx";
 				var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 				// 返回文件流供下载
 				return File(memoryStream.ToArray(), contentType, fileName);
+			} catch (Exception ex) {
+				// 捕获异常并返回错误信息
+				return StatusCode(500, $"导出失败：{ex.Message}");
 			}
 		}
 
