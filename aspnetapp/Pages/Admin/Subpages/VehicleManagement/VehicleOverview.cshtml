@@ -206,23 +206,27 @@
                 <tr>
                     <form method="post" asp-page-handler="UpdateVehicle" enctype="multipart/form-data">
                     <td>@(i + 1)</td>
-                    <td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedVehicle.Id" value="@Model.List[i].Id" /></td>
+                    <td><span>@Model.List[i].Id</span><input type="hidden" name="UpdatedVehicle.Id" value="@Model.List[i].Id" /></td>
 
                     <td>
                         <span>@Model.List[i].OriginalStoreName</span><br />
-                        <div style="color:rgb(168,0,0)">
-                            ID:<input id="@("TheOriginalStore" + i)" type="text" name="UpdatedVehicle.TheOriginalStore" value="@Model.List[i].TheOriginalStore" placeholder="无" disabled style="width:30%;" />
-                        </div>
+                        <span id="editSpan" style="color:rgb(168,0,0)">(ID:@Model.List[i].TheOriginalStore)</span>
+                        <input id="inputSpan" type="text" name="UpdatedVehicle.TheOriginalStore" value="@Model.List[i].TheOriginalStore" placeholder="无" style="display:none" disabled />
                     </td>
                     <td>
                         <span>@Model.List[i].CurrentStoreName</span><br />
-                        <div style="color:rgb(168,0,0)">
-                            ID:<input id="@("TheCurrentStore" + i)" type="text" name="UpdatedVehicle.TheCurrentStore" value="@Model.List[i].TheCurrentStore" placeholder="无" disabled style="width:30%;" />
-                        </div>
+                        <span id="editSpan" style="color:rgb(168,0,0)">(ID:@Model.List[i].TheCurrentStore)</span>
+                        <input id="inputSpan" type="text" name="UpdatedVehicle.TheCurrentStore" value="@Model.List[i].TheCurrentStore" placeholder="无" style="display:none" disabled />
                     </td>
 
-                    <td><input id="@("plateNumber" + i)" type="text" name="UpdatedVehicle.PlateNumber" value="@Model.List[i].PlateNumber" placeholder="无" disabled /></td>
-                    <td><input id="@("frameNumber" + i)" type="text" name="UpdatedVehicle.FrameNumber" value="@Model.List[i].FrameNumber" placeholder="无" disabled /></td>
+                    <td>
+                        <span id="editSpan">@Model.List[i].PlateNumber</span><br />
+                        <input id="inputSpan" type="text" name="UpdatedVehicle.PlateNumber" value="@Model.List[i].PlateNumber" placeholder="无" style="display:none" disabled />
+                    </td>
+                    <td>
+                        <span id="editSpan">@Model.List[i].FrameNumber</span><br />
+                        <input id="inputSpan" type="text" name="UpdatedVehicle.FrameNumber" value="@Model.List[i].FrameNumber" placeholder="无" style="display:none" disabled />
+                    </td>
                     <td><!--合格证-->
                             @if (Model.List[i].Certificate.HasValue && Model.List[i].Certificate.Value)
                             {
@@ -281,8 +285,14 @@
                             }
                     </td>
 
-                    <td><input id="@("Owner" + i)" type="text" name="UpdatedVehicle.Owner" value="@Model.List[i].Owner" placeholder="无" disabled /></td>
-                        <td><textarea id="@("VehicleIntroduction" + i)" type="text" name="UpdatedVehicle.VehicleIntroduction" value="@Model.List[i].VehicleIntroduction" disabled style="width:100px;">@Model.List[i].VehicleIntroduction</textarea></td>
+                    <td>
+                        <span id="editSpan">@Model.List[i].Owner</span>
+                        <input id="inputSpan" type="text" name="UpdatedVehicle.Owner" value="@Model.List[i].Owner" placeholder="无" disabled style="display:none; "/>
+                    </td>
+                    <td>
+                        <span id="editSpan">@Model.List[i].VehicleIntroduction</span>
+                        <textarea id="inputSpan" name="UpdatedVehicle.VehicleIntroduction" value="@Model.List[i].VehicleIntroduction" style="display:none;width:200px;" disabled>@Model.List[i].VehicleIntroduction</textarea>
+                    </td>
 
                     <td>
                             @if (Model.List[i].IsCase)
@@ -934,7 +944,7 @@
             editButtons.forEach(button => {
                 button.addEventListener("click", function () {
                     const id = this.dataset.id;
-                    console.log('id', id)
+                    console.log('id', id);
                     const container = document.querySelector(`.imageContainer[data-id="${id}"]`);
                     const img = container.querySelector(".thumbnail");
                     const fileInput = container.querySelector(".fileUpload");
@@ -953,47 +963,69 @@
                     const selectState = container.closest("tr").querySelector("select[name='UpdatedVehicle.State']");
                     if (selectState) {
                         selectState.disabled = false;
-                        selectState.style.display = "block"
+                        selectState.style.display = "block";
                     }
+
                     // 使 textarea 可编辑
                     const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedVehicle.VehicleIntroduction']`);
-                    if (textArea) textArea.disabled = false; // 使 textarea 可编辑
+                    if (textArea) textArea.disabled = false;
 
                     const PurchaseRegistrationTime = container.closest("tr").querySelector("input[name='UpdatedVehicle.PurchaseRegistrationTime']");
                     if (PurchaseRegistrationTime) {
                         PurchaseRegistrationTime.disabled = false;
-                        PurchaseRegistrationTime.style.display = "block"
+                        PurchaseRegistrationTime.style.display = "block";
                     }
+
                     const selectModel = container.closest("tr").querySelector("select[name='UpdatedVehicle.Model']");
                     if (selectModel) {
                         selectModel.disabled = false;
-                        selectModel.style.display = "block"
+                        selectModel.style.display = "block";
                     }
+
                     const selectCertificate = container.closest("tr").querySelector("select[name='UpdatedVehicle.Certificate']");
                     if (selectCertificate) {
                         selectCertificate.disabled = false;
-                        selectCertificate.style.display = "block"
+                        selectCertificate.style.display = "block";
                     }
+
                     const selectInvoice = container.closest("tr").querySelector("select[name='UpdatedVehicle.Invoice']");
                     if (selectInvoice) {
                         selectInvoice.disabled = false;
-                        selectInvoice.style.display = "block"
+                        selectInvoice.style.display = "block";
                     }
+
                     const selectDrivinglicense = container.closest("tr").querySelector("select[name='UpdatedVehicle.Drivinglicense']");
                     if (selectDrivinglicense) {
                         selectDrivinglicense.disabled = false;
-                        selectDrivinglicense.style.display = "block"
+                        selectDrivinglicense.style.display = "block";
                     }
+
                     const selectIsCase = container.closest("tr").querySelector("select[name='UpdatedVehicle.IsCase']");
                     if (selectIsCase) {
                         selectIsCase.disabled = false;
-                        selectIsCase.style.display = "block"
-                    } 
+                        selectIsCase.style.display = "block";
+                    }
+
+                    // 切换其他字段为可编辑状态
+                    const spans = container.closest("tr").querySelectorAll("span");
+                    spans.forEach(span => {
+                        if (span.id == "editSpan") {
+                            span.style.display = "none";  // 隐藏其他span
+                        }
+                    });
+
+                    const inputsToEnable = container.closest("tr").querySelectorAll("input, textarea");
+                    inputsToEnable.forEach(input => {
+                        if (input.id === "inputSpan") {
+                            input.disabled = false;      // 启用input
+                            input.style.display = "inline-block";  // 显示input
+                        }
+                    });
+
                     // 切换按钮状态
                     this.style.display = "none"; // 隐藏编辑按钮
                     container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
                     container.closest("tr").querySelector(".deleteBtn").style.display = "inline-block";
-
                 });
             });
 
