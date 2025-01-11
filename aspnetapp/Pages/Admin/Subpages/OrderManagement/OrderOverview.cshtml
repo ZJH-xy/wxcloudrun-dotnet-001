@@ -37,7 +37,7 @@
         }
         <script>
             setTimeout(function () {
-                showMessage("failMessage", 4000);
+                showMessage("failMessage", 5000);
             }, 500)
         </script>
     }
@@ -48,7 +48,7 @@
         <div id="successMessage" class="message">@Model.SuccessMessage</div>
         <script>
             setTimeout(function () {
-                showMessage("successMessage");
+                showMessage("successMessage", 5000);
             }, 500)
         </script>
     }
@@ -101,12 +101,9 @@
             <tr>
                 <th>序号</th>
                 <th>订单编号</th>
-@*                 <th>用户ID</th>
-                <th>用户手机号</th>
-                <th>用户身份证</th> *@
                 <th>用户信息</th>
                 <th>起始时间</th>
-                <th>实际归时间</th>
+                <th>实际归还时间</th>
                 <th>租用车辆车牌号（ID）</th>
                 <th>租车门店名称（ID）</th>
                 <th>还车门店名称（ID）</th>

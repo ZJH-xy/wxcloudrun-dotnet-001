@@ -43,7 +43,7 @@ function unlockPage() {
 
 
 // 显示消息的方法
-function showMessage(elementId, duration = 2000) {
+function showMessage(elementId, duration = 5000) {
 	// 隐藏所有消息
 	const messages = document.querySelectorAll('.message,.searchMessage');
 	messages.forEach((msg) => {
