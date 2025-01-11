@@ -92,7 +92,7 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 			await _noticeController.AddAsync(NewAdvertisement);
 			SuccessMessage = $"添加成功";
 
-			List = await _noticeController.GetTablePageAsync(Limit, PageIndex); // 刷新列表
+			List = await _noticeController.GetTablePage(Limit, PageIndex); // 刷新列表
 
 			return Page();
 		}
@@ -108,7 +108,7 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 			SortOrder = "asc";
 
 			try {
-				List = await _noticeController.GetTablePageAsync(Limit, PageIndex);
+				List = await _noticeController.GetTablePage(Limit, PageIndex);
 			} catch (Exception ex) {
 				_logger.LogError(ex, "获取车辆列表时出错");
 				ModelState.AddModelError(string.Empty, "加载车辆列表时发生错误。");
@@ -146,7 +146,7 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 				SuccessMessage = $"保存成功，已更新 ID：{UpdatedNotice.Id}";
 			}
 
-			List = await _noticeController.GetTablePageAsync(Limit, PageIndex); // 刷新车辆列表
+			List = await _noticeController.GetTablePage(Limit, PageIndex); // 刷新车辆列表
 
 			Thread.Sleep(1500);
 

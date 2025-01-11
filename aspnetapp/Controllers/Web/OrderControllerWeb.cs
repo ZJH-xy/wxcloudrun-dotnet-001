@@ -66,7 +66,9 @@ namespace aspnetapp.Controllers.Web {
 		/// </summary>
 		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, string? theVehicle = null, string? theRentalLocation = null, string? searchStoreName = null, string sortField = "Id", string sortOrder = "asc") {
 			if (userPhone.IsNullOrEmpty() && status.IsNullOrEmpty() && theVehicle.IsNullOrEmpty() && theRentalLocation.IsNullOrEmpty() && searchStoreName.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc") {
-				return (await GetTablePage(limit, pageIndex), limit);
+				var list = await GetTablePage(limit, pageIndex);
+				return (list, list is null ? 0 : list.Count);
+				//return (await GetTablePage(limit, pageIndex), limit);
 			}
 
 			var query = _context.Order.AsQueryable();

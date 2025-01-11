@@ -37,7 +37,7 @@
 		/// <param name="limit"></param>
 		/// <param name="pageIndex"></param>
 		/// <returns></returns>
-		public async Task<List<Notice>> GetTablePageAsync(int limit, int pageIndex) {
+		public async Task<List<Notice>> GetTablePage(int limit, int pageIndex) {
 			return await _context.Notice
 				.Where(s => !s.IsDelete)
 				.OrderBy(u => u.Id) // 根据主键排序，确保分页顺序一致
@@ -137,7 +137,8 @@
 		/// <returns></returns>
 		public async Task<(List<Notice>, int sum)> SearchAsync(int limit, int pageIndex, string? title = null, string? content = null, string sortField = "Id", string sortOrder = "asc") {
 			if (title.IsNullOrEmpty() && content.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc") {
-				return (await GetTablePageAsync(limit, pageIndex), limit);
+				var list = await GetTablePage(limit, pageIndex);
+				return (list, list is null ? 0 : list.Count);
 			}
 
 			var query = _context.Notice.AsQueryable();

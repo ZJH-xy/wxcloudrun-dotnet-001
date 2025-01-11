@@ -41,7 +41,7 @@ namespace aspnetapp.Controllers.Web {
 		/// <param name="limit"></param>
 		/// <param name="pageIndex"></param>
 		/// <returns></returns>
-		public async Task<List<Advertisement>> GetTablePageAsync(int limit, int pageIndex) {
+		public async Task<List<Advertisement>> GetTablePage(int limit, int pageIndex) {
 			return await _context.Advertisement
 				.Where(s => !s.IsDelete)
 				.OrderBy(u => u.Id) // 根据主键排序，确保分页顺序一致
@@ -143,7 +143,8 @@ namespace aspnetapp.Controllers.Web {
 		/// <returns></returns>
 		public async Task<(List<Advertisement>, int sum)> SearchAsync(int limit, int pageIndex, string? title = null, string? content = null, string sortField = "Id", string sortOrder = "asc") {
 			if (title.IsNullOrEmpty() && content.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc") {
-				return (await GetTablePageAsync(limit, pageIndex), limit);
+				var list = await GetTablePage(limit, pageIndex);
+				return (list, list is null ? 0 : list.Count);
 			}
 
 			var query = _context.Advertisement.AsQueryable();

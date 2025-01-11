@@ -99,7 +99,8 @@ namespace aspnetapp.Controllers.Web {
 		/// <returns></returns>
 		public async Task<(List<User>, int sum)> SearchUsers(int limit, int pageIndex, string? phone = null, string? name = null, string? nickname = null, string? searchIdentityCard = null, string sortField = "Id", string sortOrder = "asc") {
 			if (phone.IsNullOrEmpty() && name.IsNullOrEmpty() && nickname.IsNullOrEmpty() && searchIdentityCard.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc") {
-				return (await GetTablePage(limit, pageIndex), limit);
+				var list = await GetTablePage(limit, pageIndex);
+				return (list, list is null ? 0 : list.Count);
 			}
 
 			var query = _context.User.AsQueryable();

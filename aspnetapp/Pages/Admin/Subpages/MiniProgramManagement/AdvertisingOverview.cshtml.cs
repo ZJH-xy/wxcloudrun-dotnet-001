@@ -177,7 +177,7 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 			await _advertisementController.AddAsync(NewAdvertisement);
 			SuccessMessage = $"添加成功";
 
-			List = await _advertisementController.GetTablePageAsync(Limit, PageIndex); // 刷新列表
+			List = await _advertisementController.GetTablePage(Limit, PageIndex); // 刷新列表
 
 			return Page();
 		}
@@ -193,7 +193,7 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 			SortOrder = "asc";
 
 			try {
-				List = await _advertisementController.GetTablePageAsync(Limit, PageIndex);
+				List = await _advertisementController.GetTablePage(Limit, PageIndex);
 			} catch (Exception ex) {
 				_logger.LogError(ex, "获取广告列表时出错");
 				ModelState.AddModelError(string.Empty, "加载广告列表时发生错误。");
@@ -231,7 +231,7 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 				SuccessMessage = $"保存成功，已更新 ID：{UpdatedAdvertisement.Id}";
 			}
 
-			List = await _advertisementController.GetTablePageAsync(Limit, PageIndex); // 刷新广告列表
+			List = await _advertisementController.GetTablePage(Limit, PageIndex); // 刷新广告列表
 
 			Thread.Sleep(2500);
 
