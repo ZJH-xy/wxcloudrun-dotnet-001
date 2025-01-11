@@ -1163,6 +1163,9 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			if (vehicle is null || vehicle.State != Vehicle.Estates.空闲)
 				return StatusCode(403, "车辆不存在或状态非法");
 
+			if (vehicle.TheCurrentStore is null)
+				return StatusCode(403, "车辆门店状态异常");
+
 			using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
 
 			// 锁定车辆
@@ -1173,6 +1176,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				TheOrder = getData.OrderId,// 订单Id
 				TheOldVehicles = order.TheVehicle,// 旧车辆
 				TheNewVehicles = getData.ReplacementVehicleId,// 要更换的车辆
+				TheStore = (int)vehicle.TheCurrentStore,
 				State = VehicleReplacementRecord.Estates.侍确认,// 状态
 				CreatedAt = DateTime.Now
 			};
