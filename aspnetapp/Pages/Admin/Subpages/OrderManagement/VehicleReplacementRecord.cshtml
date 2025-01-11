@@ -64,22 +64,22 @@
 
         </div>
         <form method="post" asp-page-handler="Search">
-            <input type="number" asp-for="SearchTheOrderHtml" id="SearchTheOrderHtml" value="" placeholder="搜索换车记录ID" />
-            <input type="text" asp-for="SearchTheStoreHtml" id="SearchTheStoreHtml" value="" placeholder="搜索车牌号" />
+            <input type="number" asp-for="SearchTheOrderHtml" id="SearchTheOrderHtml" value="" placeholder="订单ID" />
+            <input type="number" asp-for="SearchTheStoreHtml" id="SearchTheStoreHtml" value="" placeholder="门店ID" />
             <select asp-for="SearchStatusHtml" id="SearchStatusHtml">
                 <option value="">选择状态</option>
                 <option value="已取消">已取消</option>
-                <option value="待确认">待确认</option>
+                <option value="侍确认">待确认</option>
                 <option value="已完成">已完成</option>
             </select>
             <select asp-for="SortFieldHtml" id="SortFieldHtml">
-                <option value="Id">换车记录ID</option>
-                <option value="CreatedAt">创建时间</option>
+                @* <option value="Id">换车记录ID</option> *@
                 <option value="UpdatedAt">更新时间</option>
+                <option value="CreatedAt">创建时间</option>
             </select>
             <select asp-for="SortOrderHtml" id="SortOrderHtml">
-                <option value="asc">升序</option>
                 <option value="desc">降序</option>
+                <option value="asc">升序</option>
             </select>
             <button type="submit" onclick="confirmChangeSearchData()">搜索</button>
         </form>
@@ -88,7 +88,7 @@
         <table id="orderTable">
             <tr>
                 <th>序号</th>
-                <th>换车记录ID</th>
+                @* <th>换车记录ID</th> *@
                 <th>订单ID</th>
                 <th>旧车辆</th>
                 <th>新车辆</th>
@@ -102,7 +102,7 @@
                 <tr>
                     <form method="post" asp-page-handler="UpdateOrder" enctype="multipart/form-data">
                     <td>@(i + 1)</td>
-                    <td><span>@Model.List[i].Id</span><input type="hidden" name="UpdatedOrder.Id" value="@Model.List[i].Id" /></td>
+                    @* <td><span>@Model.List[i].Id</span><input type="hidden" name="UpdatedOrder.Id" value="@Model.List[i].Id" /></td> *@
                     <td>
                         <span>@Model.List[i].TheOrder</span>
                     </td>
@@ -584,7 +584,7 @@
             const SortFieldHtml = document.getElementById('SortFieldHtml').value;
             const SortOrderHtml = document.getElementById('SortOrderHtml').value;
             const requestData = {
-                "SearchUserPhone": SearchUserPhoneHtml,
+                "SearchTheOrder": SearchUserPhoneHtml,
                 "SearchTheStore": SearchTheStoreHtml,
                 "SearchStatus": SearchStatusHtml,
                 "SortField": SortFieldHtml,

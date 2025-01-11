@@ -21,7 +21,12 @@ namespace aspnetapp.Controllers.Web {
 			return await _context.Order.ToListAsync();
 		}
 
-		// 根据月份获取订单列表
+		/// <summary>
+		/// 根据月份获取订单列表
+		/// </summary>
+		/// <param name="startOfMonth"></param>
+		/// <param name="endOfMonth"></param>
+		/// <returns></returns>
 		public async Task<List<Order>> GetAllOrdersByMonth(DateTime startOfMonth, DateTime endOfMonth) {
 			// 查询该月份内的所有订单
 			var ordersInMonth = await _context.Order

@@ -42,7 +42,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 
 		// 数据
 		/// <summary>
-		/// 换车记录ID
+		/// 订单
 		/// </summary>
 		[BindProperty(SupportsGet = true)]
 		public static string? SearchTheOrder { get; set; }
@@ -56,7 +56,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		public string? SearchStatusHtml { get; set; }
 
 		/// <summary>
-		/// 车辆
+		/// 门店
 		/// </summary>
 		[BindProperty(SupportsGet = true)]
 		public static string? SearchTheStore { get; set; }
@@ -64,16 +64,12 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 
 		// 排序
 		[BindProperty(SupportsGet = true)]
-		public static string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
+		public static string? SortField { get; set; } = "UpdatedAt"; // 默认排序字段为 "Id"
 		public string? SortFieldHtml { get; set; }
 
 		[BindProperty(SupportsGet = true)]
-		public static string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
+		public static string? SortOrder { get; set; } = "desc"; // 默认排序顺序为升序
 		public string? SortOrderHtml { get; set; }
-
-		// 图片上传
-		public string ImageName { get; set; } // 图片文件名
-		public static string FileId { get; set; } = "";
 
 		/// <summary>
 		/// 默认页码查询
@@ -83,8 +79,8 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchTheOrder = null;
             SearchStatus = "";
             SearchTheStore = null;
-			SortField = "Id";
-			SortOrder = "asc";
+			SortField = "UpdatedAt";
+			SortOrder = "desc";
 
 			try {
 				List = await _vehicleReplacementRecordControllerWeb.GetTablePage(Limit, PageIndex);
@@ -102,7 +98,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		public async Task<IActionResult> OnPostSearchAsync() {
 
 			// 调用 OrderControllerWeb 中的 SearchOrders 方法，包含排序字段和顺序
-			(List, SearchSum) = await _vehicleReplacementRecordControllerWeb.SearchReplacementRecords(Limit, PageIndex, SearchTheOrder, SearchStatus, SearchTheStore, SortField, SortOrder);
+			(List, SearchSum) = await _vehicleReplacementRecordControllerWeb.SearchReplacementRecords(Limit, PageIndex, SearchStatus, SearchTheOrder, SearchTheStore, SortField, SortOrder);
 
 			return Page();
 		}
@@ -238,9 +234,9 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 				return new JsonResult(new { success = false, message = "请求数据为空！" });
 			}
 
-			SearchTheOrder = requestData["SearchUserPhone"];
+			SearchTheOrder = requestData["SearchTheOrder"];
 			SearchStatus = requestData["SearchStatus"];
-			SearchTheStore = requestData["SearchTheVehicle"];
+			SearchTheStore = requestData["SearchTheStore"];
 			SortField = requestData["SortField"];
 			SortOrder = requestData["SortOrder"];
 
