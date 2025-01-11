@@ -1,3 +1,4 @@
+using aspnetapp.Controllers.Miniprogram;
 using aspnetapp.Controllers.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -64,6 +65,26 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 		public string? SortOrderHtml { get; set; }
 
 		/// <summary>
+		/// 删除
+		/// </summary>
+		/// <returns></returns>
+		[HttpDelete]
+		[IgnoreAntiforgeryToken]
+		public async Task<JsonResult> OnDeleteDelAsync([FromBody] Dictionary<string, int> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+			int id = requestData["id"];
+			if (id == 0)
+				return new JsonResult(new { success = false, message = "ID不能为0" });
+
+
+			return new JsonResult(new { success = true, message = $"已删除行数：{await _noticeController.Delete(id)}" });
+		}
+
+		/// <summary>
 		/// 添加
 		/// </summary>
 		/// <returns></returns>
@@ -71,7 +92,7 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 			await _noticeController.AddAsync(NewAdvertisement);
 			SuccessMessage = $"添加成功";
 
-			List = await _noticeController.GetTablePageAsync(Limit, PageIndex); // 刷新列表
+			List = await _noticeController.GetTablePage(Limit, PageIndex); // 刷新列表
 
 			return Page();
 		}
@@ -87,7 +108,7 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 			SortOrder = "asc";
 
 			try {
-				List = await _noticeController.GetTablePageAsync(Limit, PageIndex);
+				List = await _noticeController.GetTablePage(Limit, PageIndex);
 			} catch (Exception ex) {
 				_logger.LogError(ex, "获取车辆列表时出错");
 				ModelState.AddModelError(string.Empty, "加载车辆列表时发生错误。");
@@ -125,7 +146,7 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 				SuccessMessage = $"保存成功，已更新 ID：{UpdatedNotice.Id}";
 			}
 
-			List = await _noticeController.GetTablePageAsync(Limit, PageIndex); // 刷新车辆列表
+			List = await _noticeController.GetTablePage(Limit, PageIndex); // 刷新车辆列表
 
 			Thread.Sleep(1500);
 

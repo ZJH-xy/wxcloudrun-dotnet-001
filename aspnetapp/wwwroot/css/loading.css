@@ -68,7 +68,7 @@
     pointer-events: all; /* 启用鼠标事件，阻止点击操作 */
     transition: background-color 0.3s ease, color 0.3s ease; /* 背景色和字体颜色的过渡 */
 }
-
+ 
 /* 通用的提示消息样式 */
 .message, .failMessage {
     position: fixed;
@@ -82,7 +82,7 @@
     transform: translateX(-50%);
     padding: 15px 30px;
     opacity: 0;
-    transition: opacity 1s ease, transform 2s ease;
+    transition: opacity 1s ease, transform 1s ease;
     justify-content: center;
     align-items: center;
     display: flex;

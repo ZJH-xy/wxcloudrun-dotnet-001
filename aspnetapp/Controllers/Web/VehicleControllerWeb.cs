@@ -140,7 +140,9 @@ namespace aspnetapp.Controllers.Web {
         // 查询车辆
         public async Task<(List<Vehicle>, int sum)> SearchVehicles(int limit, int pageIndex, string? plateNumber = null, string? owner = null,  string sortField = "Id", string sortOrder = "asc") {
             if (plateNumber.IsNullOrEmpty() && owner.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc") {
-                return (await GetTablePage(limit, pageIndex), limit);
+				var list = await GetTablePage(limit, pageIndex);
+				return (list, list is null ? 0 : list.Count);
+				//return (await GetTablePage(limit, pageIndex), limit);
             }
 
             var query = _context.Vehicle.AsQueryable();

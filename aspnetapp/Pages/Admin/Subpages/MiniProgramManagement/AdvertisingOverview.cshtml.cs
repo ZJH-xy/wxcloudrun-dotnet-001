@@ -73,6 +73,26 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 		public static string FileId { get; set; } = "";
 
 		/// <summary>
+		/// 删除
+		/// </summary>
+		/// <returns></returns>
+		[HttpDelete]
+		[IgnoreAntiforgeryToken]
+		public async Task<JsonResult> OnDeleteDelAsync([FromBody] Dictionary<string, int> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+			int id = requestData["id"];
+			if (id == 0)
+				return new JsonResult(new { success = false, message = "ID不能为0" });
+
+
+			return new JsonResult(new { success = true, message = $"已删除行数：{await _advertisementController.Delete(id)}" });
+		}
+
+		/// <summary>
 		/// 上传图片
 		/// </summary>
 		/// <returns></returns>
@@ -157,7 +177,7 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 			await _advertisementController.AddAsync(NewAdvertisement);
 			SuccessMessage = $"添加成功";
 
-			List = await _advertisementController.GetTablePageAsync(Limit, PageIndex); // 刷新列表
+			List = await _advertisementController.GetTablePage(Limit, PageIndex); // 刷新列表
 
 			return Page();
 		}
@@ -173,7 +193,7 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 			SortOrder = "asc";
 
 			try {
-				List = await _advertisementController.GetTablePageAsync(Limit, PageIndex);
+				List = await _advertisementController.GetTablePage(Limit, PageIndex);
 			} catch (Exception ex) {
 				_logger.LogError(ex, "获取广告列表时出错");
 				ModelState.AddModelError(string.Empty, "加载广告列表时发生错误。");
@@ -211,7 +231,7 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 				SuccessMessage = $"保存成功，已更新 ID：{UpdatedAdvertisement.Id}";
 			}
 
-			List = await _advertisementController.GetTablePageAsync(Limit, PageIndex); // 刷新广告列表
+			List = await _advertisementController.GetTablePage(Limit, PageIndex); // 刷新广告列表
 
 			Thread.Sleep(2500);
 

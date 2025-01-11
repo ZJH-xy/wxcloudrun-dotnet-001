@@ -138,7 +138,8 @@ namespace aspnetapp.Controllers.Web {
         /// <returns></returns>
         public async Task<(List<StoreMenu>, int sum)> SearchStoreMenus(int limit, int pageIndex, string? theStore = null, string sortField = "Id", string sortOrder = "asc") {
 			if ((theStore.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc")) {
-				return (await GetTablePage(limit, pageIndex), limit);
+				var list = await GetTablePage(limit, pageIndex);
+				return (list, list is null ? 0 : list.Count);
 			}
 
 			var query = _context.StoreMenus.AsQueryable();

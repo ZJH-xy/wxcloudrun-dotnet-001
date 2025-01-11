@@ -13,12 +13,35 @@ namespace aspnetapp.Controllers.Web {
 		}
 
 		/// <summary>
+		/// 删除（逻辑删除）
+		/// </summary>
+		/// <returns></returns>
+		public async Task<IActionResult> Delete(int id) {
+			var advertisement = await _context.Advertisement.FindAsync(id);
+			if (advertisement == null) {
+				return NotFound("not found.");
+			}
+
+			advertisement.IsDelete = true;
+
+			try {
+				_context.Advertisement.Update(advertisement);
+				await _context.SaveChangesAsync();
+
+				return Ok("deleted successfully.");
+			} catch (Exception ex) {
+				_logger.LogError(ex, "Error deleting Advertisement with ID {StoreId}", id);
+				return StatusCode(500, "Error deleting.");
+			}
+		}
+
+		/// <summary>
 		/// 分页获取
 		/// </summary>
 		/// <param name="limit"></param>
 		/// <param name="pageIndex"></param>
 		/// <returns></returns>
-		public async Task<List<Advertisement>> GetTablePageAsync(int limit, int pageIndex) {
+		public async Task<List<Advertisement>> GetTablePage(int limit, int pageIndex) {
 			return await _context.Advertisement
 				.Where(s => !s.IsDelete)
 				.OrderBy(u => u.Id) // 根据主键排序，确保分页顺序一致
@@ -120,7 +143,8 @@ namespace aspnetapp.Controllers.Web {
 		/// <returns></returns>
 		public async Task<(List<Advertisement>, int sum)> SearchAsync(int limit, int pageIndex, string? title = null, string? content = null, string sortField = "Id", string sortOrder = "asc") {
 			if (title.IsNullOrEmpty() && content.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc") {
-				return (await GetTablePageAsync(limit, pageIndex), limit);
+				var list = await GetTablePage(limit, pageIndex);
+				return (list, list is null ? 0 : list.Count);
 			}
 
 			var query = _context.Advertisement.AsQueryable();

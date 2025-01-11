@@ -21,7 +21,12 @@ namespace aspnetapp.Controllers.Web {
 			return await _context.Order.ToListAsync();
 		}
 
-		// 根据月份获取订单列表
+		/// <summary>
+		/// 根据月份获取订单列表
+		/// </summary>
+		/// <param name="startOfMonth"></param>
+		/// <param name="endOfMonth"></param>
+		/// <returns></returns>
 		public async Task<List<Order>> GetAllOrdersByMonth(DateTime startOfMonth, DateTime endOfMonth) {
 			// 查询该月份内的所有订单
 			var ordersInMonth = await _context.Order
@@ -66,7 +71,9 @@ namespace aspnetapp.Controllers.Web {
 		/// </summary>
 		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, string? theVehicle = null, string? theRentalLocation = null, string? searchStoreName = null, string sortField = "Id", string sortOrder = "asc") {
 			if (userPhone.IsNullOrEmpty() && status.IsNullOrEmpty() && theVehicle.IsNullOrEmpty() && theRentalLocation.IsNullOrEmpty() && searchStoreName.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc") {
-				return (await GetTablePage(limit, pageIndex), limit);
+				var list = await GetTablePage(limit, pageIndex);
+				return (list, list is null ? 0 : list.Count);
+				//return (await GetTablePage(limit, pageIndex), limit);
 			}
 
 			var query = _context.Order.AsQueryable();

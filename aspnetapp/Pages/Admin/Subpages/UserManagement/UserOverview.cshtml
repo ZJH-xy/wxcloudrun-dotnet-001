@@ -37,7 +37,7 @@
         }
         <script>
             setTimeout(function () {
-                showMessage("failMessage", 4000);
+                showMessage("failMessage", 5000);
             }, 500)
         </script>
     }
@@ -48,7 +48,7 @@
         <div id="successMessage" class="message">@Model.SuccessMessage</div>
         <script>
             setTimeout(function () {
-                showMessage("successMessage");
+				showMessage("successMessage", 5000);
             }, 500)
         </script>
     }
@@ -61,11 +61,11 @@
 
             <button onclick="exportFile()" class="editBtn export">导出</button>
         </div>
-        <form method="post" asp-page-handler="Search">
-			<input asp-for="SearchIdentityCardHtml" id="SearchIdentityCardHtml" value="" placeholder="身份证" />
-			<input asp-for="SearchPhoneHtml" id="SearchPhoneHtml" value="" placeholder="手机号" />
-			<input asp-for="SearchNameHtml" id="SearchNameHtml" value="" placeholder="姓名" />
-            <input asp-for="SearchNicknameHtml" id="SearchNicknameHtml" value="" placeholder="昵称" />
+		<form method="post" asp-page-handler="Search" id="search">
+			<input type="text" asp-for="SearchIdentityCardHtml" id="SearchIdentityCardHtml" value="" placeholder="搜索身份证号" />
+			<input type="number" asp-for="SearchPhoneHtml" id="SearchPhoneHtml" value="" placeholder="搜索手机号" />
+			<input type="text" asp-for="SearchNameHtml" id="SearchNameHtml" value="" placeholder="搜索姓名" />
+			<input type="text" asp-for="SearchNicknameHtml" id="SearchNicknameHtml" value="" placeholder="搜索昵称" />
 			<select asp-for="SortFieldHtml" id="SortFieldHtml">
                 <option value="Id">ID</option>
                 <option value="Phone">手机号</option>
@@ -77,8 +77,8 @@
                 <option value="asc">升序</option>
                 <option value="desc">降序</option>
             </select>
-            @* <div id="searchMessage" class="message">搜索成功</div> *@
-            <button type="submit" onclick="confirmChangeSearchData()">搜索</button>
+			<div id="searchSuccessMessage" class="message">搜索成功</div>
+			<button type="button" onclick="confirmChangeSearchData()">搜索</button>
         </form>
     </div>
     <div class="table-container">
@@ -100,12 +100,40 @@
                 <tr>
                     <form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data">
                     <td>@(i + 1)</td>
-                    <td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" /></td>
-                    <td><input id="@("nickname" + i)" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="无" disabled /></td>
-                    <td><input id="@("name" + i)" type="text" name="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="无" disabled /></td>
-                    <td><input id="@("phone" + i)" type="text" name="UpdatedUser.Phone" value="@Model.List[i].Phone" placeholder="无" disabled /></td>
-                    <td><input id="@("identityCard" + i)" type="text" name="UpdatedUser.IdentityCard" value="@Model.List[i].IdentityCard" placeholder="无" disabled /></td>
-                    <td>
+                    <td><span>@Model.List[i].Id</span><input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" /></td>
+					<td>
+						@if (!string.IsNullOrEmpty(Model.List[i].Nickname)){
+							<span id="editSpan">@Model.List[i].Nickname</span>
+                        }else{
+                            <span id="editSpan">无</span>
+                        }
+						<input id="inputSpan" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="请输入昵称" class="textInput" style="display:none;min-width:150px;" disabled />
+					</td>
+					<td>
+						@if (!string.IsNullOrEmpty(Model.List[i].Name)){
+							<span id="editSpan">@Model.List[i].Name</span>
+                        }else{
+                            <span id="editSpan">无</span>
+                        }
+						<input id="inputSpan" type="text" name="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="请输入姓名" class="textInput" style="display:none;min-width:150px;" disabled />
+					</td>
+					<td>
+						@if (!string.IsNullOrEmpty(Model.List[i].Phone)){
+							<span id="editSpan">@Model.List[i].Phone</span>
+                        }else{
+                            <span id="editSpan">无</span>
+                        }
+						<input id="inputSpan" type="number" name="UpdatedUser.Phone" value="@Model.List[i].Phone" placeholder="请输入手机号" class="textInput" style="display:none;min-width:150px;" disabled />
+					</td>
+					<td>
+						@if (!string.IsNullOrEmpty(Model.List[i].IdentityCard)){
+							<span id="editSpan">@Model.List[i].IdentityCard</span>
+                        }else{
+                            <span id="editSpan">无</span>
+                        }
+						<input id="inputSpan" type="text" name="UpdatedUser.IdentityCard" value="@Model.List[i].IdentityCard" placeholder="请输入身份证号" class="textInput" style="display:none;min-width:200px;" disabled />
+					</td>
+					<td>
                         <div class="imageContainer" data-id="@Model.List[i].Id">
                             <!-- 常驻显示的图片 -->
                             <div style="display:flex;align-items: center; justify-content: center; ">
@@ -147,9 +175,9 @@
                             </div>
                         </div>
                     </td>
-                    <td><text id="@("createdAt" + i)">@Model.List[i].CreatedAt</text></td>
-                    <td><text id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</text></td>
-                    <td>
+					<td><text>@Model.List[i].CreatedAt</text></td>
+					<td><text>@Model.List[i].UpdatedAt</text></td>
+					<td>
                         <button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
                         <button id="@("save" + i)" type="submit" class="saveBtn" data-id="@i" style="display: none;" onclick="saveClick(event)">保存</button>
                     </td>
@@ -172,11 +200,10 @@
         <div class="bottom-item">
 			<text id="page">第 * 页</text>
 			<text>，当前页共 @Model.List.Count 条数据</text>
-     @*        @if (@Model.SearchSum != 0)
-            {
-                <text>，共搜索到 @Model.SearchSum 条数据，</text>
-            } *@
-
+			@if (@Model.SearchSum != 0)
+			{
+				<span>，共搜索到 @Model.SearchSum 条数据</span>
+			}
             <input id="PageCount" value="@Model.List.Count" style="display:none;" />
             <input id="PageLimit" value="@Model.Limit" style="display:none;" />
 
@@ -401,7 +428,6 @@
 			}
 		}
 
-
 		// 跳转到尾页*
 		async function changeEndPage() {
 			try {
@@ -543,13 +569,12 @@
 					}
 				});
 			});
-
-			// 编辑按钮逻辑
+			// 编辑
 			const editButtons = document.querySelectorAll(".editBtn");
 			editButtons.forEach(button => {
 				button.addEventListener("click", function () {
 					const id = this.dataset.id;
-					console.log('id', id)
+					console.log('id', id);
 					const container = document.querySelector(`.imageContainer[data-id="${id}"]`);
 					const img = container.querySelector(".thumbnail");
 					const fileInput = container.querySelector(".fileUpload");
@@ -562,14 +587,30 @@
 					fileInput.style.display = "block";
 
 					// 切换其他字段为可编辑状态
-					const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
-					inputs.forEach(input => input.disabled = false);
+					const spans = container.closest("tr").querySelectorAll("span");
+					const inputs = container.closest("tr").querySelectorAll("input, textarea");
+
+					// 只显示id为edit的span
+					spans.forEach(span => {
+						if (span.id === "editSpan") {
+							span.style.display = "none";  // 隐藏其他span
+						}
+					});
+
+					inputs.forEach(input => {
+						if (input.id === "inputSpan") {
+							input.disabled = false;      // 启用input
+							input.style.display = "inline-block";  // 显示input
+						}
+					});
 
 					// 切换按钮状态
-					this.style.display = "none"; // 隐藏编辑按钮
+					this.style.display = "none";  // 隐藏编辑按钮
 					container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
 				});
 			});
+
+
 		}
 
 		// 打开模态窗口并加载点击的图片
@@ -595,7 +636,6 @@
 				modal.style.display = "none";
 			}
 		}
-
 
 		// 获取搜索输入框的数据
 		async function getSearchData() {
@@ -673,7 +713,16 @@
 				}
 				const data = await response.json();
 				if (data.success) {
-					getSearchData();
+					await getSearchData();
+
+					setTimeout(function () {
+						showMessage("searchSuccessMessage", 5000);
+					}, 1000)
+					// 获取表单元素
+					var form = document.getElementById('search');
+					// 提交表单
+					if (form) form.submit();
+
 				} else {
 					alert(data.message + '请刷新页面后重试');
 				}
@@ -686,8 +735,6 @@
 
 		async function getListData() {
 			loadHTML(); // 显示加载中
-
-
 			try {
 				const response = await fetch(`${RESPONSEURL}?handler=Search`, {
 					method: 'POST',
