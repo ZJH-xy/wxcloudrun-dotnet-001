@@ -14,7 +14,7 @@
 <header>
     <h3>换车记录</h3>
 </header>
-@* <body>
+<body>
 
     <!-- 加载动画 -->
     <div class="box" id="loadding" style="display:none;">
@@ -64,28 +64,16 @@
 
         </div>
         <form method="post" asp-page-handler="Search">
-            <input type="number" asp-for="SearchTheVehicleHtml" id="SearchTheVehicleHtml" value="" placeholder="车辆编号" />
-            <input type="number" asp-for="SearchTheRentalLocationHtml" id="SearchTheRentalLocationHtml" value="" placeholder="门店ID" />
-            <input type="text"asp-for="SearchStoreNameHtml" id="SearchStoreNameHtml" value="" placeholder="门店名称" />
-            <input type="number" asp-for="SearchUserPhoneHtml" id="SearchUserPhoneHtml" value="" placeholder="手机号" />
+            <input type="number" asp-for="SearchTheOrderHtml" id="SearchTheOrderHtml" value="" placeholder="搜索换车记录ID" />
+            <input type="text" asp-for="SearchTheStoreHtml" id="SearchTheStoreHtml" value="" placeholder="搜索车牌号" />
             <select asp-for="SearchStatusHtml" id="SearchStatusHtml">
-                <option value="">订单状态</option>
+                <option value="">选择状态</option>
                 <option value="已取消">已取消</option>
-                <option value="待付款">待付款</option>
-                <option value="已退款">已退款</option>
                 <option value="待确认">待确认</option>
-                <option value="进行中">进行中</option>
                 <option value="已完成">已完成</option>
-                <option value="付款中">付款中</option>
-                <option value="退款中">退款中</option>
-                <option value="侍补余">侍补余</option>
-                <option value="已补余">已补余</option>
             </select>
             <select asp-for="SortFieldHtml" id="SortFieldHtml">
-                <option value="Id">订单编号</option>
-                <option value="ActualStartingTime">起始时间</option>
-                <option value="ActualReturnTime">实际归还时间</option>
-                <option value="SuccessTime">支付完成时间</option>
+                <option value="Id">换车记录ID</option>
                 <option value="CreatedAt">创建时间</option>
                 <option value="UpdatedAt">更新时间</option>
             </select>
@@ -100,171 +88,72 @@
         <table id="orderTable">
             <tr>
                 <th>序号</th>
-                <th>订单编号</th>
-                <th>用户信息</th>
-                <th>起始时间</th>
-                <th>实际归还时间</th>
-                <th>租用车辆车牌号（ID）</th>
-                <th>租车门店名称（ID）</th>
-                <th>还车门店名称（ID）</th>
-                <th>押金</th>
-                <th>租金</th>
-                <th>调度费</th>
-                <th>超时费</th>
-                <th>其他费用</th>
-                <th>已付金额</th>
-                <th>已退押金</th>
-                <th>订单状态</th>
-                <th>支付完成时间</th>
-                <th>备注</th>
+                <th>换车记录ID</th>
+                <th>订单ID</th>
+                <th>旧车辆</th>
+                <th>新车辆</th>
+                <th>换车门店</th>
+                <th>换车记录状态</th>
                 <th>创建时间</th>
                 <th>更新时间</th>
-                <th>操作</th>
             </tr>
             @for (int i = 0; i < Model.List.Count; i++)
             {
                 <tr>
                     <form method="post" asp-page-handler="UpdateOrder" enctype="multipart/form-data">
                     <td>@(i + 1)</td>
-                    <td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedOrder.Id" value="@Model.List[i].Id" /></td>
+                    <td><span>@Model.List[i].Id</span><input type="hidden" name="UpdatedOrder.Id" value="@Model.List[i].Id" /></td>
                     <td>
-                        <span id="@("TheUser" + i)">ID：@Model.List[i].TheUser</span><br>
-                        <span id="@("UserPhone" + i)">手机号：@Model.List[i].UserPhone</span><br>
-                        <span id="@("IdentityCard" + i)">身份证：@Model.List[i].IdentityCard</span>
+                        <span>@Model.List[i].TheOrder</span>
                     </td>
                     <td>
-                            @if (@Model.List[i].ActualStartingTime != null)
-                            {
-                            <span id="@("ActualStartingTime" + i)">@Model.List[i].ActualStartingTime</span>
-                            }
-                            else
-                            {
-                            <span>未开始</span>
-                            }
+                        @if (!string.IsNullOrEmpty(Model.List[i].OldVehiclePlateNumber)){
+                            <span>车牌号:@Model.List[i].OldVehiclePlateNumber</span><br />
+                        }else{
+                            <span id="editSpan">无</span><br />
+                        }
+                        <span style="color:rgb(168,0,0)">(ID:@Model.List[i].TheOldVehicles)</span>
                     </td>
                     <td>
-                            @if (@Model.List[i].ActualReturnTime != null)
-                            {
-                            <span id="@("ActualReturnTime" + i)">@Model.List[i].ActualReturnTime </span>
-                            }
-                            else if (@Model.List[i].ActualStartingTime != null)
-                            {
-                            <span>未归还</span>
-                            }
-                            else
-                            {
-                            <span>未开始</span>
-                            }
+                         @if (!string.IsNullOrEmpty(Model.List[i].NewVehiclePlateNumber)){
+                            <span>车牌号:@Model.List[i].NewVehiclePlateNumber</span><br />
+                        }else{
+                            <span id="editSpan">无</span><br />
+                        }
+                        <span style="color:rgb(168,0,0)">(ID:@Model.List[i].TheNewVehicles)</span>
                     </td>
                     <td>
-                        <span>@Model.List[i].VehiclePlateNumber</span>
-                        <span id="@("TheVehicle" + i)" style="color:rgb(168,0,0)">(ID:@Model.List[i].TheVehicle)</span>
+                        @if (!string.IsNullOrEmpty(Model.List[i].StoreName))
+                            {
+                            <span>@Model.List[i].StoreName</span><br />
+                        }else{
+                            <span id="editSpan">无</span><br />
+                        }
+                        <span style="color:rgb(168,0,0)">(ID:@Model.List[i].TheStore)</span>
                     </td>
                     <td>
-                            @if (@Model.List[i].TheRentalLocation != null)
+                            @switch (Model.List[i].State)
                             {
-                            <span id="@("TheRentalLocation" + i)">@Model.List[i].RentalLocationName </span>
-                            <span style="color:rgb(168,0,0)">(ID:@Model.List[i].TheRentalLocation)</span>
-                                // RentalLocationName
-                            }
-                            else
-                            {
-                            <span>无</span>
-                            }
-                    </td>
-                    <td>
-                            @if (@Model.List[i].TheReturnThePoint != null)
-                            {
-                            <span id="@("TheReturnThePoint" + i)">@Model.List[i].ReturnThePointName</span>
-                            <span style="color:rgb(168,0,0)">(ID:@Model.List[i].TheReturnThePoint)</span>
-                                // ReturnThePointName
-                            }
-                            else if (@Model.List[i].ActualStartingTime != null)
-                            {
-                            <span>未归还</span>
-                            }
-                            else
-                            {
-                            <span>无</span>
-                            }
-                    </td>
-                    <td><input id="@("Deposit" + i)" type="text" name="UpdatedOrder.Deposit" value="@Model.List[i].Deposit" placeholder="无" disabled /></td>
-                    <td><input id="@("Rent" + i)" type="text" name="UpdatedOrder.Rent" value="@Model.List[i].Rent" placeholder="无" disabled /></td>
-                    <td><span id="@("DispatchFee" + i)">@Model.List[i].DispatchFee</span></td>
-                    <td><span id="@("OvertimeFee" + i)">@Model.List[i].OvertimeFee</span></td>
-                    <td><input id="@("OtherFees" + i)" type="text" name="UpdatedOrder.OtherFees" value="@Model.List[i].OtherFees" placeholder="无" disabled /></td>
-                    <td><span id="@("Paid" + i)" style="color:red;">@Model.List[i].Paid</span></td>
-                    <td><span id="@("DepositRefunded" + i)">@Model.List[i].DepositRefunded</span></td>
-                    <td>
-                            @switch (Model.List[i].Status)
-                            {
-                                case Order.EOrderStatus.已取消:
+                                case VehicleReplacementRecord.Estates.已取消:
                                 <span name="UpdatedVehicle.State" style="color:gray;">已取消</span>
                                     break;
-
-                                case Order.EOrderStatus.待付款:
-                                <span name="UpdatedVehicle.State" style="color:orange;">待付款</span>
+                                case VehicleReplacementRecord.Estates.侍确认:
+                                <span name="UpdatedVehicle.State" style="color:orange;">侍确认</span>
                                     break;
-
-                                case Order.EOrderStatus.已退款:
-                                <span name="UpdatedVehicle.State" style="color:red;">已退款</span>
+                                case VehicleReplacementRecord.Estates.已完成:
+                                <span name="UpdatedVehicle.State" style="color:#07C160;">已完成</span>
                                     break;
-
-                                case Order.EOrderStatus.待确认:
-                                <span name="UpdatedVehicle.State" style="color:blue;">待确认</span>
-                                    break;
-
-                                case Order.EOrderStatus.进行中:
-                                <span name="UpdatedVehicle.State" style="color:green;">进行中</span>
-                                    break;
-
-                                case Order.EOrderStatus.已完成:
-                                <span name="UpdatedVehicle.State" style="color:purple;">已完成</span>
-                                    break;
-
-                                case Order.EOrderStatus.付款中:
-                                <span name="UpdatedVehicle.State" style="color:yellow;">付款中</span>
-                                    break;
-
-                                case Order.EOrderStatus.退款中:
-                                <span name="UpdatedVehicle.State" style="color:orange;">退款中</span>
-                                    break;
-
-                                case Order.EOrderStatus.侍补余:
-                                <span name="UpdatedVehicle.State" style="color:teal;">侍补余</span>
-                                    break;
-
-                                case Order.EOrderStatus.已补余:
-                                <span name="UpdatedVehicle.State" style="color:purple;">已补余</span>
-                                    break;
-
                                 default:
                                 <span name="UpdatedVehicle.State" style="color:black;">未知状态</span>
                                     break;
                             }
                     </td>
                     <td>
-                            @if (@Model.List[i].SuccessTime != null)
-                            {
-                            <span id="@("SuccessTime" + i)">@Model.List[i].SuccessTime</span>
-                            }
-                            else
-                            {
-                            <span>无</span>
-                            }
+                        <span>@Model.List[i].CreatedAt</span>
                     </td>
                     <td>
-                        <textarea id="@("Notes" + i)" type="text" name="UpdatedOrder.Notes" value="@Model.List[i].Notes" disabled style="width:100px;">@Model.List[i].Notes</textarea>
+                        <span>@Model.List[i].UpdatedAt</span>
                     </td>
-
-                    <td><span id="@("createdAt" + i)">@Model.List[i].CreatedAt</span></td>
-                    <td><span id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</span></td>
-                    <td>
-                        <button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
-                        <button id="@("save" + i)" type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;">保存</button>
-                    </td>
-
-                    <input type="hidden" name="UpdatedOrder.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
                     </form>
                 </tr>
             }
@@ -274,14 +163,20 @@
         </table>
 
     </div>
-    @if (Model.List.Count == 0){
+    @if (Model.List.Count == 0)
+    {
         <span style="width: 100%;display:flex;justify-content: center;">当前页无任何数据!</span>
     }
     <div class="bottom">
         <div class="bottom-item">
             <text id="page">第 * 页</text>
             <text>，当前页共 @Model.List.Count 条数据</text>
-            @if (@Model.SearchSum != 0) {
+            @*             @if (@Model.SearchSum != 0)
+            {
+            <text>，共搜索到 @Model.SearchSum 条数据，</text>
+            } *@
+            @if (@Model.SearchSum != 0)
+            {
                 <span>，共搜索到 @Model.SearchSum 条数据</span>
             }
             <input id="PageCount" value="@Model.List.Count" style="display:none;" />
@@ -316,7 +211,7 @@
     </script>
     <script>
 
-        const RESPONSEURL = `/Admin/Subpages/OrderManagement/OrderOverview`;
+        const RESPONSEURL = `/Admin/Subpages/OrderManagement/VehicleReplacementRecord`;
         const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]').value;
         const LENGTH = document.getElementById('PageCount').value;// 显示长度
 
@@ -501,7 +396,7 @@
                 cancelloadHTML(); // 无论成功与否都取消加载动画
             }
         }
-        
+
         // 获取总页数*
         async function getPageSum() {
             try {
@@ -588,6 +483,24 @@
                     //const selectState = container.closest("tr").querySelector("select[name='UpdatedVehicle.Status']");
                     //if (selectState) selectState.disabled = false;
 
+                    // 切换其他字段为可编辑状态
+                    const spans = container.closest("tr").querySelectorAll("span");
+                    const inputsToEnable = container.closest("tr").querySelectorAll("input, textarea");
+
+                    // 只显示id为edit的span
+                    spans.forEach(span => {
+                        if (span.id === "editSpan") {
+                            span.style.display = "none";  // 隐藏其他span
+                        }
+                    });
+
+                    inputsToEnable.forEach(input => {
+                        if (input.id === "inputSpan") {
+                            input.disabled = false;      // 启用input
+                            input.style.display = "inline-block";  // 显示input
+                        }
+                    });
+
                     // 切换按钮状态
                     this.style.display = "none"; // 隐藏编辑按钮
                     container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
@@ -623,10 +536,8 @@
 
         // 获取搜索输入框的数据
         async function getSearchData() {
-            var SearchTheVehicle = document.getElementById('SearchTheVehicleHtml');
-            var SearchTheRentalLocation = document.getElementById('SearchTheRentalLocationHtml');
-            var SearchStoreName = document.getElementById('SearchStoreNameHtml');
-            var searchUserPhone = document.getElementById('SearchUserPhoneHtml');
+            var SearchTheOrder = document.getElementById('SearchTheOrderHtml');
+            var SearchTheStore = document.getElementById('SearchTheStoreHtml');
             var searchStatus = document.getElementById('SearchStatusHtml');
             var sortField = document.getElementById('SortFieldHtml');
             var sortOrder = document.getElementById('SortOrderHtml');
@@ -647,10 +558,8 @@
                 if (data.success) {
                     console.log('getdata', data)
                     setTimeout(function () {
-                        SearchTheVehicle.value = data.searchTheVehicle;
-                        SearchTheRentalLocation.value = data.searchTheRentalLocation;
-                        SearchStoreName.value = data.searchStoreName;
-                        searchUserPhone.value = data.searchUserPhone;
+                        SearchTheOrder.value = data.searchTheOrder;
+                        SearchTheStore.value = data.searchTheStore;
                         searchStatus.value = data.searchStatus;
                         sortField.value = data.sortField;
                         sortOrder.value = data.sortOrder;
@@ -669,19 +578,15 @@
         // 确认搜索
         async function confirmChangeSearchData() {
             loadHTML(); // 显示加载中
-            const SearchUserPhoneHtml = document.getElementById('SearchUserPhoneHtml').value;
+            const SearchUserPhoneHtml = document.getElementById('SearchTheOrderHtml').value;
+            const SearchTheStoreHtml = document.getElementById('SearchTheStoreHtml').value;
             const SearchStatusHtml = document.getElementById('SearchStatusHtml').value;
-            const SearchTheRentalLocationHtml = document.getElementById('SearchTheRentalLocationHtml').value;
-            const SearchTheVehicleHtml = document.getElementById('SearchTheVehicleHtml').value;
-            const SearchStoreNameHtml = document.getElementById('SearchStoreNameHtml').value;
             const SortFieldHtml = document.getElementById('SortFieldHtml').value;
             const SortOrderHtml = document.getElementById('SortOrderHtml').value;
             const requestData = {
                 "SearchUserPhone": SearchUserPhoneHtml,
+                "SearchTheStore": SearchTheStoreHtml,
                 "SearchStatus": SearchStatusHtml,
-                "SearchTheVehicle": SearchTheVehicleHtml,
-                "SearchTheRentalLocation": SearchTheRentalLocationHtml,
-                "SearchStoreName": SearchStoreNameHtml,
                 "SortField": SortFieldHtml,
                 "SortOrder": SortOrderHtml,
 
@@ -715,4 +620,3 @@
     </script>
 
 </body>
- *@

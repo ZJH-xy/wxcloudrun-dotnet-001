@@ -81,8 +81,8 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// <returns></returns>
 		public async Task<IActionResult> OnGetAsync() {
 			SearchTheOrder = null;
-			SearchStatus = null;
-			SearchTheStore = null;
+            SearchStatus = "";
+            SearchTheStore = null;
 			SortField = "Id";
 			SortOrder = "asc";
 

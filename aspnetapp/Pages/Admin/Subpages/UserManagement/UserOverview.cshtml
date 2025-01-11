@@ -62,10 +62,10 @@
             <button onclick="exportFile()" class="editBtn export">导出</button>
         </div>
 		<form method="post" asp-page-handler="Search" id="search">
-			<input type="text" asp-for="SearchIdentityCardHtml" id="SearchIdentityCardHtml" value="" placeholder="身份证" />
-			<input type="number" asp-for="SearchPhoneHtml" id="SearchPhoneHtml" value="" placeholder="手机号" />
-			<input type="text" asp-for="SearchNameHtml" id="SearchNameHtml" value="" placeholder="姓名" />
-			<input type="text" asp-for="SearchNicknameHtml" id="SearchNicknameHtml" value="" placeholder="昵称" />
+			<input type="text" asp-for="SearchIdentityCardHtml" id="SearchIdentityCardHtml" value="" placeholder="搜索身份证号" />
+			<input type="number" asp-for="SearchPhoneHtml" id="SearchPhoneHtml" value="" placeholder="搜索手机号" />
+			<input type="text" asp-for="SearchNameHtml" id="SearchNameHtml" value="" placeholder="搜索姓名" />
+			<input type="text" asp-for="SearchNicknameHtml" id="SearchNicknameHtml" value="" placeholder="搜索昵称" />
 			<select asp-for="SortFieldHtml" id="SortFieldHtml">
                 <option value="Id">ID</option>
                 <option value="Phone">手机号</option>
