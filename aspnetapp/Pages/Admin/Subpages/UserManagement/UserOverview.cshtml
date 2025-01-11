@@ -101,10 +101,38 @@
                     <form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data">
                     <td>@(i + 1)</td>
                     <td><span>@Model.List[i].Id</span><input type="hidden" name="UpdatedUser.Id" value="@Model.List[i].Id" /></td>
-					<td><span>@Model.List[i].Nickname</span><input type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="无" class="textInput" style="display:none" disabled /></td>
-					<td><span>@Model.List[i].Name</span><input type="text" name="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="无" class="textInput" style="display:none" disabled /></td>
-					<td><span>@Model.List[i].Phone</span><input type="text" name="UpdatedUser.Phone" value="@Model.List[i].Phone" placeholder="无" class="textInput" style="display:none" disabled /></td>
-					<td><span>@Model.List[i].IdentityCard</span><input type="text" name="UpdatedUser.IdentityCard" value="@Model.List[i].IdentityCard" placeholder="无" class="textInput" style="display:none" disabled /></td>
+					<td>
+						@if (!string.IsNullOrEmpty(Model.List[i].Nickname)){
+							<span id="editSpan">@Model.List[i].Nickname</span>
+                        }else{
+                            <span id="editSpan">无</span>
+                        }
+						<input id="inputSpan" type="text" name="UpdatedUser.Nickname" value="@Model.List[i].Nickname" placeholder="请输入昵称" class="textInput" style="display:none;min-width:150px;" disabled />
+					</td>
+					<td>
+						@if (!string.IsNullOrEmpty(Model.List[i].Name)){
+							<span id="editSpan">@Model.List[i].Name</span>
+                        }else{
+                            <span id="editSpan">无</span>
+                        }
+						<input id="inputSpan" type="text" name="UpdatedUser.Name" value="@Model.List[i].Name" placeholder="请输入姓名" class="textInput" style="display:none;min-width:150px;" disabled />
+					</td>
+					<td>
+						@if (!string.IsNullOrEmpty(Model.List[i].Phone)){
+							<span id="editSpan">@Model.List[i].Phone</span>
+                        }else{
+                            <span id="editSpan">无</span>
+                        }
+						<input id="inputSpan" type="number" name="UpdatedUser.Phone" value="@Model.List[i].Phone" placeholder="请输入手机号" class="textInput" style="display:none;min-width:150px;" disabled />
+					</td>
+					<td>
+						@if (!string.IsNullOrEmpty(Model.List[i].IdentityCard)){
+							<span id="editSpan">@Model.List[i].IdentityCard</span>
+                        }else{
+                            <span id="editSpan">无</span>
+                        }
+						<input id="inputSpan" type="text" name="UpdatedUser.IdentityCard" value="@Model.List[i].IdentityCard" placeholder="请输入身份证号" class="textInput" style="display:none;min-width:200px;" disabled />
+					</td>
 					<td>
                         <div class="imageContainer" data-id="@Model.List[i].Id">
                             <!-- 常驻显示的图片 -->
@@ -560,12 +588,20 @@
 
 					// 切换其他字段为可编辑状态
 					const spans = container.closest("tr").querySelectorAll("span");
-					const inputs = container.closest("tr").querySelectorAll(".textInput");
+					const inputs = container.closest("tr").querySelectorAll("input, textarea");
 
-					spans.forEach(span => span.style.display = "none");  // 隐藏span
+					// 只显示id为edit的span
+					spans.forEach(span => {
+						if (span.id === "editSpan") {
+							span.style.display = "none";  // 隐藏其他span
+						}
+					});
+
 					inputs.forEach(input => {
-						input.disabled = false;      // 启用input
-						input.style.display = "inline-block";  // 显示input
+						if (input.id === "inputSpan") {
+							input.disabled = false;      // 启用input
+							input.style.display = "inline-block";  // 显示input
+						}
 					});
 
 					// 切换按钮状态

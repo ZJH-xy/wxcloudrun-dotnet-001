@@ -295,15 +295,17 @@
                         </select>
                     </td>
                     <td><!--登记购入时间-->
-                            @if (Model.List[i].PurchaseRegistrationTime.HasValue)
-                            {
-                                var formattedDateTime = Model.List[i].PurchaseRegistrationTime.Value.ToString("yyyy-MM-ddTHH:mm");
-                            <input type="datetime-local" name="UpdatedVehicle.PurchaseRegistrationTime" value="@formattedDateTime" placeholder="请选择购入登记时间" style="width:100%;" readonly id="purchaseRegistrationTime_@Model.List[i].Id" />
-                            }
-                            else
-                            {
-                            <input type="datetime-local" name="UpdatedVehicle.PurchaseRegistrationTime" value="" placeholder="请选择购入登记时间" style="width:100%;" readonly id="purchaseRegistrationTime_@Model.List[i].Id" />
-                            }
+                        @if (Model.List[i].PurchaseRegistrationTime.HasValue){
+                            var formattedDateTime = Model.List[i].PurchaseRegistrationTime.Value.ToString("yyyy-MM-ddTHH:mm");
+                            <input id="inputSpan" type="datetime-local" name="UpdatedVehicle.PurchaseRegistrationTime" value="@formattedDateTime" placeholder="请选择购入登记时间" style="display:none;" id="purchaseRegistrationTime_@Model.List[i].Id" disabled />
+                            <span id="editSpan">@Model.List[i].PurchaseRegistrationTime</span>
+                        }
+                        else{
+                            <span id="editSpan">无</span>
+                            <input id="inputSpan" type="datetime-local" name="UpdatedVehicle.PurchaseRegistrationTime" value="" placeholder="请选择购入登记时间" style="display:none;" id="purchaseRegistrationTime_@Model.List[i].Id" disabled />
+
+                        }
+
                     </td>
 
                     <td>

@@ -120,11 +120,11 @@
                         <span id="@("id" + i)">@Model.List[i].Id</span>
                         <input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" />
                     </td>
-					<td><input id="@("TheStore" + i)" type="text" name="UpdatedStore.TheStore" value="@Model.List[i].TheStore" placeholder="无" disabled /></td>
+                    <td><span>@Model.List[i].TheStore </span></td>
                     <td><span>@Model.List[i].StoreName </span></td>
-					<td><input id="@("Duration" + i)" type="text" name="UpdatedStore.Duration" value="@Model.List[i].Duration" placeholder="无" disabled /></td>
-					<td><input id="@("Rent" + i)" type="text" name="UpdatedStore.Rent" value="@Model.List[i].Rent" placeholder="无" disabled /></td>
-					<td><input id="@("Deposit" + i)" type="text" name="UpdatedStore.Deposit" value="@Model.List[i].Deposit" placeholder="无" disabled /></td>
+                    <td><span>@Model.List[i].Duration </span></td>
+                    <td><span>@Model.List[i].Rent </span></td>
+                    <td><span>@Model.List[i].Deposit </span></td>
 					<td>
 						<button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
 						<button id="@("save" + i)" type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;" >保存</button>

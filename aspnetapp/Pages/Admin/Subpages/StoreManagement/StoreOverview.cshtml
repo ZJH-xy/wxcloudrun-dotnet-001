@@ -157,9 +157,18 @@
 					<form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data" id="@("form" + i)">
 					<td><span>@(i + 1)</span></td>
 					<td><span>@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
-					<td><span id="editSpan">@Model.List[i].Name</span><input id="inputSpan" type="text" name="UpdatedStore.Name" value="@Model.List[i].Name" style="display:none" disabled /></td>
-					<td><span id="editSpan">@Model.List[i].BusinessHoursStart</span><input id="inputSpan" type="time" name="UpdatedStore.BusinessHoursStart" value="@Model.List[i].BusinessHoursStart" style="display:none" disabled /></td>
-					<td><span id="editSpan">@Model.List[i].BusinessHoursEnd</span><input id="inputSpan" type="time" name="UpdatedStore.BusinessHoursEnd" value="@Model.List[i].BusinessHoursEnd" style="display:none" disabled /></td>
+					<td>
+						<span id="editSpan">@Model.List[i].Name</span>
+						<input id="inputSpan" type="text" name="UpdatedStore.Name" value="@Model.List[i].Name" style="display:none" disabled />
+					</td>
+					<td>
+						<span id="editSpan">@Model.List[i].BusinessHoursStart.ToString(@"hh\:mm")</span>
+						<input id="inputSpan" type="time" name="UpdatedStore.BusinessHoursStart" value="@Model.List[i].BusinessHoursStart" style="display:none" disabled />
+					</td>
+					<td>
+						<span id="editSpan">@Model.List[i].BusinessHoursEnd.ToString(@"hh\:mm")</span>
+						<input id="inputSpan" type="time" name="UpdatedStore.BusinessHoursEnd" value="@Model.List[i].BusinessHoursEnd" style="display:none" disabled />
+					</td>
 					<td>
 						<!--营业状态-->
 							@if (@Model.List[i].BusinessStatus){

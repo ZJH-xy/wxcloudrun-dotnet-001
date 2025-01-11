@@ -188,11 +188,20 @@
                             <span>无</span>
                             }
                     </td>
-                    <td><input id="@("Deposit" + i)" type="text" name="UpdatedOrder.Deposit" value="@Model.List[i].Deposit" placeholder="无" disabled /></td>
-                    <td><input id="@("Rent" + i)" type="text" name="UpdatedOrder.Rent" value="@Model.List[i].Rent" placeholder="无" disabled /></td>
+                    <td>
+                        <span id="editSpan">@Model.List[i].Deposit</span>
+                        <input id="inputSpan" type="number" name="UpdatedOrder.Deposit" value="@Model.List[i].Deposit" placeholder="请输入押金" style="display:none;width:100px;" disabled />
+                    </td>
+                    <td>
+                        <span id="editSpan">@Model.List[i].Rent</span>
+                        <input id="inputSpan" type="number" name="UpdatedOrder.Rent" value="@Model.List[i].Rent" placeholder="请输入租金" style="display:none;width:100px;" disabled />
+                    </td>
                     <td><span id="@("DispatchFee" + i)">@Model.List[i].DispatchFee</span></td>
                     <td><span id="@("OvertimeFee" + i)">@Model.List[i].OvertimeFee</span></td>
-                    <td><input id="@("OtherFees" + i)" type="text" name="UpdatedOrder.OtherFees" value="@Model.List[i].OtherFees" placeholder="无" disabled /></td>
+                    <td>
+                        <span id="editSpan">@Model.List[i].OtherFees</span>
+                        <input id="inputSpan" type="number" name="UpdatedOrder.OtherFees" value="@Model.List[i].OtherFees" placeholder="请输入其他费用" style="display:none;width:100px;" disabled />
+                    </td>
                     <td><span id="@("Paid" + i)" style="color:red;">@Model.List[i].Paid</span></td>
                     <td><span id="@("DepositRefunded" + i)">@Model.List[i].DepositRefunded</span></td>
                     <td>
@@ -254,9 +263,14 @@
                             }
                     </td>
                     <td>
-                        <textarea id="@("Notes" + i)" type="text" name="UpdatedOrder.Notes" value="@Model.List[i].Notes" disabled style="width:100px;">@Model.List[i].Notes</textarea>
+                            @if (!string.IsNullOrEmpty(Model.List[i].Notes)){
+                            <span id="editSpan">@Model.List[i].Notes</span> }
+                            else
+                            {
+                            <span id="editSpan">无</span>
+                            }
+                        <textarea id="inputSpan" name="UpdatedOrder.Notes" style="display:none;width:100px;" disabled>@Model.List[i].Notes</textarea>
                     </td>
-
                     <td><span id="@("createdAt" + i)">@Model.List[i].CreatedAt</span></td>
                     <td><span id="@("updatedAt" + i)">@Model.List[i].UpdatedAt</span></td>
                     <td>
@@ -591,6 +605,24 @@
                     // 使状态下拉框可以编辑
                     //const selectState = container.closest("tr").querySelector("select[name='UpdatedVehicle.Status']");
                     //if (selectState) selectState.disabled = false;
+
+                    // 切换其他字段为可编辑状态
+                    const spans = container.closest("tr").querySelectorAll("span");
+                    const inputsToEnable = container.closest("tr").querySelectorAll("input, textarea");
+
+                    // 只显示id为edit的span
+                    spans.forEach(span => {
+                        if (span.id === "editSpan") {
+                            span.style.display = "none";  // 隐藏其他span
+                        }
+                    });
+
+                    inputsToEnable.forEach(input => {
+                        if (input.id === "inputSpan") {
+                            input.disabled = false;      // 启用input
+                            input.style.display = "inline-block";  // 显示input
+                        }
+                    });
 
                     // 切换按钮状态
                     this.style.display = "none"; // 隐藏编辑按钮
