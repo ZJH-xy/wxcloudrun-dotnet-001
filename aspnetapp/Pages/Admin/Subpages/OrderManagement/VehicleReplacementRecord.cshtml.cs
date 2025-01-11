@@ -1,4 +1,4 @@
-using aspnetapp.Controllers.Web;
+ï»¿using aspnetapp.Controllers.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NPOI.SS.UserModel;
@@ -16,13 +16,13 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 
 		public List<VehicleReplacementRecord> List { get; set; } = new List<VehicleReplacementRecord>();
 
-		// ÓÃÓÚÔÚÒ³ÃæÏÔÊ¾´íÎóĞÅÏ¢
+		// ç”¨äºåœ¨é¡µé¢æ˜¾ç¤ºé”™è¯¯ä¿¡æ¯
 		public string ErrorMessage { get; set; }
 
-		// ÓÃÓÚÔÚÒ³ÃæÏÔÊ¾³É¹¦ĞÅÏ¢
+		// ç”¨äºåœ¨é¡µé¢æ˜¾ç¤ºæˆåŠŸä¿¡æ¯
 		public string SuccessMessage { get; set; }
 
-		// ·ÖÒ³²éÑ¯
+		// åˆ†é¡µæŸ¥è¯¢
 		[BindProperty(SupportsGet = true)]
 		public int Limit { get; set; } = 10;
 
@@ -30,53 +30,53 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		public static int PageIndex { get; set; } = 1;
 		public int PageIndexHtml { get; set; }
 
-		// ¸üĞÂ
+		// æ›´æ–°
 		[BindProperty]
 		public VehicleReplacementRecord UpdatedOrder { get; set; } = new VehicleReplacementRecord();
 
-		// ²éÑ¯
-		public static List<VehicleReplacementRecord> SearchList { get; set; } = new List<VehicleReplacementRecord>(); // ²éÑ¯ÓÃList
+		// æŸ¥è¯¢
+		public static List<VehicleReplacementRecord> SearchList { get; set; } = new List<VehicleReplacementRecord>(); // æŸ¥è¯¢ç”¨List
 
 		[BindProperty(SupportsGet = true)]
-		public int SearchSum { get; set; } = 0; // ²éÑ¯½á¹û×ÜÊı
+		public int SearchSum { get; set; } = 0; // æŸ¥è¯¢ç»“æœæ€»æ•°
 
-		// Êı¾İ
+		// æ•°æ®
 		/// <summary>
-		/// »»³µ¼ÇÂ¼ID
+		/// æ¢è½¦è®°å½•ID
 		/// </summary>
 		[BindProperty(SupportsGet = true)]
 		public static string? SearchTheOrder { get; set; }
 		public string? SearchTheOrderHtml { get; set; }
 
 		/// <summary>
-		/// ×´Ì¬
+		/// çŠ¶æ€
 		/// </summary>
 		[BindProperty(SupportsGet = true)]
 		public static string? SearchStatus { get; set; }
 		public string? SearchStatusHtml { get; set; }
 
 		/// <summary>
-		/// ³µÁ¾
+		/// è½¦è¾†
 		/// </summary>
 		[BindProperty(SupportsGet = true)]
 		public static string? SearchTheStore { get; set; }
 		public string? SearchTheStoreHtml { get; set; }
 
-		// ÅÅĞò
+		// æ’åº
 		[BindProperty(SupportsGet = true)]
-		public static string? SortField { get; set; } = "Id"; // Ä¬ÈÏÅÅĞò×Ö¶ÎÎª "Id"
+		public static string? SortField { get; set; } = "Id"; // é»˜è®¤æ’åºå­—æ®µä¸º "Id"
 		public string? SortFieldHtml { get; set; }
 
 		[BindProperty(SupportsGet = true)]
-		public static string? SortOrder { get; set; } = "asc"; // Ä¬ÈÏÅÅĞòË³ĞòÎªÉıĞò
+		public static string? SortOrder { get; set; } = "asc"; // é»˜è®¤æ’åºé¡ºåºä¸ºå‡åº
 		public string? SortOrderHtml { get; set; }
 
-		// Í¼Æ¬ÉÏ´«
-		public string ImageName { get; set; } // Í¼Æ¬ÎÄ¼şÃû
+		// å›¾ç‰‡ä¸Šä¼ 
+		public string ImageName { get; set; } // å›¾ç‰‡æ–‡ä»¶å
 		public static string FileId { get; set; } = "";
 
 		/// <summary>
-		/// Ä¬ÈÏÒ³Âë²éÑ¯
+		/// é»˜è®¤é¡µç æŸ¥è¯¢
 		/// </summary>
 		/// <returns></returns>
 		public async Task<IActionResult> OnGetAsync() {
@@ -89,100 +89,118 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			try {
 				List = await _vehicleReplacementRecordControllerWeb.GetTablePage(Limit, PageIndex);
 			} catch (Exception ex) {
-				_logger.LogError(ex, "»ñÈ¡»»³µ¼ÇÂ¼ÁĞ±íÊ±³ö´í");
-				ModelState.AddModelError(string.Empty, "¼ÓÔØ»»³µ¼ÇÂ¼ÁĞ±íÊ±·¢Éú´íÎó¡£");
+				_logger.LogError(ex, "è·å–æ¢è½¦è®°å½•åˆ—è¡¨æ—¶å‡ºé”™");
+				ModelState.AddModelError(string.Empty, "åŠ è½½æ¢è½¦è®°å½•åˆ—è¡¨æ—¶å‘ç”Ÿé”™è¯¯ã€‚");
 			}
 			return Page();
 		}
 
 		/// <summary>
-		/// ËÑË÷
+		/// æœç´¢
 		/// </summary>
 		/// <returns></returns>
 		public async Task<IActionResult> OnPostSearchAsync() {
 
-			// µ÷ÓÃ OrderControllerWeb ÖĞµÄ SearchOrders ·½·¨£¬°üº¬ÅÅĞò×Ö¶ÎºÍË³Ğò
+			// è°ƒç”¨ OrderControllerWeb ä¸­çš„ SearchOrders æ–¹æ³•ï¼ŒåŒ…å«æ’åºå­—æ®µå’Œé¡ºåº
 			(List, SearchSum) = await _vehicleReplacementRecordControllerWeb.SearchReplacementRecords(Limit, PageIndex, SearchTheOrder, SearchStatus, SearchTheStore, SortField, SortOrder);
 
 			return Page();
 		}
 
 		/// <summary>
-		/// µ¼³ö¹¦ÄÜ
+		/// å¯¼å‡ºæ¢è½¦è®°å½•åˆ° Excel
 		/// </summary>
-		/// <returns></returns>
+		/// <returns>Excel æ–‡ä»¶</returns>
 		[HttpPost]
 		[IgnoreAntiforgeryToken]
 		public async Task<IActionResult> OnPostExportToExcelAsync([FromBody] Dictionary<string, string> requestData) {
-			// ½âÎöÔÂ·İ×Ö·û´®
-			string monthString = requestData["Month"];
-			if (!DateTime.TryParse(monthString, out DateTime targetMonth)) {
-				return BadRequest("ÎŞĞ§µÄÔÂ·İ¸ñÊ½");
-			}
+			try {
+				// è§£ææœˆä»½å­—ç¬¦ä¸²
+				if (!requestData.TryGetValue("Month", out string monthString) ||
+					!DateTime.TryParse(monthString, out DateTime targetMonth)) {
+					return BadRequest("æ— æ•ˆçš„æœˆä»½æ ¼å¼");
+				}
 
-			// »ñÈ¡¸ÃÔÂ·İµÄµÚÒ»ÌìºÍ×îºóÒ»Ìì
-			DateTime startOfMonth = new DateTime(targetMonth.Year, targetMonth.Month, 1);
-			DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
+				// è·å–è¯¥æœˆä»½çš„ç¬¬ä¸€å¤©å’Œæœ€åä¸€å¤©
+				DateTime startOfMonth = new DateTime(targetMonth.Year, targetMonth.Month, 1);
+				DateTime endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
 
-			// »ñÈ¡»»³µ¼ÇÂ¼±í
-			List<VehicleReplacementRecord> excelList = await _vehicleReplacementRecordControllerWeb.GetAllReplacementRecordsByMonth(startOfMonth, endOfMonth);
+				// è·å–æ¢è½¦è®°å½•æ•°æ®
+				List<VehicleReplacementRecord> excelList = await _vehicleReplacementRecordControllerWeb.GetAllReplacementRecordsByMonth(startOfMonth, endOfMonth);
 
-			// ´´½¨Ò»¸öĞÂµÄ¹¤×÷²¾
-			IWorkbook workbook = new XSSFWorkbook();
-			ISheet sheet = workbook.CreateSheet("»»³µ¼ÇÂ¼Êı¾İ");
+				// åˆ›å»ºä¸€ä¸ªæ–°çš„å·¥ä½œç°¿
+				IWorkbook workbook = new XSSFWorkbook();
+				ISheet sheet = workbook.CreateSheet("æ¢è½¦è®°å½•æ•°æ®");
 
-			// ´´½¨±íÍ·ĞĞ
-			IRow headerRow = sheet.CreateRow(0);
-			headerRow.CreateCell(0).SetCellValue("ĞòºÅ");
-			headerRow.CreateCell(1).SetCellValue("»»³µ¼ÇÂ¼ ID");
+				// è¡¨å¤´å®šä¹‰
+				var headers = new[] {
+					"åºå·", "æ¢è½¦è®°å½• ID", "è®¢å•ç¼–å·", "æ—§è½¦è¾† ID", "æ–°è½¦è¾† ID", "æ¢è½¦é—¨åº— ID",
+					"çŠ¶æ€", "åˆ›å»ºæ—¶é—´", "æ›´æ–°æ—¶é—´"
+				};
 
-			// Ìî³äÊı¾İ
-			for (int i = 0; i < excelList.Count; i++) {
-				var row = sheet.CreateRow(i + 1);
-				row.CreateCell(0).SetCellValue(i + 1);
-				row.CreateCell(1).SetCellValue(excelList[i].Id.ToString());
-				row.CreateCell(24).SetCellValue(excelList[i].CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
-				row.CreateCell(25).SetCellValue(excelList[i].UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
-			}
+				// åˆ›å»ºè¡¨å¤´è¡Œ
+				IRow headerRow = sheet.CreateRow(0);
+				for (int col = 0; col < headers.Length; col++) {
+					headerRow.CreateCell(col).SetCellValue(headers[col]);
+				}
 
-			// ¹Ì¶¨ÁĞ¿í
-			for (int col = 0; col < 26; col++) {
-				sheet.SetColumnWidth(col, 20 * 256); // ÉèÖÃ¹Ì¶¨¿í¶È£¬µ¥Î»Îª 1/256 ¸ö×Ö·û¿í¶È
-			}
+				// å¡«å……æ•°æ®
+				for (int i = 0; i < excelList.Count; i++) {
+					var record = excelList[i];
+					var row = sheet.CreateRow(i + 1);
 
-			// ½«¹¤×÷²¾±£´æµ½ÄÚ´æÁ÷
-			using (var memoryStream = new MemoryStream()) {
+					row.CreateCell(0).SetCellValue(i + 1); // åºå·
+					row.CreateCell(1).SetCellValue(record.Id); // æ¢è½¦è®°å½• ID
+					row.CreateCell(2).SetCellValue(record.TheOrder); // è®¢å•ç¼–å·
+					row.CreateCell(3).SetCellValue(record.TheOldVehicles); // æ—§è½¦è¾† ID
+					row.CreateCell(4).SetCellValue(record.TheNewVehicles); // æ–°è½¦è¾† ID
+					row.CreateCell(5).SetCellValue(record.TheStore); // æ¢è½¦é—¨åº— ID
+					row.CreateCell(6).SetCellValue(record.State.ToString()); // çŠ¶æ€
+					row.CreateCell(7).SetCellValue(record.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")); // åˆ›å»ºæ—¶é—´
+					row.CreateCell(8).SetCellValue(record.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss")); // æ›´æ–°æ—¶é—´
+				}
+
+				// è®¾ç½®åˆ—å®½
+				for (int col = 0; col < headers.Length; col++) {
+					sheet.AutoSizeColumn(col); // æ ¹æ®å†…å®¹è‡ªåŠ¨è°ƒæ•´åˆ—å®½
+				}
+
+				// å°†å·¥ä½œç°¿ä¿å­˜åˆ°å†…å­˜æµ
+				using var memoryStream = new MemoryStream();
 				workbook.Write(memoryStream);
-				var fileName = "»»³µ¼ÇÂ¼Êı¾İ.xlsx";
+				var fileName = $"æ¢è½¦è®°å½•æ•°æ®_{targetMonth:yyyyMM}.xlsx";
 				var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-				// ·µ»ØÎÄ¼şÁ÷¹©ÏÂÔØ
+				// è¿”å›æ–‡ä»¶æµä¾›ä¸‹è½½
 				return File(memoryStream.ToArray(), contentType, fileName);
+			} catch (Exception ex) {
+				// æ•è·å¼‚å¸¸å¹¶è¿”å›é”™è¯¯ä¿¡æ¯
+				return StatusCode(500, $"å¯¼å‡ºå¤±è´¥ï¼š{ex.Message}");
 			}
 		}
 
 		/// <summary>
-		/// »ñÈ¡×ÜÒ³Êı
+		/// è·å–æ€»é¡µæ•°
 		/// </summary>
 		/// <returns></returns>
 		public async Task<IActionResult> OnGetPageSumAsync() {
 			try {
-				// »ñÈ¡ËùÓĞ»»³µ¼ÇÂ¼Êı¾İµÄ×ÜÊı
+				// è·å–æ‰€æœ‰æ¢è½¦è®°å½•æ•°æ®çš„æ€»æ•°
 				var sum = await _vehicleReplacementRecordControllerWeb.GetReplacementRecordCount();
 
-				// ¼ÆËã×ÜÒ³Êı
+				// è®¡ç®—æ€»é¡µæ•°
 				int totalPages = (sum / Limit) + 1;
 
-				// ·µ»Ø×ÜÒ³Êı
+				// è¿”å›æ€»é¡µæ•°
 				return new JsonResult(new { totalPages });
 			} catch (Exception ex) {
-				_logger.LogError(ex, "»ñÈ¡×ÜÒ³ÊıÊ±·¢Éú´íÎó");
-				return BadRequest("ÎŞ·¨»ñÈ¡×ÜÒ³Êı");
+				_logger.LogError(ex, "è·å–æ€»é¡µæ•°æ—¶å‘ç”Ÿé”™è¯¯");
+				return BadRequest("æ— æ³•è·å–æ€»é¡µæ•°");
 			}
 		}
 
 		/// <summary>
-		/// »ñÈ¡Ò³Âë
+		/// è·å–é¡µç 
 		/// </summary>
 		/// <returns></returns>
 		public async Task<IActionResult> OnGetPageIndexAsync() {
@@ -190,34 +208,34 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		}
 
 		/// <summary>
-		/// ¸ü¸ÄÒ³Âë
+		/// æ›´æ”¹é¡µç 
 		/// </summary>
 		/// <param name="requestData"></param>
 		/// <returns></returns>
 		[HttpPost]
 		[IgnoreAntiforgeryToken]
 		public async Task<JsonResult> OnPostChangePageAsync([FromBody] Dictionary<string, int> requestData) {
-			// È·±£½ÓÊÕµ½µÄÊı¾İ±»ÕıÈ·°ó¶¨
+			// ç¡®ä¿æ¥æ”¶åˆ°çš„æ•°æ®è¢«æ­£ç¡®ç»‘å®š
 			if (requestData == null || !requestData.Any()) {
-				return new JsonResult(new { success = false, message = "ÇëÇóÊı¾İÎª¿Õ£¡" });
+				return new JsonResult(new { success = false, message = "è¯·æ±‚æ•°æ®ä¸ºç©ºï¼" });
 			}
 
 			PageIndex = requestData["PageIndex"];
 
-			return new JsonResult(new { success = true, message = "³É¹¦", pageIndex = PageIndex });
+			return new JsonResult(new { success = true, message = "æˆåŠŸ", pageIndex = PageIndex });
 		}
 
 		/// <summary>
-		/// ¸ü¸Ä²éÑ¯Êı¾İ
+		/// æ›´æ”¹æŸ¥è¯¢æ•°æ®
 		/// </summary>
 		/// <param name="requestData"></param>
 		/// <returns></returns>
 		[HttpPost]
 		[IgnoreAntiforgeryToken]
 		public async Task<JsonResult> OnPostChangeSearchDataAsync([FromBody] Dictionary<string, string> requestData) {
-			// È·±£½ÓÊÕµ½µÄÊı¾İ±»ÕıÈ·°ó¶¨
+			// ç¡®ä¿æ¥æ”¶åˆ°çš„æ•°æ®è¢«æ­£ç¡®ç»‘å®š
 			if (requestData == null || !requestData.Any()) {
-				return new JsonResult(new { success = false, message = "ÇëÇóÊı¾İÎª¿Õ£¡" });
+				return new JsonResult(new { success = false, message = "è¯·æ±‚æ•°æ®ä¸ºç©ºï¼" });
 			}
 
 			SearchTheOrder = requestData["SearchUserPhone"];
@@ -226,15 +244,15 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SortField = requestData["SortField"];
 			SortOrder = requestData["SortOrder"];
 
-			return new JsonResult(new { success = true, message = "³É¹¦" });
+			return new JsonResult(new { success = true, message = "æˆåŠŸ" });
 		}
 
 		/// <summary>
-		/// »ñÈ¡²éÑ¯Êı¾İ
+		/// è·å–æŸ¥è¯¢æ•°æ®
 		/// </summary>
 		/// <returns></returns>
 		public async Task<JsonResult> OnGetSearchDataAsync() {
-			return new JsonResult(new { success = true, message = "³É¹¦", SearchTheOrder, SearchStatus, SearchTheStore, SortField, SortOrder });
+			return new JsonResult(new { success = true, message = "æˆåŠŸ", SearchTheOrder, SearchStatus, SearchTheStore, SortField, SortOrder });
 		}
 	}
 }
