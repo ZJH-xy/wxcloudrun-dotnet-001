@@ -262,10 +262,10 @@
                     </td>
                     <td>
                             @if (!string.IsNullOrEmpty(Model.List[i].Notes)){
-                            <span id="editSpan" name="UpdatedOrder.Notes">@Model.List[i].Notes</span> }
+                            <span id="editSpan" name="Notes">@Model.List[i].Notes</span> }
                             else
                             {
-                            <span id="editSpan" name="UpdatedOrder.Notes">无</span>
+                            <span id="editSpan" name="Notes">无</span>
                             }
                         <textarea id="inputSpan" name="UpdatedOrder.Notes" style="display:none;width:100px;" disabled>@Model.List[i].Notes</textarea>
                     </td>
@@ -283,7 +283,9 @@
                         <button id="@("save" + i)" type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;">保存</button>
                     </td>
 
-                    <input type="hidden" name="UpdatedOrder.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
+                    @* <input type="hidden" name="UpdatedOrder.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" /> *@
+                    <input type="hidden" name="UpdatedOrder.RowVersion"
+                           value="@(@Model.List[i].RowVersion != null ? Convert.ToBase64String(@Model.List[i].RowVersion) : string.Empty)" />
                     </form>
                 </tr>
             }
@@ -602,7 +604,7 @@
                             textArea.style.display = "inline-block";  // 显示textArea
 
                         }
-                        const textAreaSpan = container.closest("tr").querySelector(`span[name='UpdatedOrder.Notes']`);
+                        const textAreaSpan = container.closest("tr").querySelector(`span[name='Notes']`);
                         if (textAreaSpan) textAreaSpan.style.display = 'none';
                     } else {
                         // 切换其他字段为可编辑状态
