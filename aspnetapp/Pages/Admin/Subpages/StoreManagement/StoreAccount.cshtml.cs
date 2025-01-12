@@ -84,11 +84,31 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
             //return await _storeControllerWeb.AddStoreAsync(NewStore);
         }
 
-        /// <summary>
-        /// 默认页码查询
-        /// </summary>
-        /// <returns></returns>
-        public async Task<IActionResult> OnGetAsync() {
+	    /// <summary>
+	    /// 删除
+	    /// </summary>
+	    /// <returns></returns>
+	    [HttpDelete]
+	    [IgnoreAntiforgeryToken]
+	    public async Task<JsonResult> OnDeleteDelAsync([FromBody] Dictionary<string, int> requestData) {
+		    // 确保接收到的数据被正确绑定
+		    if (requestData == null || !requestData.Any()) {
+			    return new JsonResult(new { success = false, message = "请求数据为空！" });
+		    }
+
+		    int id = requestData["id"];
+		    if (id == 0)
+			    return new JsonResult(new { success = false, message = "ID不能为0" });
+
+
+		    return new JsonResult(new { success = true, message = $"已删除行数：{await _storeAccountControllerWeb.Delete(id)}" });
+	    }
+
+		/// <summary>
+		/// 默认页码查询
+		/// </summary>
+		/// <returns></returns>
+		public async Task<IActionResult> OnGetAsync() {
             //_logger.LogInformation("[OnGetAsync]正在获取限制为{Limit}的页面{PageIndex}的用户列表", PageIndex, Limit);
 
             SearchTheStore = null;
