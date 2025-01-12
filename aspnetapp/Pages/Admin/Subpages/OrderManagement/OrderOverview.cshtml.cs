@@ -118,6 +118,8 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 
 			// 调用 OrderControllerWeb 中的 SearchOrders 方法，包含排序字段和顺序
 			(List, SearchSum) = await _orderController.SearchOrders(Limit, PageIndex, SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder);
+			
+			SuccessMessage = $"搜索成功，共{SearchSum}条数据";
 
 			return Page();
 		}
@@ -161,6 +163,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			// 解析月份字符串
 			string monthString = requestData["Month"];
 			if (!DateTime.TryParse(monthString, out DateTime targetMonth)) {
+				ErrorMessage = "无效的月份格式";
 				return BadRequest("无效的月份格式");
 			}
 
@@ -267,6 +270,8 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 				return new JsonResult(new { totalPages });
 			} catch (Exception ex) {
 				_logger.LogError(ex, "获取总页数时发生错误");
+				ErrorMessage = "无法获取总页数";
+
 				return BadRequest("无法获取总页数");
 			}
 		}

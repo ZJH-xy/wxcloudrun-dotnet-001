@@ -122,7 +122,9 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 		/// </summary>
 		public async Task<IActionResult> OnPostSearchAsync() {
 			(List, SearchSum) = await _noticeController.SearchAsync(Limit, PageIndex, SearchTitle, SearchContent, SortField, SortOrder);
-			//SuccessMessage = "搜索成功";
+
+			SuccessMessage = $"搜索成功，共{SearchSum}条数据";
+
 
 			return Page();
 		}

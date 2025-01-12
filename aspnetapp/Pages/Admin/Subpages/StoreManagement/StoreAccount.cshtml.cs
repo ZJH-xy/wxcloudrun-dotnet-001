@@ -101,7 +101,7 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 			    return new JsonResult(new { success = false, message = "ID不能为0" });
 
 
-		    return new JsonResult(new { success = true, message = $"已删除行数：{await _storeAccountControllerWeb.Delete(id)}" });
+			return new JsonResult(new { success = true, message = $"已删除行数：{await _storeAccountControllerWeb.Delete(id)}" });
 	    }
 
 		/// <summary>
@@ -134,6 +134,7 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 
             // 调用 UserControllerWeb 中的 SearchUsers 方法，包含排序字段和顺序
 			(List, SearchSum) = await _storeAccountControllerWeb.SearchStoreAccounts(Limit, PageIndex, SearchTheStore, SearchAccount, SortField, SortOrder);
+			SuccessMessage = $"搜索成功";
 
 			return Page();
         }

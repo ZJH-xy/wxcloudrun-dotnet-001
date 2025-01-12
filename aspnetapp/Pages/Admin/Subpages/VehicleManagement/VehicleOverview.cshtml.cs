@@ -180,6 +180,8 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 			// 调用 VehicleControllerWeb 中的 SearchVehicles 方法，包含排序字段和顺序
 			(List, SearchSum) = await _vehicleController.SearchVehicles(Limit, PageIndex, SearchPlateNumber, SearchOwner, SortField, SortOrder);
 
+			SuccessMessage = $"搜索成功，共{SearchSum}条数据";
+
 			//List = SearchList
 			//	.Skip((PageIndex - 1) * Limit) // 跳过前面页的数据
 			//	.Take(Limit).ToList(); // 获取当前页的数据

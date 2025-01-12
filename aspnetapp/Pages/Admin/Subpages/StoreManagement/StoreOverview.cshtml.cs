@@ -214,6 +214,8 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
             // 调用 UserControllerWeb 中的 SearchUsers 方法，包含排序字段和顺序
 			(List, SearchSum) = await _storeControllerWeb.SearchStores(Limit, PageIndex, SearchName, SearchAddress, SortField, SortOrder);
 
+			SuccessMessage = $"搜索成功，共{SearchSum}条数据";
+
 			return Page();
         }
 
