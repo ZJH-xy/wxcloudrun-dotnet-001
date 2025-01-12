@@ -69,12 +69,12 @@
 				<tr>
 					<form method="post" id="pageForm">
 					<td>@(i + 1)</td>
-					<td><span id="@("id" + i)">@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
-					<td><span id="@("TheStore" + i)">@Model.List[i].TheStore</span></td>
-					<td><input id="@("Name" + i)" type="text" name="UpdatedStore.Name" value="@Model.List[i].Name" /></td>
-					<td><input id="@("Address" + i)" type="text" name="UpdatedStore.Address" value="@Model.List[i].Address" /></td>
-					<td><span id="@("GpsLongitude" + i)">@Model.List[i].GpsLongitude</span></td>
-					<td><span id="@("GpsLatitude" + i)">@Model.List[i].GpsLatitude</span></td>
+					<td><span>@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
+					<td><span>@Model.List[i].TheStore</span></td>
+					<td><textarea class="show-textarea" name="UpdatedStore.Name" placeholder="请输入名称">@Model.List[i].Name</textarea></td>
+					<td><textarea class="show-textarea" name="UpdatedStore.Address" placeholder="请输入地址">@Model.List[i].Address</textarea></td>
+					<td><span>@Model.List[i].GpsLongitude</span></td>
+					<td><span>@Model.List[i].GpsLatitude</span></td>
 					<td>
 						<button id="@("Confirm " + i)" type="button" data-id="@Model.List[i].Id" onclick="confirm(@Model.List[i].Id)">确认</button>
 						<button id="@("delete" + i)" type="button" class="deleteBtn" data-id="@Model.List[i].Id" onclick="cancel(@Model.List[i].Id)">取消</button>
