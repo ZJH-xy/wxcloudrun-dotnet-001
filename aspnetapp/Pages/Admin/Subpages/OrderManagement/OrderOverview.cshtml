@@ -283,9 +283,7 @@
                         <button id="@("save" + i)" type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;">保存</button>
                     </td>
 
-                    @* <input type="hidden" name="UpdatedOrder.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" /> *@
-                    <input type="hidden" name="UpdatedOrder.RowVersion"
-                           value="@(@Model.List[i].RowVersion != null ? Convert.ToBase64String(@Model.List[i].RowVersion) : string.Empty)" />
+                    <input type="hidden" name="UpdatedOrder.RowVersion" value="@Convert.ToBase64String(@Model.List[i].RowVersion)" />
                     </form>
                 </tr>
             }
