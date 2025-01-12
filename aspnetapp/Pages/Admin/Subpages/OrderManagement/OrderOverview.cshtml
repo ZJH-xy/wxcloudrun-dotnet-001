@@ -64,7 +64,8 @@
 
         </div>
         <form method="post" asp-page-handler="Search">
-            <input type="number" asp-for="SearchTheVehicleHtml" id="SearchTheVehicleHtml" value="" placeholder="搜索车辆编号" />
+            <input type="text" asp-for="SearchPlateNumberHtml" id="SearchPlateNumberHtml" value="" placeholder="搜索车牌号" />
+            <input type="number" asp-for="SearchTheVehicleHtml" id="SearchTheVehicleHtml" value="" placeholder="搜索车辆ID" />
             <input type="number" asp-for="SearchTheRentalLocationHtml" id="SearchTheRentalLocationHtml" value="" placeholder="搜索门店ID" />
             <input type="text" asp-for="SearchStoreNameHtml" id="SearchStoreNameHtml" value="" placeholder="搜索门店名称" />
             <input type="number" asp-for="SearchUserPhoneHtml" id="SearchUserPhoneHtml" value="" placeholder="搜索手机号" />
@@ -96,13 +97,7 @@
             <button type="submit" onclick="confirmChangeSearchData()">搜索</button>
         </form>
     </div>
-    <div id="message" class="warningMessage" >
-        <div>
-            <span>提示：押金、租金和其他费用仅可在订单状态为</span>
-            <span style="color:red;">待付款、进行中和待补余</span>
-            <span>的情况下进行修改。</span>
-        </div>
-    </div>
+
     <div class="table-container">
         <table id="orderTable">
             <tr>
@@ -277,6 +272,13 @@
                     <td><span>@Model.List[i].CreatedAt</span></td>
                     <td><span>@Model.List[i].UpdatedAt</span></td>
                     <td>
+                        <div id="message" class="warningMessage">
+                            <div>
+                                <span>提示：押金、租金和其他费用仅可在订单状态为</span>
+                                <span style="color:red;">待付款、进行中和待补余</span>
+                                <span>的情况下进行修改。</span>
+                            </div>
+                        </div>
                         <button type="button" class="editBtn" data-id="@Model.List[i].Id">编辑</button>
                         <button id="@("save" + i)" type="submit" class="saveBtn" data-id="@Model.List[i].Id" style="display: none;">保存</button>
                     </td>
@@ -663,6 +665,8 @@
 
         // 获取搜索输入框的数据
         async function getSearchData() {
+            
+            var SearchPlateNumber = document.getElementById('SearchPlateNumberHtml');
             var SearchTheVehicle = document.getElementById('SearchTheVehicleHtml');
             var SearchTheRentalLocation = document.getElementById('SearchTheRentalLocationHtml');
             var SearchStoreName = document.getElementById('SearchStoreNameHtml');
@@ -687,6 +691,7 @@
                 if (data.success) {
                     console.log('getdata', data)
                     setTimeout(function () {
+                        SearchPlateNumber.value = data.searchPlateNumber;
                         SearchTheVehicle.value = data.searchTheVehicle;
                         SearchTheRentalLocation.value = data.searchTheRentalLocation;
                         SearchStoreName.value = data.searchStoreName;
@@ -709,6 +714,7 @@
         // 确认搜索
         async function confirmChangeSearchData() {
             loadHTML(); // 显示加载中
+            const SearchPlateNumberHtml = document.getElementById('SearchPlateNumberHtml').value;
             const SearchUserPhoneHtml = document.getElementById('SearchUserPhoneHtml').value;
             const SearchStatusHtml = document.getElementById('SearchStatusHtml').value;
             const SearchTheRentalLocationHtml = document.getElementById('SearchTheRentalLocationHtml').value;
@@ -717,6 +723,7 @@
             const SortFieldHtml = document.getElementById('SortFieldHtml').value;
             const SortOrderHtml = document.getElementById('SortOrderHtml').value;
             const requestData = {
+                "SearchPlateNumber": SearchPlateNumberHtml,
                 "SearchUserPhone": SearchUserPhoneHtml,
                 "SearchStatus": SearchStatusHtml,
                 "SearchTheVehicle": SearchTheVehicleHtml,
