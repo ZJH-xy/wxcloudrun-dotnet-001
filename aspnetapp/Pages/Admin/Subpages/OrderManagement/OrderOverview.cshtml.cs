@@ -55,11 +55,18 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		public string? SearchStatusHtml { get; set; }
 
 		/// <summary>
-		/// 车辆
+		/// 车辆ID
 		/// </summary>
 		[BindProperty(SupportsGet = true)]
 		public static string? SearchTheVehicle { get; set; }
 		public string? SearchTheVehicleHtml { get; set; }
+
+		/// <summary>
+		/// 车辆编号
+		/// </summary>
+		[BindProperty(SupportsGet = true)]
+		public static string? SearchPlateNumber { get; set; }
+		public string? SearchPlateNumberHtml { get; set; }
 
 		/// <summary>
 		/// 租车点
@@ -96,6 +103,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchUserPhone = "";
 			SearchStatus = "";
 			SearchTheVehicle = null;
+			SearchPlateNumber = null;
 			SearchTheRentalLocation = null;
 			SearchStoreName = null;
 			SortField = "Id";
@@ -117,7 +125,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		public async Task<IActionResult> OnPostSearchAsync() {
 
 			// 调用 OrderControllerWeb 中的 SearchOrders 方法，包含排序字段和顺序
-			(List, SearchSum) = await _orderController.SearchOrders(Limit, PageIndex, SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder);
+			(List, SearchSum) = await _orderController.SearchOrders(Limit, PageIndex, SearchUserPhone, SearchStatus, SearchTheVehicle, SearchPlateNumber, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder);
 			
 			SuccessMessage = $"搜索成功，共{SearchSum}条数据";
 
@@ -318,6 +326,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchUserPhone = requestData["SearchUserPhone"];
 			SearchStatus = requestData["SearchStatus"];
 			SearchTheVehicle = requestData["SearchTheVehicle"];
+			SearchPlateNumber = requestData["SearchPlateNumber"];
 			SearchTheRentalLocation = requestData["SearchTheRentalLocation"];
 			SearchStoreName = requestData["SearchStoreName"];
             SortField = requestData["SortField"];
@@ -331,7 +340,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// </summary>
 		/// <returns></returns>
 		public async Task<JsonResult> OnGetSearchDataAsync() {
-			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder });
+			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus, SearchTheVehicle, SearchPlateNumber, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder });
 		}
 	}
 }
