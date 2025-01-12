@@ -137,7 +137,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 				ErrorMessage = "更新订单时发生错误。";
 			} else if (result is ObjectResult objResult && objResult.StatusCode == 403) {
 				_logger.LogWarning("订单状态非法，无法更新费用，订单ID：{OrderId}", UpdatedOrder.Id);
-				ErrorMessage = $"订单状态非法，费用修改失败，请检查订单状态后重试。订单ID：{UpdatedOrder.Id}";
+				ErrorMessage = $"订单状态非法，费用修改失败，请确保订单正在进行。订单ID：{UpdatedOrder.Id}";
 			} else if (result is ObjectResult objResultConflict && objResultConflict.StatusCode == 409) {
 				_logger.LogWarning("更新订单时发生并发冲突，订单ID：{OrderId}", UpdatedOrder.Id);
 				ErrorMessage = $"您尝试编辑的记录已被其他用户修改，请重新加载数据后重试。订单ID：{UpdatedOrder.Id}";
