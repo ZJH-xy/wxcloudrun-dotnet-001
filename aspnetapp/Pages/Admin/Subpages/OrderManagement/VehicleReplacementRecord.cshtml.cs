@@ -100,6 +100,8 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			// 调用 OrderControllerWeb 中的 SearchOrders 方法，包含排序字段和顺序
 			(List, SearchSum) = await _vehicleReplacementRecordControllerWeb.SearchReplacementRecords(Limit, PageIndex, SearchStatus, SearchTheOrder, SearchTheStore, SortField, SortOrder);
 
+			SuccessMessage = $"搜索成功，共{SearchSum}条数据";
+
 			return Page();
 		}
 

@@ -205,5 +205,53 @@
 		public static int GetTotal(decimal rentInYuan) {
 			return (int)Math.Round(rentInYuan * 100, MidpointRounding.AwayFromZero);
 		}
+
+		/// <summary>
+		/// 重载等于
+		/// </summary>
+		/// <param name="order1"></param>
+		/// <param name="order2"></param>
+		/// <returns></returns>
+		public static bool operator ==(Order order1, Order order2) {
+			if (ReferenceEquals(order1, order2)) return true;
+			if (order1 is null || order2 is null) return false;
+
+			// 比较所有字段，若有任何不一致则返回 false
+			return order1.Id == order2.Id &&
+				   order1.OutTradeNo == order2.OutTradeNo &&
+				   order1.TransactionId == order2.TransactionId &&
+				   order1.TheUser == order2.TheUser &&
+				   order1.TheStoreMenu == order2.TheStoreMenu &&
+				   order1.ActualStartingTime == order2.ActualStartingTime &&
+				   order1.ActualReturnTime == order2.ActualReturnTime &&
+				   order1.TheVehicle == order2.TheVehicle &&
+				   order1.TheRentalLocation == order2.TheRentalLocation &&
+				   order1.TheReturnThePoint == order2.TheReturnThePoint &&
+				   order1.UserName == order2.UserName &&
+				   order1.UserPhone == order2.UserPhone &&
+				   order1.IdentityCard == order2.IdentityCard &&
+				   order1.Deposit == order2.Deposit &&
+				   order1.Rent == order2.Rent &&
+				   order1.DispatchFee == order2.DispatchFee &&
+				   order1.OvertimeFee == order2.OvertimeFee &&
+				   order1.OtherFees == order2.OtherFees &&
+				   order1.Paid == order2.Paid &&
+				   order1.DepositRefunded == order2.DepositRefunded &&
+				   order1.Status == order2.Status &&
+				   order1.Notes == order2.Notes &&
+				   order1.SuccessTime == order2.SuccessTime &&
+				   order1.CreatedAt == order2.CreatedAt &&
+				   order1.UpdatedAt == order2.UpdatedAt;
+		}
+
+		/// <summary>
+		/// 重载不等于
+		/// </summary>
+		/// <param name="order1"></param>
+		/// <param name="order2"></param>
+		/// <returns></returns>
+		public static bool operator !=(Order order1, Order order2) {
+			return !(order1 == order2);
+		}
 	}
 }

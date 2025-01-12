@@ -2,6 +2,8 @@
 using aspnetapp.Dao.RepositoryInterface.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using static aspnetapp.Models.RefundOrder;
 
 namespace aspnetapp.Controllers.Web {
 	public class OrderControllerWeb : Controller {
@@ -69,8 +71,8 @@ namespace aspnetapp.Controllers.Web {
 		/// <summary>
 		/// 查询订单（支持多字段搜索）
 		/// </summary>
-		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, string? theVehicle = null, string? theRentalLocation = null, string? searchStoreName = null, string sortField = "Id", string sortOrder = "asc") {
-			if (userPhone.IsNullOrEmpty() && status.IsNullOrEmpty() && theVehicle.IsNullOrEmpty() && theRentalLocation.IsNullOrEmpty() && searchStoreName.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc") {
+		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, string? theVehicle = null, string? plateNumber = null, string? theRentalLocation = null, string? searchStoreName = null, string sortField = "Id", string sortOrder = "asc") {
+			if (userPhone.IsNullOrEmpty() && status.IsNullOrEmpty() && theVehicle.IsNullOrEmpty() && plateNumber.IsNullOrEmpty() && theRentalLocation.IsNullOrEmpty() && searchStoreName.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc") {
 				var list = await GetTablePage(limit, pageIndex);
 				return (list, list is null ? 0 : list.Count);
 				//return (await GetTablePage(limit, pageIndex), limit);
@@ -95,6 +97,16 @@ namespace aspnetapp.Controllers.Web {
 			}
 			if (!string.IsNullOrEmpty(theRentalLocation) && int.TryParse(theRentalLocation, out int RentalLocationId)) {
 				query = query.Where(o => o.TheRentalLocation == RentalLocationId);// 租车点
+			}
+
+			// 车牌号过滤
+			if (!string.IsNullOrEmpty(plateNumber)) {
+				var vehicleIds = await _context.Vehicle
+					.Where(v => v.PlateNumber.Contains(plateNumber))
+					.Select(v => v.Id)
+					.ToListAsync();
+
+				query = query.Where(o => vehicleIds.Contains(o.TheVehicle));
 			}
 
 			// 门店名称过滤
@@ -145,40 +157,83 @@ namespace aspnetapp.Controllers.Web {
 
 			// 更新订单属性
 
-			// 检查费用更改
-			if (order.Deposit != updatedOrder.Deposit || order.Rent != updatedOrder.Rent || order.OtherFees != updatedOrder.OtherFees) {
-				// 确认状态是否合法
-				if (order.Status != Order.EOrderStatus.待付款 && order.Status != Order.EOrderStatus.进行中 && order.Status != Order.EOrderStatus.侍补余) {
-					_logger.LogWarning("尝试在非法状态下更新订单费用，订单ID：{OrderId}, 当前状态：{OrderStatus}", updatedOrder.Id, order.Status);
-					return StatusCode(403, "订单完成前才可修改费用，请确保订单状态为待付款、进行中或侍补余。");
+			if (order.Deposit != updatedOrder.Deposit || order.Rent != updatedOrder.Rent || order.OtherFees != updatedOrder.OtherFees || order.Notes != updatedOrder.Notes) {
+				// 如果发生费用更改
+				var now = DateTime.Now;
+				OrderLog orderLog = new() {// 初始化订单日志
+					OrderId = order.Id,
+					AdminId = 0,// 管理员ID
+					OperationTime = now// 操作时间
+				};
+
+				// 检查费用更改
+				if (order.Deposit != updatedOrder.Deposit || order.Rent != updatedOrder.Rent || order.OtherFees != updatedOrder.OtherFees) {
+					// 确认状态是否合法
+					if (order.Status != Order.EOrderStatus.待付款 && order.Status != Order.EOrderStatus.进行中 && order.Status != Order.EOrderStatus.侍补余) {
+						_logger.LogWarning("尝试在非法状态下更新订单费用，订单ID：{OrderId}, 当前状态：{OrderStatus}", updatedOrder.Id, order.Status);
+						return StatusCode(403, "订单完成前才可修改费用，请确保订单状态为待付款、进行中或侍补余。");
+					}
+
+
+					var beforeOrderDetails = JsonConvert.SerializeObject(order); // 序列化操作前的订单详情
+
+					//var beforeStatus = order.Status;
+					order.Deposit = updatedOrder.Deposit;
+					order.Rent = updatedOrder.Rent;
+					order.OtherFees = updatedOrder.OtherFees;
+
+					var afterOrderDetails = JsonConvert.SerializeObject(order); // 序列化操作后的订单详情
+
+
+					orderLog.OperationType = OperationType.费用更改;
+					orderLog.BeforeOrderDetails = beforeOrderDetails;
+					orderLog.AfterOrderDetails = afterOrderDetails;
+					//var Notes = $"订单状态从 {beforeStatus} 更新为 {newStatus}"
 				}
 
-				order.Deposit = updatedOrder.Deposit;
-				order.Rent = updatedOrder.Rent;
-				order.OtherFees = updatedOrder.OtherFees;
+				if (!order.Notes.IsNullOrEmpty()) {
+					order.Notes = updatedOrder.Notes;
+					//orderLog.OperationType = OperationType.添加备注;
+				}
+
+				order.UpdatedAt = now;// 订单更新时间
+
+				// 设置并发标记
+				_context.Entry(order).Property("RowVersion").OriginalValue = updatedOrder.RowVersion;
+
+				using var transaction = await _context.Database.BeginTransactionAsync();// 事务开始
+
+				try {
+					await _context.OrderLog.AddAsync(orderLog);// 新增日志
+					await _context.SaveChangesAsync();
+
+					_context.Order.Update(order);
+					await _context.SaveChangesAsync();// 更新订单
+
+					await transaction.CommitAsync();// 提交事务
+
+					_logger.LogInformation("订单更新成功，订单ID：{OrderId}", updatedOrder.Id);
+					return Ok("订单更新成功。");
+				} catch (DbUpdateConcurrencyException) {
+					_logger.LogWarning("更新订单时发生并发冲突，订单ID：{OrderId}", updatedOrder.Id);
+					await transaction.RollbackAsync();// 回滚
+
+					return Conflict("更新失败，记录已被其他用户修改。");
+				} catch (DbUpdateException ex) {
+					_logger.LogError(ex, "更新订单时发生数据库错误，订单ID：{OrderId}", updatedOrder.Id);
+					await transaction.RollbackAsync();// 回滚
+
+					return StatusCode(500, "更新订单时发生数据库错误。");
+				} catch (Exception ex) {
+					_logger.LogError(ex, "更新订单时发生未知错误，订单ID：{OrderId}", updatedOrder.Id);
+					await transaction.RollbackAsync();// 回滚
+
+					return StatusCode(500, "更新订单时发生未知错误。");
+				} /*finally {
+				}*/
 			}
 
-			order.Notes = updatedOrder.Notes;
-			order.UpdatedAt = DateTime.Now;
-
-			// 设置并发标记
-			_context.Entry(order).Property("RowVersion").OriginalValue = updatedOrder.RowVersion;
-
-			try {
-				_context.Order.Update(order);
-				await _context.SaveChangesAsync();
-				_logger.LogInformation("订单更新成功，订单ID：{OrderId}", updatedOrder.Id);
-				return Ok("订单更新成功。");
-			} catch (DbUpdateConcurrencyException) {
-				_logger.LogWarning("更新订单时发生并发冲突，订单ID：{OrderId}", updatedOrder.Id);
-				return Conflict("更新失败，记录已被其他用户修改。");
-			} catch (DbUpdateException ex) {
-				_logger.LogError(ex, "更新订单时发生数据库错误，订单ID：{OrderId}", updatedOrder.Id);
-				return StatusCode(500, "更新订单时发生数据库错误。");
-			} catch (Exception ex) {
-				_logger.LogError(ex, "更新订单时发生未知错误，订单ID：{OrderId}", updatedOrder.Id);
-				return StatusCode(500, "更新订单时发生未知错误。");
-			}
+			return Ok("未发生更改。");
 		}
 
 		/// <summary>

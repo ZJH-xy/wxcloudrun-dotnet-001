@@ -4,8 +4,6 @@
 
 }
 
-
-
 <head>
 	<meta charset="utf-8" />
 	<link rel="stylesheet" href="~/css/loading.css" />
@@ -159,15 +157,15 @@
 					<td><span>@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
 					<td>
 						<span id="editSpan">@Model.List[i].Name</span>
-						<input id="inputSpan" type="text" name="UpdatedStore.Name" value="@Model.List[i].Name" style="display:none" disabled />
+						<input id="inputSpan" type="text" name="UpdatedStore.Name" value="@Model.List[i].Name" style="display:none" placeholder="请输入门店名称" disabled />
 					</td>
 					<td>
 						<span id="editSpan">@Model.List[i].BusinessHoursStart.ToString(@"hh\:mm")</span>
-						<input id="inputSpan" type="time" name="UpdatedStore.BusinessHoursStart" value="@Model.List[i].BusinessHoursStart" style="display:none" disabled />
+						<input id="inputSpan" type="time" name="UpdatedStore.BusinessHoursStart" value="@Model.List[i].BusinessHoursStart" style="display:none" placeholder="请选择营业开始时间" disabled />
 					</td>
 					<td>
 						<span id="editSpan">@Model.List[i].BusinessHoursEnd.ToString(@"hh\:mm")</span>
-						<input id="inputSpan" type="time" name="UpdatedStore.BusinessHoursEnd" value="@Model.List[i].BusinessHoursEnd" style="display:none" disabled />
+						<input id="inputSpan" type="time" name="UpdatedStore.BusinessHoursEnd" value="@Model.List[i].BusinessHoursEnd" style="display:none" placeholder="请选择营业开始时间" disabled />
 					</td>
 					<td>
 						<!--营业状态-->
@@ -190,7 +188,7 @@
                         }else{
                             <span id="editSpan">无</span>
                         }
-						<input id="inputSpan" type="text" name="UpdatedStore.Telephone" value="@Model.List[i].Telephone" style="display:none" disabled />
+						<input id="inputSpan" type="text" name="UpdatedStore.Telephone" value="@Model.List[i].Telephone" style="display:none" placeholder="请输入手机号" disabled />
 					</td>
 					<td>
 						@if (!string.IsNullOrEmpty(Model.List[i].WeChat)){
@@ -198,23 +196,23 @@
                         }else{
                             <span id="editSpan">无</span>
                         }
-						<input id="inputSpan" type="text" name="UpdatedStore.WeChat" value="@Model.List[i].WeChat" style="display:none" disabled />
+						<input id="inputSpan" type="text" name="UpdatedStore.WeChat" value="@Model.List[i].WeChat" style="display:none" placeholder="请输入微信号" disabled />
 					</td>
 					<td >
 						@if (!string.IsNullOrEmpty(Model.List[i].Address)){
-							<span id="editSpan" >@Model.List[i].Address</span>
+							<textarea id="editSpan" class="hidden-textarea"  disabled>@Model.List[i].Address</textarea>
                         }else{
                             <span id="editSpan">无</span>
                         }
-						<input id="inputSpan" type="text" name="UpdatedStore.Address" value="@Model.List[i].Address" style="display:none" disabled />
+                        <textarea id="inputSpan" class="show-textarea" name="UpdatedStore.Address" style="display:none;" placeholder="请输入地址" disabled>@Model.List[i].Address</textarea>
 					</td>
 					<td>
 						<span id="editSpan">@Model.List[i].GpsLongitude</span>
-						<input id="inputSpan" type="text" name="UpdatedStore.GpsLongitude" value="@Model.List[i].GpsLongitude" style="display:none" disabled />
+						<input id="inputSpan" type="text" name="UpdatedStore.GpsLongitude" value="@Model.List[i].GpsLongitude" style="display:none" placeholder="请输入经度" disabled />
 					</td>
 					<td>
 						<span id="editSpan">@Model.List[i].GpsLatitude</span>
-						<input id="inputSpan" type="text" name="UpdatedStore.GpsLatitude" value="@Model.List[i].GpsLatitude" style="display:none" disabled />
+						<input id="inputSpan" type="text" name="UpdatedStore.GpsLatitude" value="@Model.List[i].GpsLatitude" style="display:none" placeholder="请输入纬度" disabled />
 					</td>
 
 					<td>
@@ -246,7 +244,7 @@
 							<div style="display:flex;align-items: center; justify-content: center; ">
 
 								<!-- 编辑的图片预览 -->
-								<img src="" alt="预览图" class="preview" style="display: none; width: 100px; height: auto; margin-top: 10px;">
+								<img src="" alt="预览图" class="preview" style="display: none; min-width: 100px; height: auto; margin-top: 10px;">
 
 							</div>
 							<!-- 图片模态窗口 -->
@@ -256,13 +254,16 @@
 							</div>
 						</div>
 					</td>
-					<td>
+					
+					<td >
 						@if (!string.IsNullOrEmpty(Model.List[i].Introduce)){
-							<span id="editSpan">@Model.List[i].Introduce</span>
+							<textarea id="editSpan" class="hidden-textarea" disabled>@Model.List[i].Introduce</textarea>
+
                         }else{
                             <span id="editSpan">无</span>
                         }
-						<textarea id="inputSpan" name="UpdatedStore.Introduce" style="display:none" disabled>@Model.List[i].Introduce</textarea>
+						<textarea id="inputSpan" class="show-textarea" name="UpdatedStore.Introduce" style="display:none;" placeholder="请输入介绍" disabled>@Model.List[i].Introduce</textarea>
+
 					</td>
 					<td><span>@Model.List[i].CreatedAt</span></td>
 					<td><span>@Model.List[i].UpdatedAt</span></td>
@@ -296,9 +297,7 @@
 @* 			@if (@Model.SearchSum != 0) {
 				<text>，共搜索到 @Model.SearchSum 条数据，</text>
 			} *@
-			@if (@Model.SearchSum != 0) {
-				<span>，共搜索到 @Model.SearchSum 条数据</span>
-			}
+
 			<input id="PageCount" value="@Model.List.Count" style="display:none;" />
 			<input id="PageLimit" value="@Model.Limit" style="display:none;" />
 
@@ -806,7 +805,7 @@
 						selectBusinessStatus.style.display = "block";
                     }
 					// 切换其他字段为可编辑状态
-					const spans = container.closest("tr").querySelectorAll("span");
+					const spans = container.closest("tr").querySelectorAll("span, textarea");
 					const inputs = container.closest("tr").querySelectorAll("input, textarea");
 
 					// 只显示id为edit的span

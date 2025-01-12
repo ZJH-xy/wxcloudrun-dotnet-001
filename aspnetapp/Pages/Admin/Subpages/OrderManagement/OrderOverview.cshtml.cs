@@ -55,11 +55,18 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		public string? SearchStatusHtml { get; set; }
 
 		/// <summary>
-		/// 车辆
+		/// 车辆ID
 		/// </summary>
 		[BindProperty(SupportsGet = true)]
 		public static string? SearchTheVehicle { get; set; }
 		public string? SearchTheVehicleHtml { get; set; }
+
+		/// <summary>
+		/// 车辆编号
+		/// </summary>
+		[BindProperty(SupportsGet = true)]
+		public static string? SearchPlateNumber { get; set; }
+		public string? SearchPlateNumberHtml { get; set; }
 
 		/// <summary>
 		/// 租车点
@@ -96,6 +103,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchUserPhone = "";
 			SearchStatus = "";
 			SearchTheVehicle = null;
+			SearchPlateNumber = null;
 			SearchTheRentalLocation = null;
 			SearchStoreName = null;
 			SortField = "Id";
@@ -117,7 +125,9 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		public async Task<IActionResult> OnPostSearchAsync() {
 
 			// 调用 OrderControllerWeb 中的 SearchOrders 方法，包含排序字段和顺序
-			(List, SearchSum) = await _orderController.SearchOrders(Limit, PageIndex, SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder);
+			(List, SearchSum) = await _orderController.SearchOrders(Limit, PageIndex, SearchUserPhone, SearchStatus, SearchTheVehicle, SearchPlateNumber, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder);
+			
+			SuccessMessage = $"搜索成功，共{SearchSum}条数据";
 
 			return Page();
 		}
@@ -135,7 +145,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 				ErrorMessage = "更新订单时发生错误。";
 			} else if (result is ObjectResult objResult && objResult.StatusCode == 403) {
 				_logger.LogWarning("订单状态非法，无法更新费用，订单ID：{OrderId}", UpdatedOrder.Id);
-				ErrorMessage = $"订单状态非法，费用修改失败，请检查订单状态后重试。订单ID：{UpdatedOrder.Id}";
+				ErrorMessage = $"订单状态非法，费用修改失败，请确保订单正在进行。订单ID：{UpdatedOrder.Id}";
 			} else if (result is ObjectResult objResultConflict && objResultConflict.StatusCode == 409) {
 				_logger.LogWarning("更新订单时发生并发冲突，订单ID：{OrderId}", UpdatedOrder.Id);
 				ErrorMessage = $"您尝试编辑的记录已被其他用户修改，请重新加载数据后重试。订单ID：{UpdatedOrder.Id}";
@@ -161,6 +171,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			// 解析月份字符串
 			string monthString = requestData["Month"];
 			if (!DateTime.TryParse(monthString, out DateTime targetMonth)) {
+				ErrorMessage = "无效的月份格式";
 				return BadRequest("无效的月份格式");
 			}
 
@@ -267,6 +278,8 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 				return new JsonResult(new { totalPages });
 			} catch (Exception ex) {
 				_logger.LogError(ex, "获取总页数时发生错误");
+				ErrorMessage = "无法获取总页数";
+
 				return BadRequest("无法获取总页数");
 			}
 		}
@@ -313,6 +326,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchUserPhone = requestData["SearchUserPhone"];
 			SearchStatus = requestData["SearchStatus"];
 			SearchTheVehicle = requestData["SearchTheVehicle"];
+			SearchPlateNumber = requestData["SearchPlateNumber"];
 			SearchTheRentalLocation = requestData["SearchTheRentalLocation"];
 			SearchStoreName = requestData["SearchStoreName"];
             SortField = requestData["SortField"];
@@ -326,7 +340,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// </summary>
 		/// <returns></returns>
 		public async Task<JsonResult> OnGetSearchDataAsync() {
-			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus, SearchTheVehicle, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder });
+			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus, SearchTheVehicle, SearchPlateNumber, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder });
 		}
 	}
 }
