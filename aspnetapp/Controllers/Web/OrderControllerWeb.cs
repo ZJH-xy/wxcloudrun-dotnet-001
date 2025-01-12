@@ -167,10 +167,11 @@ namespace aspnetapp.Controllers.Web {
 					OperationTime = now// 操作时间
 				};
 
-				// 检查费用更改
-				if (order.Deposit != updatedOrder.Deposit || order.Rent != updatedOrder.Rent || order.OtherFees != updatedOrder.OtherFees) {
-					// 确认状态是否合法
-					if (order.Status != Order.EOrderStatus.待付款 && order.Status != Order.EOrderStatus.进行中 && order.Status != Order.EOrderStatus.侍补余) {
+
+				// 确认状态是否合法
+				if (order.Status == Order.EOrderStatus.待付款 || order.Status == Order.EOrderStatus.进行中 || order.Status == Order.EOrderStatus.侍补余) {
+					// 检查费用更改
+					if (order.Deposit != updatedOrder.Deposit || order.Rent != updatedOrder.Rent || order.OtherFees != updatedOrder.OtherFees) {
 						_logger.LogWarning("尝试在非法状态下更新订单费用，订单ID：{OrderId}, 当前状态：{OrderStatus}", updatedOrder.Id, order.Status);
 						return StatusCode(403, "订单完成前才可修改费用，请确保订单状态为待付款、进行中或侍补余。");
 					}
@@ -195,7 +196,7 @@ namespace aspnetapp.Controllers.Web {
 					await _context.SaveChangesAsync();
 				}
 
-				if (!order.Notes.IsNullOrEmpty()) {
+				if (!updatedOrder.Notes.IsNullOrEmpty()) {
 					order.Notes = updatedOrder.Notes;
 					//orderLog.OperationType = OperationType.添加备注;
 				}
