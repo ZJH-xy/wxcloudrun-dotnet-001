@@ -156,6 +156,7 @@ namespace aspnetapp.Controllers.Web {
 			}
 
 			// 更新订单属性
+			using var transaction = await _context.Database.BeginTransactionAsync();// 事务开始
 
 			if (order.Deposit != updatedOrder.Deposit || order.Rent != updatedOrder.Rent || order.OtherFees != updatedOrder.OtherFees || order.Notes != updatedOrder.Notes) {
 				// 如果发生费用更改
@@ -188,7 +189,10 @@ namespace aspnetapp.Controllers.Web {
 					orderLog.OperationType = OperationType.费用更改;
 					orderLog.BeforeOrderDetails = beforeOrderDetails;
 					orderLog.AfterOrderDetails = afterOrderDetails;
+
 					//var Notes = $"订单状态从 {beforeStatus} 更新为 {newStatus}"
+					await _context.OrderLog.AddAsync(orderLog);// 新增日志
+					await _context.SaveChangesAsync();
 				}
 
 				if (!order.Notes.IsNullOrEmpty()) {
@@ -201,12 +205,7 @@ namespace aspnetapp.Controllers.Web {
 				// 设置并发标记
 				_context.Entry(order).Property("RowVersion").OriginalValue = updatedOrder.RowVersion;
 
-				using var transaction = await _context.Database.BeginTransactionAsync();// 事务开始
-
 				try {
-					await _context.OrderLog.AddAsync(orderLog);// 新增日志
-					await _context.SaveChangesAsync();
-
 					_context.Order.Update(order);
 					await _context.SaveChangesAsync();// 更新订单
 
