@@ -96,6 +96,11 @@
             <button type="submit" onclick="confirmChangeSearchData()">搜索</button>
         </form>
     </div>
+    <div>
+        <span>提示；押金、租金和其他费用仅可在订单状态为</span>
+        <span style="color:red;">待付款、进行中和待补余</span>
+        <span>的情况下进行修改。</span>
+    </div>
     <div class="table-container">
         <table id="orderTable">
             <tr>
@@ -180,17 +185,17 @@
                     </td>
                     <td>
                         <span id="editSpan">@Model.List[i].Deposit</span>
-                        <input id="inputSpan" type="number" name="UpdatedOrder.Deposit" value="@Model.List[i].Deposit" placeholder="请输入押金" style="display:none;width:100px;" disabled />
+                        <input id="inputSpan" type="number" name="UpdatedOrder.Deposit" value="@Model.List[i].Deposit" placeholder="请输入押金" step="0.01" style="display:none;width:100px;" disabled />
                     </td>
                     <td>
                         <span id="editSpan">@Model.List[i].Rent</span>
-                        <input id="inputSpan" type="number" name="UpdatedOrder.Rent" value="@Model.List[i].Rent" placeholder="请输入租金" style="display:none;width:100px;" disabled />
+                        <input id="inputSpan" type="number" name="UpdatedOrder.Rent" value="@Model.List[i].Rent" placeholder="请输入租金" step="0.01" style="display:none;width:100px;" disabled />
                     </td>
                     <td><span>@Model.List[i].DispatchFee</span></td>
                     <td><span>@Model.List[i].OvertimeFee</span></td>
                     <td>
                         <span id="editSpan">@Model.List[i].OtherFees</span>
-                        <input id="inputSpan" type="number" name="UpdatedOrder.OtherFees" value="@Model.List[i].OtherFees" placeholder="请输入其他费用" style="display:none;width:100px;" disabled />
+                        <input id="inputSpan" type="number" name="UpdatedOrder.OtherFees" value="@Model.List[i].OtherFees" placeholder="请输入其他费用" step="0.01"style=" display:none;width:100px;" disabled />
                     </td>
                     <td><span style="color:red;">@Model.List[i].Paid</span></td>
                     <td><span>@Model.List[i].DepositRefunded</span></td>
