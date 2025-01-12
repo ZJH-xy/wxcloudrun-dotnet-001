@@ -96,10 +96,12 @@
             <button type="submit" onclick="confirmChangeSearchData()">搜索</button>
         </form>
     </div>
-    <div>
-        <span>提示；押金、租金和其他费用仅可在订单状态为</span>
-        <span style="color:red;">待付款、进行中和待补余</span>
-        <span>的情况下进行修改。</span>
+    <div id="message" class="warningMessage" >
+        <div>
+            <span>提示：押金、租金和其他费用仅可在订单状态为</span>
+            <span style="color:red;">待付款、进行中和待补余</span>
+            <span>的情况下进行修改。</span>
+        </div>
     </div>
     <div class="table-container">
         <table id="orderTable">
@@ -134,8 +136,16 @@
                     <td><span>@Model.List[i].Id</span><input type="hidden" name="UpdatedOrder.Id" value="@Model.List[i].Id" /></td>
                     <td>
                         <span>ID：@Model.List[i].TheUser</span><br>
-                        <span>手机号：@Model.List[i].UserPhone</span><br>
-                        <span>身份证：@Model.List[i].IdentityCard</span>
+                        @if (@Model.List[i].UserPhone != null){
+                            <span>手机号：@Model.List[i].UserPhone</span><br>
+                        }else{
+                            <span>无</span>
+                        }
+                        @if (@Model.List[i].IdentityCard != null){
+                            <span>身份证：@Model.List[i].IdentityCard</span>
+                        }else{
+                            <span>无</span>
+                        }
                     </td>
                     <td>
                             @if (@Model.List[i].ActualStartingTime != null){
@@ -200,6 +210,7 @@
                     <td><span style="color:red;">@Model.List[i].Paid</span></td>
                     <td><span>@Model.List[i].DepositRefunded</span></td>
                     <td>
+                        <input type="hidden" name="Status" value="@Model.List[i].Status" />
                         @switch (Model.List[i].Status){
                             case Order.EOrderStatus.已取消:
                             <span name="UpdatedVehicle.State" style="color:gray;">已取消</span>
@@ -256,10 +267,10 @@
                     </td>
                     <td>
                             @if (!string.IsNullOrEmpty(Model.List[i].Notes)){
-                            <span id="editSpan">@Model.List[i].Notes</span> }
+                            <span id="editSpan" name="UpdatedOrder.Notes">@Model.List[i].Notes</span> }
                             else
                             {
-                            <span id="editSpan">无</span>
+                            <span id="editSpan" name="UpdatedOrder.Notes">无</span>
                             }
                         <textarea id="inputSpan" name="UpdatedOrder.Notes" style="display:none;width:100px;" disabled>@Model.List[i].Notes</textarea>
                     </td>
@@ -572,51 +583,54 @@
             const editButtons = document.querySelectorAll(".editBtn");
             editButtons.forEach(button => {
                 button.addEventListener("click", function () {
+
                     const id = this.dataset.id;
                     console.log('id', id)
                     const container = document.querySelector(`.saveBtn[data-id="${id}"]`);
-                    //const img = container.querySelector(".thumbnail");
-                    //const fileInput = container.querySelector(".fileUpload");
 
-                    // 隐藏旧图片
-                    //if (img) img.style.display = "none";
+                    const Status = container.closest("tr").querySelector(`input[name='Status']`);
+                    const state = Status.value;
+                    if (state != "待付款" && state != "进行中" && state != "待补余") {
+                        // alert('押金、租金和其他费用仅可在订单状态为待付款、进行中和待补余的情况下进行修改。');
+                        showMessage("message", 10000);
+                        // 使 textarea 可编辑
+                        const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedOrder.Notes']`);
+                        if (textArea) {
+                            textArea.disabled = false; // 使 textarea 可编辑
+                            textArea.style.display = "inline-block";  // 显示textArea
 
-                    // 显示文件上传控件
-                    //fileInput.style.display = "block";
-
-                    // 切换其他字段为可编辑状态
-                    const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
-                    inputs.forEach(input => input.disabled = false);
-
-                    // 使 textarea 可编辑
-                    const textArea = container.closest("tr").querySelector(`textarea[name='UpdatedOrder.Notes']`);
-                    if (textArea) textArea.disabled = false; // 使 textarea 可编辑
-
-                    // 使状态下拉框可以编辑
-                    //const selectState = container.closest("tr").querySelector("select[name='UpdatedVehicle.Status']");
-                    //if (selectState) selectState.disabled = false;
-
-                    // 切换其他字段为可编辑状态
-                    const spans = container.closest("tr").querySelectorAll("span");
-                    const inputsToEnable = container.closest("tr").querySelectorAll("input, textarea");
-
-                    // 只显示id为edit的span
-                    spans.forEach(span => {
-                        if (span.id === "editSpan") {
-                            span.style.display = "none";  // 隐藏其他span
                         }
-                    });
+                        const textAreaSpan = container.closest("tr").querySelector(`span[name='UpdatedOrder.Notes']`);
+                        if (textAreaSpan) textAreaSpan.style.display = 'none';
+                    } else {
+                        // 切换其他字段为可编辑状态
+                        const inputs = container.closest("tr").querySelectorAll("input:not(.fileUpload)");
+                        inputs.forEach(input => input.disabled = false);
 
-                    inputsToEnable.forEach(input => {
-                        if (input.id === "inputSpan") {
-                            input.disabled = false;      // 启用input
-                            input.style.display = "inline-block";  // 显示input
-                        }
-                    });
+                        // 切换其他字段为可编辑状态
+                        const spans = container.closest("tr").querySelectorAll("span");
+                        const inputsToEnable = container.closest("tr").querySelectorAll("input, textarea");
+
+                        // 只显示id为edit的span
+                        spans.forEach(span => {
+                            if (span.id === "editSpan") {
+                                span.style.display = "none";  // 隐藏其他span
+                            }
+                        });
+
+                        inputsToEnable.forEach(input => {
+                            if (input.id === "inputSpan") {
+                                input.disabled = false;      // 启用input
+                                input.style.display = "inline-block";  // 显示input
+                            }
+                        });
+                    }
+
 
                     // 切换按钮状态
                     this.style.display = "none"; // 隐藏编辑按钮
                     container.closest("tr").querySelector(".saveBtn").style.display = "inline-block";
+
                 });
             });
 
