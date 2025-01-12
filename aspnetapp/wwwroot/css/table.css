@@ -12,7 +12,25 @@ header {
     margin: -20px; /* 通过负边距来抵消 padding */
     margin-bottom: 20px;
 }
+.hidden-textarea {
+    min-width: 200px;
+    min-height: 40px;
+    border: none; /* 去掉边框 */
+    padding: 0; /* 去掉内边距 */
+    margin: 5px 0; /* 去掉外边距 */
+    width: 100%; /* 自适应宽度 */
+    height: auto; /* 自适应高度 */
+    font: inherit; /* 继承父元素的字体样式 */
+    background: none; /* 去掉背景 */
+    outline: none; /* 去掉聚焦时的轮廓 */
+    color: black;
+}
 
+.show-textarea {
+    min-width: 200px;
+    min-height: 40px;
+    margin: 5px 0;
+}
 /* 表格整体样式 */
 table {
     margin: 20px 0;

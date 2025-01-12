@@ -121,7 +121,12 @@
                         <input id="inputSpan" type="text" name="UpdatedNotice.Title" value="@Model.List[i].Title" placeholder="请输入标题" style="display:none;min-width:150px" disabled />
                     </td>
                     <td>
-                        <textarea id="inputSpan" type="text" name="UpdatedNotice.Content" placeholder="请输入内容" style="min-width:200px;min-height:50px;height:70px;" disabled>@Model.List[i].Content</textarea>
+						@if (!string.IsNullOrEmpty(Model.List[i].Content)){
+                            <textarea id="editSpan" class="hidden-textarea" disabled>@Model.List[i].Content</textarea>
+                        }else{
+                            <span id="editSpan">无</span>
+                        }
+                        <textarea id="inputSpan" class="show-textarea" name="UpdatedStore.Content" style="display:none;" placeholder="请输入内容" disabled>@Model.List[i].Content</textarea>
                     </td>
                     <td><span>@Model.List[i].CreatedAt</span></td>
                     <td><span>@Model.List[i].UpdatedAt</span></td>
@@ -484,7 +489,7 @@
                     if (textArea) textArea.disabled = false; // 使 textarea 可编辑
 
                     // 切换其他字段为可编辑状态
-                    const spans = container.closest("tr").querySelectorAll("span");
+                    const spans = container.closest("tr").querySelectorAll("span, textarea");
                     const inputsToEnable = container.closest("tr").querySelectorAll("input, textarea");
 
                     // 只显示id为edit的span

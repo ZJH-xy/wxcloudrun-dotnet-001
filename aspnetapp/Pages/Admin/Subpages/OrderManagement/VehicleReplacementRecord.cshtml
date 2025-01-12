@@ -132,8 +132,7 @@
                         <span style="color:rgb(168,0,0)">(ID:@Model.List[i].TheStore)</span>
                     </td>
                     <td>
-                            @switch (Model.List[i].State)
-                            {
+                            @switch (Model.List[i].State){
                                 case VehicleReplacementRecord.Estates.已取消:
                                 <span name="UpdatedVehicle.State" style="color:gray;">已取消</span>
                                     break;
@@ -171,10 +170,6 @@
         <div class="bottom-item">
             <text id="page">第 * 页</text>
             <text>，当前页共 @Model.List.Count 条数据</text>
-            @*             @if (@Model.SearchSum != 0)
-            {
-            <text>，共搜索到 @Model.SearchSum 条数据，</text>
-            } *@
             @if (@Model.SearchSum != 0)
             {
                 <span>，共搜索到 @Model.SearchSum 条数据</span>
