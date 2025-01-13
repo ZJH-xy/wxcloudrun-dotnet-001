@@ -132,7 +132,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 
 				// 表头定义
 				var headers = new[] {
-					"序号", "换车记录 ID", "订单编号", "旧车辆 ID", "新车辆 ID", "换车门店 ID",
+					"序号", "换车记录 ID", "订单ID", "旧车辆 ID", "新车辆 ID", "换车门店 ID",
 					"状态", "创建时间", "更新时间"
 				};
 
@@ -158,9 +158,14 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 					row.CreateCell(8).SetCellValue(record.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss")); // 更新时间
 				}
 
-				// 设置列宽
+				//// 设置列宽
+				//for (int col = 0; col < headers.Length; col++) {
+				//	sheet.AutoSizeColumn(col); // 根据内容自动调整列宽
+				//}
+
+				// 固定列宽
 				for (int col = 0; col < headers.Length; col++) {
-					sheet.AutoSizeColumn(col); // 根据内容自动调整列宽
+					sheet.SetColumnWidth(col, 16 * 256); // 设置固定宽度，单位为 1/256 个字符宽度
 				}
 
 				// 将工作簿保存到内存流
