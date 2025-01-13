@@ -29,24 +29,26 @@ namespace aspnetapp.Pages.Admin {
 
 		[HttpPost]
 		[IgnoreAntiforgeryToken]
-		public async Task<IActionResult> OnPostAsync([FromBody] Dictionary<string, string> requestData) {
+		public async Task<IActionResult> OnPostAsync(/*[FromBody] Dictionary<string, string> requestData*/) {
 			// 确保接收到的数据被正确绑定
-			if (requestData == null || !requestData.Any()) {
-				return new JsonResult(new { success = false, message = "请求数据为空！" });
-			}
+			//if (requestData == null || !requestData.Any()) {
+			//	return new JsonResult(new { success = false, message = "请求数据为空！" });
+			//}
 
-			Username = requestData["Username"];
-			Password = requestData["Password"];
+			//Username = requestData["Username"];
+			//Password = requestData["Password"];
 
 			// 处理 POST 请求
 			var re = await _loginControllerWeb.LoginAsync(Username, Password);
 
 			if (re.Item1) {
+				return RedirectToPage("/admin/main", new { JWT = re.Item2 });
+
 				// 登录成功
-				return StatusCode(200, new{ JWT = re.Item2 });
+				//return StatusCode(200, new{ JWT = re.Item2 });
 
 				// 跳转到主页或其他页面
-				//return RedirectToPage("/admin/main");
+				//return RedirectToPage("/admin/main", new { JWT = re.Item2 });
 			} else {
 				// 登录失败，显示错误信息
 				ErrorMessage = "用户名或密码错误";
