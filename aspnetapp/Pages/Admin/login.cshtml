@@ -79,11 +79,12 @@
     </style>
 </head>
 <body>
+
     <div class="login-container">
         <h2>系统后台</h2>
-        <form method="post">
-            <input type="text" name="Username" placeholder="用户名" required />
-            <input type="password" name="Password" placeholder="密码" required />
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="用户名" required />
+            <input type="password" id="password" placeholder="密码" required />
             <input type="submit" value="登录" />
         </form>
         <p id="errorMessage">@Model.ErrorMessage</p>

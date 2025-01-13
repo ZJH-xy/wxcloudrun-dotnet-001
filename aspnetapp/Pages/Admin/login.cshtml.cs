@@ -26,7 +26,18 @@ namespace aspnetapp.Pages.Admin {
 			return Page();
 		}
 
-		public async Task<IActionResult> OnPostAsync() {
+
+		[HttpPost]
+		[IgnoreAntiforgeryToken]
+		public async Task<IActionResult> OnPostAsync([FromBody] Dictionary<string, string> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+			Username = requestData["Username"];
+			Password = requestData["Password"];
+
 			// 处理 POST 请求
 			var re = await _loginControllerWeb.LoginAsync(Username, Password);
 
