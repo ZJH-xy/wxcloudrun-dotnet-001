@@ -181,5 +181,34 @@
         </form>
     </div>
 
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", async function (event) {
+            event.preventDefault(); // 防止表单默认提交
+
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const response = await fetch(window.location.href, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem("jwt", data.jwt); // 保存 JWT 到 localStorage
+                    window.location.href = "/admin/main"; // 跳转到目标页面
+                } else {
+                    const errorText = await response.text();
+                    document.getElementById("errorMessage").innerText = "登录失败: " + errorText;
+                }
+            } catch (error) {
+                document.getElementById("errorMessage").innerText = "发生错误: " + error.message;
+            }
+        });
+    </script>
 </body>
 </html>
