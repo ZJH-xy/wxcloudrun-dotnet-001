@@ -148,8 +148,20 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 				return Page();
 			}
 
-			await _vehicleController.AddVehicleAsync(NewVehicle);
-			SuccessMessage = $"添加成功";
+			var result = await _vehicleController.AddVehicleAsync(NewVehicle);
+
+			if (result is BadRequestResult) {
+
+				ErrorMessage = "添加失败，请检查字段";
+			} else if (result is StatusCodeResult status && status.StatusCode == 500) {
+				_logger.LogError("更新车辆时出错。VehicleId: {VehicleId}", NewVehicle.Id);
+				ErrorMessage = $"更新车辆出错，ID：{NewVehicle.Id}";
+
+			} else {
+				_logger.LogInformation("ID为{VehicleId}的车辆已成功更新", NewVehicle.Id);
+				SuccessMessage = $"添加成功，ID：{NewVehicle.Id}";
+			}
+
 			List = await _vehicleController.GetTablePage(Limit, PageIndex); // 刷新列表
 
 			return Page();
@@ -218,7 +230,7 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 				ErrorMessage = "找不到车辆";
 			} else if (result is StatusCodeResult status && status.StatusCode == 500) {
 				_logger.LogError("更新车辆时出错。VehicleId: {VehicleId}", UpdatedVehicle.Id);
-				ErrorMessage = "更新车辆时出错。";
+				ErrorMessage = "更新车辆出错。";
 			} else if (result is ObjectResult objResult && objResult.StatusCode == 409) {
 				_logger.LogWarning("使用ID更新车辆时发生并发冲突。VehicleId: {VehicleId}", UpdatedVehicle.Id);
 				ErrorMessage = $"您尝试编辑的记录已被其他用户修改。请重新加载数据后重试，ID：{UpdatedVehicle.Id}";
