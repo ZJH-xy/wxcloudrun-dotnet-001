@@ -142,6 +142,12 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 		/// <returns></returns>
 		[HttpPost]
 		public async Task<IActionResult> OnPostAddVehicleAsync() {
+			// 查重车牌号
+			if (!NewVehicle.PlateNumber.IsNullOrEmpty() && await _vehicleController.FindPlateNumber(NewVehicle.PlateNumber)) {
+				ErrorMessage = "车牌号和已有车辆重复，请检查";
+				return Page();
+			}
+
 			await _vehicleController.AddVehicleAsync(NewVehicle);
 			SuccessMessage = $"添加成功";
 			List = await _vehicleController.GetTablePage(Limit, PageIndex); // 刷新列表
@@ -174,9 +180,6 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 		/// 搜索
 		/// </summary>
 		public async Task<IActionResult> OnPostSearchAsync() {
-			_logger.LogDebug("[OnPostSearchAsync]正在条件查询: PlateNumber: {PlateNumber}, Owner: {Owner}, SortField: {SortField}, SortOrder: {SortOrder}",
-							SearchPlateNumber, SearchOwner, SortField, SortOrder);
-
 			// 调用 VehicleControllerWeb 中的 SearchVehicles 方法，包含排序字段和顺序
 			(List, SearchSum) = await _vehicleController.SearchVehicles(Limit, PageIndex, SearchPlateNumber, SearchOwner, SortField, SortOrder);
 
@@ -195,6 +198,12 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 		/// 更新
 		/// </summary>
 		public async Task<IActionResult> OnPostUpdateVehicleAsync() {
+			// 查重车牌号
+			if (!UpdatedVehicle.PlateNumber.IsNullOrEmpty() && await _vehicleController.FindPlateNumber(UpdatedVehicle.PlateNumber)) {
+				ErrorMessage = "车牌号和已有车辆重复，请检查";
+				return Page();
+			}
+
 			_logger.LogInformation("正在尝试使用ID更新车辆{VehicleId}", UpdatedVehicle.Id);
 
 			//if (!ModelState.IsValid) {
