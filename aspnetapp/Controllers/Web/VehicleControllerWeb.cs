@@ -69,8 +69,27 @@ namespace aspnetapp.Controllers.Web {
 			}
 		}
 
-		// 添加
+		/// <summary>
+		/// 查询是否已有重复车牌号且未删除的车辆
+		/// </summary>
+		/// <param name="PlateNumber">车牌号</param>
+		/// <returns></returns>
+		public async Task<bool> FindPlateNumber(string PlateNumber) {
+
+            return await _context.Vehicle.AnyAsync(v => !v.IsDelete && v.PlateNumber == PlateNumber);
+		}
+
+		/// <summary>
+        /// 添加
+        /// </summary>
+        /// <param name="newVehicle"></param>
+        /// <returns></returns>
 		public async Task<IActionResult> AddVehicleAsync(Vehicle newVehicle) {
+            // 如有重复车牌号
+            if (newVehicle.PlateNumber is not null && await FindPlateNumber(newVehicle.PlateNumber)) {
+				return BadRequest("车牌号重复");
+			}
+
             if (!ModelState.IsValid) {
                 return BadRequest("车辆信息无效");
             }
@@ -89,18 +108,29 @@ namespace aspnetapp.Controllers.Web {
             }
         }
 
-        // 更新车辆信息
+        /// <summary>
+        /// 更新车辆信息
+        /// </summary>
+        /// <param name="updatedVehicle"></param>
+        /// <returns></returns>
         public async Task<IActionResult> UpdateVehicle(Vehicle updatedVehicle) {
             _logger.LogInformation("正在启动ID为{VehicleId}的车辆更新过程", updatedVehicle.Id);
 
-            var vehicle = await _context.Vehicle.FindAsync(updatedVehicle.Id);
-            if (vehicle == null) {
+			var vehicle = await _context.Vehicle.FindAsync(updatedVehicle.Id);
+
+
+			if (vehicle == null) {
                 _logger.LogWarning("Vehicle with ID {VehicleId} not found", updatedVehicle.Id);
                 return NotFound("Vehicle not found.");
-            }
+			}
 
-            // 更新车辆属性
-            vehicle.TheOriginalStore = updatedVehicle.TheOriginalStore;
+			// 如更改车牌号且有重复车牌号
+			if (vehicle.PlateNumber != updatedVehicle.PlateNumber && updatedVehicle.PlateNumber is not null && await FindPlateNumber(updatedVehicle.PlateNumber)) {
+				return BadRequest("车牌号重复");
+			}
+
+			// 更新车辆属性
+			vehicle.TheOriginalStore = updatedVehicle.TheOriginalStore;
             vehicle.TheCurrentStore = updatedVehicle.TheCurrentStore;
 
 			vehicle.PlateNumber = updatedVehicle.PlateNumber;
