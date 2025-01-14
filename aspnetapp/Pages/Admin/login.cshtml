@@ -53,7 +53,7 @@
             box-sizing: border-box;
         }
 
-        input[type="submit"] {
+        .login-button {
             width: 100%;
             padding: 10px;
             margin-top: 16px;
@@ -65,7 +65,7 @@
             font-size: 16px;
         }
 
-        input[type="submit"]:hover {
+        .login-button:hover {
             background-color: #2a64f4;
             color: white; /* 将文本颜色变淡 */
             box-shadow: 3px 8px 8px rgba(0, 0, 0, 0.3); /* 阴影 */
@@ -145,7 +145,7 @@
     }
     <div class="login">
         <h2>租赁系统后台登录</h2>
-        <form method="post" class="login-form">
+        <form method="post" class="login-form" id="form">
             <!-- 用户名输入 -->
             <div class="input-group">
                 <i class="fa fa-user"></i>
@@ -168,38 +168,8 @@
                     });
                 </script>
             </div>
-            <input type="submit" value="登录" />
+            <button type="submit" class="login-button" >登录</button>
         </form>
     </div>
-
-    <script>
-        document.getElementById("loginForm").addEventListener("submit", async function (event) {
-            event.preventDefault(); // 防止表单默认提交
-
-            const username = document.getElementById("username").value;
-            const password = document.getElementById("password").value;
-
-            try {
-                const response = await fetch(window.location.href, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ username, password }),
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    localStorage.setItem("jwt", data.jwt); // 保存 JWT 到 localStorage
-                    window.location.href = "/admin/main"; // 跳转到目标页面
-                } else {
-                    const errorText = await response.text();
-                    document.getElementById("errorMessage").innerText = "登录失败: " + errorText;
-                }
-            } catch (error) {
-                document.getElementById("errorMessage").innerText = "发生错误: " + error.message;
-            }
-        });
-    </script>
 </body>
 </html>

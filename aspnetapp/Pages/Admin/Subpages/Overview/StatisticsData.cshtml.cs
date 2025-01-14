@@ -52,7 +52,13 @@ namespace aspnetapp.Pages.Admin.Subpages.Overview {
 		public List<(string State, int VehicleCount)> VehicleStateDistribution { get; set; }
 
 		public async Task<IActionResult> OnGetAsync() {
-			UserSum = await _statisticsDataController.GetUserSumAsync();
+            // 读取名为 "JWT" 的 Cookie
+            if (Request.Cookies.TryGetValue("JWT", out var jwt))
+            {
+                Console.WriteLine($"JWT: {jwt}");
+            }
+
+            UserSum = await _statisticsDataController.GetUserSumAsync();
 			VehicleSum = await _statisticsDataController.GetVehicleSumAsync();
 			StoreSum = await _statisticsDataController.GetStoreSumAsync();
 			OrderSum = await _statisticsDataController.GetOrderSumAsync();
