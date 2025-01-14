@@ -64,7 +64,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (await _dbContext.Store.AnyAsync(s => s.Id == storeAccount.Id && s.IsDelete))// 门店是否删除
                 return StatusCode(403, "门店不存在");
 
-            return StatusCode(200, GetJwtToken(CreateClaim(storeAccount.Id.ToString(), "store")));
+            return StatusCode(200, new { JWT = GetJwtToken(CreateClaim(storeAccount.Id.ToString(), "store")), TheStore = storeAccount.TheStore });
         }
 
         /// <summary>
