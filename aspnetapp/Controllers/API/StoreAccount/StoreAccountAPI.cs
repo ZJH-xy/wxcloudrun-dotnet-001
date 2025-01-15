@@ -373,7 +373,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (order.Status != Order.EOrderStatus.进行中)
                 return StatusCode(403, "订单状态异常");
 
-            return StatusCode(200, new ReturnOrder(order));
+            return StatusCode(200, new ReturnOrder(order, async id => await GetPlateNumberById(id)));
         }
 
         #region 商家确认还车
@@ -992,10 +992,11 @@ namespace aspnetapp.Controllers.API.StoreAccount
     /// 商家确认还车返回格式
     /// </summary>
     public struct ReturnOrder {
-        public ReturnOrder(Order order) {
+        public ReturnOrder(Order order, Func<int, Task<string?>> getPlateNumberById) {
             Id = order.Id;
             TheVehicle = order.TheVehicle;
-            TheStoreMenu = order.TheStoreMenu;
+			TheVehiclePlateNumber = getPlateNumberById(order.TheVehicle).Result ?? "未知";
+			TheStoreMenu = order.TheStoreMenu;
             ActualStartingTime = order.ActualStartingTime;
             TheRentalLocation = order.TheRentalLocation;
             UserName = order.UserName;
@@ -1010,7 +1011,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
         }
         public int Id { get; init; }// 订单编号
         public int TheVehicle { get; set; }// 租用车辆
-        public DateTime? ActualStartingTime { get; set; }// 实际起始时间
+		public string TheVehiclePlateNumber { get; set; }// 租用车辆车牌号
+		public DateTime? ActualStartingTime { get; set; }// 实际起始时间
         public int TheStoreMenu { get; set; }// 套餐
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public string UserName { get; set; }// 用户姓名
