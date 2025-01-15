@@ -202,9 +202,12 @@ namespace aspnetapp.Controllers.API.StoreAccount
             VehicleReplacementRecord? vrr;
 
             try {
-                vrr = await _dbContext.VehicleReplacementRecord.FirstOrDefaultAsync(v => v.TheOrder == orderId);// 获取换车信息
+				vrr = await _dbContext.VehicleReplacementRecord
+	                .Where(v => v.TheOrder == orderId) // 根据 orderId 筛选
+	                .OrderByDescending(v => v.CreatedAt) // CreatedAt 是记录创建的时间戳
+	                .FirstOrDefaultAsync(); // 获取最新的一条记录
 
-            } catch (Exception e) {
+			} catch (Exception e) {
                 _logger.LogError(e, "查询换车请求{OrderId}", orderId);
                 return StatusCode(500);
             }
@@ -215,7 +218,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             // 获取订单状态
             Order order;
             try {
-                order = await _dbContext.Order.FirstAsync(o => o.Id == orderId);
+                order = await _dbContext.Order.SingleAsync(o => o.Id == orderId);
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取订单{OrderId}", orderId);
@@ -225,7 +228,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             // 获取套餐
             StoreMenu storeMenu;
             try {
-                storeMenu = await _dbContext.StoreMenus.FirstAsync(sm => sm.Id == order.TheStoreMenu);
+                storeMenu = await _dbContext.StoreMenus.SingleAsync(sm => sm.Id == order.TheStoreMenu);
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取套餐{StoreMenuId}", order.TheStoreMenu);
