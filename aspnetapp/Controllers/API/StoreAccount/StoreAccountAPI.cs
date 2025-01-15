@@ -119,15 +119,15 @@ namespace aspnetapp.Controllers.API.StoreAccount
             /* 检查车辆状态 */
             Vehicle? vehicle;
             try {
-                vehicle = await _dbContext.Vehicle.FindAsync(getData.TheVehicle);
+                //vehicle = await _dbContext.Vehicle.FindAsync(getData.TheVehicle);
 
 				// 查询将要更换的车辆
-				if (!getData.PlateNumber.IsNullOrEmpty()) {
+				//if (!getData.PlateNumber.IsNullOrEmpty()) {
 					vehicle = await storeAccountController.GetVehicleByPlateNumber(getData.PlateNumber);
-				}
+				//}
 
 			} catch (Exception e) {
-                _logger.LogError(e, "查询车辆{VehicleId}", getData.TheVehicle);
+                //_logger.LogError(e, "查询车辆{VehicleId}", getData.TheVehicle);
 				_logger.LogError(e, "查询车辆车牌：{VehicleId}", getData.PlateNumber);
 				return StatusCode(500);
 			}
@@ -281,11 +281,11 @@ namespace aspnetapp.Controllers.API.StoreAccount
             try {
 				// 查询将要更换的车辆
 				//newVehicle = await _dbContext.Vehicle.FindAsync(getData.TheVehicle);
-				newVehicle = await _dbContext.Vehicle.FindAsync(getData.TheVehicle);
+				//newVehicle = await _dbContext.Vehicle.FindAsync(getData.TheVehicle);
 
-                if (!getData.PlateNumber.IsNullOrEmpty()) {
+                //if (!getData.PlateNumber.IsNullOrEmpty()) {
 					newVehicle = await storeAccountController.GetVehicleByPlateNumber(getData.PlateNumber);
-				}
+				//}
 
 			} catch (Exception e) {
                 //_logger.LogError(e, "查询车辆{VehicleId}", getData.TheVehicle);
@@ -335,10 +335,13 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             // 新车辆状态改为已出租
             newVehicle.State = Vehicle.Estates.已出租;
+			newVehicle.StateUpdatedAt = now;
+			newVehicle.UpdatedAt = now;
 
-            /* 车辆状态改为侍确认 */
-            oldVehicle.State = Vehicle.Estates.侍确认;
-            oldVehicle.UpdatedAt = now;
+			/* 车辆状态改为侍确认 */
+			oldVehicle.State = Vehicle.Estates.侍确认;
+			oldVehicle.StateUpdatedAt = now;
+			oldVehicle.UpdatedAt = now;
 
             /* 换车记录表VehicleReplacementRecord 更新 */
             vrr.State = VehicleReplacementRecord.Estates.已完成;
@@ -896,7 +899,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
     /// </summary>
     public class GetConfirmOrder {
         public int OderId { get; set; }
-        public int TheVehicle { get; set; }// 租用车辆
+        //public int TheVehicle { get; set; }// 租用车辆
 		public string PlateNumber { get; set; }// 车辆（车牌号）
 	}
 
@@ -905,7 +908,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
     /// </summary>
     public class GetConfirmReplacement {
         public int OderId { get; set; }
-        public int TheVehicle { get; set; }// 更换车辆
+        //public int TheVehicle { get; set; }// 更换车辆
         public string PlateNumber { get; set; }// 车辆（车牌号）
     }
 
