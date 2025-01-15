@@ -121,9 +121,15 @@ namespace aspnetapp.Controllers.API.StoreAccount
             try {
                 vehicle = await _dbContext.Vehicle.FindAsync(getData.TheVehicle);
 
-            } catch (Exception e) {
+				// 查询将要更换的车辆
+				if (!getData.PlateNumber.IsNullOrEmpty()) {
+					vehicle = await storeAccountController.GetVehicleByPlateNumber(getData.PlateNumber);
+				}
+
+			} catch (Exception e) {
                 _logger.LogError(e, "查询车辆{VehicleId}", getData.TheVehicle);
-                return StatusCode(500);
+				_logger.LogError(e, "查询车辆车牌：{VehicleId}", getData.PlateNumber);
+				return StatusCode(500);
 			}
 
             if (vehicle is null)
@@ -156,7 +162,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
 				await _dbContext.SaveChangesAsync();
 
 				// 商家选择不同车辆
-				if (order.TheVehicle != getData.TheVehicle) {
+				if (order.TheVehicle != vehicle.Id) {
                     Vehicle oldV = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
                     oldV.State = Vehicle.Estates.空闲;
                     oldV.UpdatedAt = now;
@@ -164,7 +170,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                     _dbContext.Update(oldV);
                     await _dbContext.SaveChangesAsync();
 
-                    order.TheVehicle = getData.TheVehicle;
+                    order.TheVehicle = vehicle.Id;
                     order.UpdatedAt = now;
                     vehicle.State = Vehicle.Estates.已出租;
                     vehicle.UpdatedAt = now;
@@ -891,7 +897,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
     public class GetConfirmOrder {
         public int OderId { get; set; }
         public int TheVehicle { get; set; }// 租用车辆
-    }
+		public string PlateNumber { get; set; }// 车辆（车牌号）
+	}
 
     /// <summary>
     /// 确认换车格式
