@@ -33,7 +33,7 @@
 				<h3>租赁系统后台</h3>
 				<!-- 显示登录的管理员信息 -->
 				<div class="admin-info">
-					<span>管理员：</span> <!-- 显示管理员名称 -->
+					<span id="admin"></span> <!-- 显示管理员名称 -->
 					<a href="/admin/login" class="logout-link">
 						<i class="fas fa-sign-out-alt"></i> 退出登录
 					</a>
@@ -163,6 +163,8 @@
 				</li>
 			</ul>
 		</div>
+
+
 	</nav>
 
 	<!-- 主内容区域 -->
@@ -170,7 +172,37 @@
 		@* 根据选择的页面动态加载内容 *@
 		<iframe id="contentFrame" src="about:blank"></iframe>
 	</div>
+	<script>
+		// 从 cookie 获取 JWT
+		function getCookieValue(cookieName) {
+			const cookieString = document.cookie;
+			const cookiesArray = cookieString.split('; ');
+			for (let cookie of cookiesArray) {
+				cookie = cookie.trim(); // 去掉前后的空白字符
+				const [name, value] = cookie.split('=');
+				if (name === cookieName) {
+					return value;
+				}
+			}
+			return null; // 如果找不到，返回 null
+		}
+		// 获取 JWT
+		var token = getCookieValue("JWT");
 
+		console.log("JWT Token: ", token); // 打印 JWT token
+
+		if (token) {
+			let strings = token.split(".");
+			var userinfo = JSON.parse(decodeURIComponent(escape(window.atob(strings[1].replace(/-/g, "+").replace(/_/g, "/")))));
+			console.log(userinfo);
+
+			const adminElement = document.getElementById("admin");
+			const username = userinfo["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]
+				adminElement.textContent = `管理员: ${username || '未知用户'}`; // 显示管理员名称
+		} else {
+			console.log("未登录，请先登录。");
+		}
+	</script>
 
 </body>
 </html>
