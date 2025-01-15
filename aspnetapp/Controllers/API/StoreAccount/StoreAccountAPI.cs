@@ -89,7 +89,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (order.Status != Order.EOrderStatus.待确认)
                 return StatusCode(403, "订单状态异常");
 
-            return StatusCode(200, new ReturnConfirmOrder(order));
+            return StatusCode(200, new ReturnConfirmOrder(order, async id => await GetPlateNumberById(id)));
         }
 
         #region 商家确认订单
@@ -226,7 +226,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 return StatusCode(500);
 			}
 
-            return StatusCode(200, new Returnreplacement(vrr, order, storeMenu));
+            return StatusCode(200, new Returnreplacement(vrr, order, storeMenu, async id => await GetPlateNumberById(id)));
         }
 
         /// <summary>
@@ -853,12 +853,25 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 claims.ToJToken());
             return jwt;
         }
-    }
 
-    /// <summary>
-    /// 商家审核地址信息
-    /// </summary>
-    public class GetAddress {
+		/// <summary>
+		/// 根据车辆 ID 查询车牌号
+		/// </summary>
+		/// <param name="vehicleId">车辆 ID</param>
+		/// <returns>车牌号</returns>
+		public async Task<string?> GetPlateNumberById(int vehicleId) {
+			var vehicle = await _dbContext.Vehicle
+				.AsNoTracking()
+				.FirstOrDefaultAsync(v => v.Id == vehicleId);
+
+			return vehicle?.PlateNumber;
+		}
+	}
+
+	/// <summary>
+	/// 商家审核地址信息
+	/// </summary>
+	public class GetAddress {
         /// <summary>
         /// Longitude 经度，范围 [-180, 180]
         /// </summary>
@@ -900,7 +913,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
     /// 商家获取确认订单返回格式
     /// </summary>
     public struct ReturnConfirmOrder {
-        public ReturnConfirmOrder(Order order) {
+        public ReturnConfirmOrder(Order order, Func<int, Task<string?>> getPlateNumberById) {
             Id = order.Id;
             TheVehicle = order.TheVehicle;
             TheStoreMenu = order.TheStoreMenu;
@@ -914,9 +927,11 @@ namespace aspnetapp.Controllers.API.StoreAccount
             Status = order.Status;
             CreatedAt = order.CreatedAt;
             Notes = order.Notes;
-        }
+			TheVehiclePlateNumber = getPlateNumberById(TheVehicle).Result ?? "未知";
+		}
         public int Id { get; init; }// 订单编号
         public int TheVehicle { get; set; }// 租用车辆
+        public string TheVehiclePlateNumber { get; set; }// 租用车辆
         public int TheStoreMenu { get; set; }// 套餐
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public string UserName { get; set; }// 用户姓名
@@ -935,21 +950,26 @@ namespace aspnetapp.Controllers.API.StoreAccount
     /// 商家获取确认换车返回格式
     /// </summary>
     public struct Returnreplacement {
-        public Returnreplacement(VehicleReplacementRecord vrr, Order order, StoreMenu storeMenu) {
+        public Returnreplacement(VehicleReplacementRecord vrr, Order order, StoreMenu storeMenu, Func<int, Task<string?>> getPlateNumberById) {
             TheOldVehicles = vrr.TheOldVehicles;
             TheNewVehicles = vrr.TheNewVehicles;
-            CreatedAt = vrr.CreatedAt;
+			CreatedAt = vrr.CreatedAt;
             TheOrder = order.Id;
             TheRentalLocation = order.TheRentalLocation;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
             IdentityCard = order.IdentityCard;
             Notes = order.Notes;
-            Duration = storeMenu.Duration;
-        }
-        public int TheOldVehicles { get; set; }// 旧车辆
+            Duration = storeMenu.Duration;// 初始化车牌号
+			TheOldVehiclesPlateNumber = getPlateNumberById(vrr.TheOldVehicles).Result ?? "未知";
+			TheNewVehiclesPlateNumber = getPlateNumberById(vrr.TheNewVehicles).Result ?? "未知";
+		}
+		public int TheOldVehicles { get; set; }// 旧车辆
         public int TheNewVehicles { get; set; }// 新车辆
-        public DateTime CreatedAt { get; set; }
+
+		public string TheOldVehiclesPlateNumber { get; set; }// 旧车辆车牌号
+		public string TheNewVehiclesPlateNumber { get; set; }// 新车辆车牌号
+		public DateTime CreatedAt { get; set; }
         // 订单相关
         public int TheOrder { get; set; }// 租车点（StoreId）
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
