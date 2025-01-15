@@ -1,4 +1,4 @@
-@localhost = https://localhost:61438
+@localhost = https://localhost:62375
 @id = 0
 @phone = 15878175303
 @password = 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
@@ -158,6 +158,19 @@ content-type: application/json
     "OderId": 1,
     "TheVehicle": 1
 }
+
+
+### 确认换车
+POST {{localhost}}/storeAccount/confirm/vehicle/replacement HTTP/1.1
+Authorization: Bearer {{storeAccountauthorization}}
+content-type: application/json
+
+{
+    "OderId": 85,
+    "TheVehicle": 0,
+    "PlateNumber": "9991"
+}
+
 
 
 ### 确认还车
