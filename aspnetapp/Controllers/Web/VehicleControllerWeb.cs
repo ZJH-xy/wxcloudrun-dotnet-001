@@ -126,7 +126,8 @@ namespace aspnetapp.Controllers.Web {
 
 			// 如更改车牌号且有重复车牌号
 			if (vehicle.PlateNumber != updatedVehicle.PlateNumber && updatedVehicle.PlateNumber is not null && await FindPlateNumber(updatedVehicle.PlateNumber)) {
-				return BadRequest("车牌号重复");
+				//return BadRequest("车牌号重复");
+				return StatusCode(4001, $"车牌号和已有车辆重复，请检查");
 			}
 
 			// 更新车辆属性
@@ -134,6 +135,7 @@ namespace aspnetapp.Controllers.Web {
             vehicle.TheCurrentStore = updatedVehicle.TheCurrentStore;
 
 			vehicle.PlateNumber = updatedVehicle.PlateNumber;
+
             vehicle.FrameNumber = updatedVehicle.FrameNumber;
             vehicle.Certificate = updatedVehicle.Certificate;
             vehicle.Invoice = updatedVehicle.Invoice;

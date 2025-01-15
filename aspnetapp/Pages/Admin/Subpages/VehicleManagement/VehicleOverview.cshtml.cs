@@ -210,12 +210,6 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 		/// 更新
 		/// </summary>
 		public async Task<IActionResult> OnPostUpdateVehicleAsync() {
-			// 查重车牌号
-			if (!UpdatedVehicle.PlateNumber.IsNullOrEmpty() && await _vehicleController.FindPlateNumber(UpdatedVehicle.PlateNumber)) {
-				ErrorMessage = "车牌号和已有车辆重复，请检查";
-				return Page();
-			}
-
 			_logger.LogInformation("正在尝试使用ID更新车辆{VehicleId}", UpdatedVehicle.Id);
 
 			//if (!ModelState.IsValid) {
@@ -231,9 +225,19 @@ namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
 			} else if (result is StatusCodeResult status && status.StatusCode == 500) {
 				_logger.LogError("更新车辆时出错。VehicleId: {VehicleId}", UpdatedVehicle.Id);
 				ErrorMessage = "更新车辆出错。";
-			} else if (result is ObjectResult objResult && objResult.StatusCode == 409) {
-				_logger.LogWarning("使用ID更新车辆时发生并发冲突。VehicleId: {VehicleId}", UpdatedVehicle.Id);
-				ErrorMessage = $"您尝试编辑的记录已被其他用户修改。请重新加载数据后重试，ID：{UpdatedVehicle.Id}";
+			} else if (result is ObjectResult objResult) {
+				if (objResult.StatusCode == 409) {
+					ErrorMessage = $"您尝试编辑的记录已被其他用户修改。请重新加载数据后重试，ID：{UpdatedVehicle.Id}";
+
+				} else if (objResult.StatusCode >= 4001) {
+					ErrorMessage = objResult.Value?.ToString()!;// 车牌号和已有车辆重复，请检查
+
+				} else if (objResult.StatusCode >= 400) {
+					// 打印返回的错误信息
+					var errorDetail = objResult.Value?.ToString() ?? "未知错误";
+					_logger.LogError("更新车辆时发生错误。VehicleId: {VehicleId}, 错误信息: {ErrorDetail}", UpdatedVehicle.Id, errorDetail);
+					ErrorMessage = $"更新车辆时发生错误: {errorDetail}";
+				}
 			} else {
 				_logger.LogInformation("ID为{VehicleId}的车辆已成功更新", UpdatedVehicle.Id);
 				SuccessMessage = $"保存成功，已更新 ID：{UpdatedVehicle.Id}";
