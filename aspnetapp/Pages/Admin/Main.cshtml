@@ -16,7 +16,10 @@
 	<!-- 引入 FontAwesome 图标库 -->
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 	<link rel="stylesheet" href="~/css/main.css" />
-	<script src="~/js/main.js"></script>
+	<link rel="stylesheet" href="~/css/loading.css" />
+
+	<script src="~/js/main.js" defer></script>
+	<script src="~/js/loading.js" defer></script>
 
 </head>
 
@@ -173,6 +176,15 @@
 		<iframe id="contentFrame" src="about:blank"></iframe>
 	</div>
 	<script>
+		document.getElementById("logout").addEventListener("click", function (event) {
+			event.preventDefault(); // 阻止默认的链接跳转，避免页面刷新
+
+			// 清除 JWT cookie
+			document.cookie = "JWT=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/"; // 设置过期为过去的时间
+
+			// 可以选择导航到登录页面
+			window.location.href = "/admin/login"; // 或直接导航到指定的退出页面
+		});
 		// 从 cookie 获取 JWT
 		function getCookieValue(cookieName) {
 			const cookieString = document.cookie;
@@ -197,10 +209,11 @@
 			console.log(userinfo);
 
 			const adminElement = document.getElementById("admin");
-			const username = userinfo["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]
+			const username = userinfo["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]
 				adminElement.textContent = `管理员: ${username || '未知用户'}`; // 显示管理员名称
 		} else {
 			console.log("未登录，请先登录。");
+			window.location.href = "/admin/login"; 
 		}
 	</script>
 
