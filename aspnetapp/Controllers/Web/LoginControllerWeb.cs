@@ -27,7 +27,14 @@ namespace aspnetapp.Controllers.Web {
 			}
 
 			if (adminAccount.Password == password) {
-				return (true, GetJwtToken(CreateClaim(adminAccount.Id.ToString(), "admin")));
+				// 创建 Claim，添加自定义字段
+				List<Claim> claims = new() {
+					new Claim(ClaimTypes.NameIdentifier, adminAccount.Id.ToString()),
+					new Claim(ClaimTypes.Name, adminAccount.Account),
+					new Claim(ClaimTypes.Role, "admin")
+				};
+
+				return (true, GetJwtToken(claims, 12));
 			}
 
 			return (false, "");
@@ -51,11 +58,13 @@ namespace aspnetapp.Controllers.Web {
 		/// JWT 令牌计算
 		/// </summary>
 		/// <param name="claims"></param>
+		/// <param name="hours">过期时间</param>
 		/// <returns></returns>
-		private string GetJwtToken(List<Claim> claims) {
+		private string GetJwtToken(List<Claim> claims, int hours) {
 			// 读取配置
 			string key = _JWTSettingsOpt.Value.SecKey;
-			DateTime expires = DateTime.Now.AddDays(_JWTSettingsOpt.Value.ExpireDays);// 读取配置过期时间
+			//DateTime expires = DateTime.Now.AddDays(_JWTSettingsOpt.Value.ExpireDays);// 读取配置过期时间
+			DateTime expires = DateTime.Now.AddHours(hours);// 过期时间
 
 			// 计算
 			byte[] secBytes = Encoding.UTF8.GetBytes(key);

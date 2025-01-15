@@ -2,6 +2,9 @@
 using aspnetapp.Pages.Admin.Subpages.StoreManagement;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using NPOI.POIFS.Crypt;
+using Senparc.NeuChar.NeuralSystems;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace aspnetapp.Pages.Admin {
@@ -42,14 +45,17 @@ namespace aspnetapp.Pages.Admin {
 			var re = await _loginControllerWeb.LoginAsync(Username, Password);
 
 			if (re.Item1) {
-                // 设置 JWT 到 Cookie 中
-                Response.Cookies.Append("JWT", re.Item2, new CookieOptions
-                {
-                    Secure = true,   // 仅在 HTTPS 下传输
-                    SameSite = SameSiteMode.Strict, // 限制跨站请求
-                    Expires = DateTimeOffset.UtcNow.AddHours(1) // JWT 过期时间
-                });
-                return RedirectToPage("/admin/main");
+				// 获取JWT
+				var jwt = re.Item2;
+
+				// 设置 Cookie
+				Response.Cookies.Append("JWT", jwt, new CookieOptions {
+					Secure = true,   // 仅在 HTTPS 传输
+					SameSite = SameSiteMode.Strict, // 限制跨站请求
+					Expires = DateTimeOffset.UtcNow.AddHours(12) // 过期时间
+				});
+
+				return RedirectToPage("/admin/main");
 
 				// 登录成功
 				//return StatusCode(200, new{ JWT = re.Item2 });
