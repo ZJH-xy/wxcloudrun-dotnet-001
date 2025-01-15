@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using static aspnetapp.Models.RefundOrder;
 using NPOI.SS.Formula.Functions;
+using System.Security.Claims;
 
 namespace aspnetapp.Controllers.Web {
 	public class OrderControllerWeb : Controller {
@@ -147,9 +148,11 @@ namespace aspnetapp.Controllers.Web {
 		/// <summary>
 		/// 更新订单信息
 		/// </summary>
-		public async Task<IActionResult> UpdateOrder(Order updatedOrder) {
+		/// <param name="updatedOrder"></param>
+		/// <param name="adminId">管理员ID</param>
+		/// <returns></returns>
+		public async Task<IActionResult> UpdateOrder(Order updatedOrder, int adminId) {
 			_logger.LogInformation("正在更新订单，订单ID：{OrderId}", updatedOrder.Id);
-
 			var order = await _context.Order.FindAsync(updatedOrder.Id);
 			if (order is null) {
 				_logger.LogWarning("未找到订单，订单ID：{OrderId}", updatedOrder.Id);
@@ -170,7 +173,7 @@ namespace aspnetapp.Controllers.Web {
 				// 初始化订单日志
 				OrderLog orderLog = new() {
 					OrderId = order.Id,
-					AdminId = 0,// 管理员ID
+					AdminId = adminId,// 管理员ID
 					OperationTime = now// 操作时间
 				};
 
@@ -313,6 +316,5 @@ namespace aspnetapp.Controllers.Web {
 
 			return orders;
 		}
-
 	}
 }

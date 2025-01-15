@@ -1,10 +1,13 @@
 ﻿using aspnetapp.Controllers.Web;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 
 namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
+	[Authorize] // 确保需要认证才能访问
+	[Authorize(Roles = "admin")]// 只有管理员能访问
 	public class VehicleReplacementRecordModel : PageModel {
 		private readonly VehicleReplacementRecordControllerWeb _vehicleReplacementRecordControllerWeb;
 		private readonly ILogger<VehicleReplacementRecordModel> _logger;

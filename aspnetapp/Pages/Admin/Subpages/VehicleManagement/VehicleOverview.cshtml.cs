@@ -4,8 +4,11 @@ using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 using aspnetapp.Controllers.Miniprogram;
+using Microsoft.AspNetCore.Authorization;
 
 namespace aspnetapp.Pages.Admin.Subpages.VehicleManagement {
+	[Authorize] // 确保需要认证才能访问
+	[Authorize(Roles = "admin")]// 只有管理员能访问
 	public class VehicleOverviewModel : PageModel {
 		private readonly VehicleControllerWeb _vehicleController;
 		private readonly ILogger<VehicleOverviewModel> _logger;

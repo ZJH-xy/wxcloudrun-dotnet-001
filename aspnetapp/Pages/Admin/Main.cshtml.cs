@@ -1,19 +1,14 @@
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace aspnetapp.Pages.Admin
-{
-    public class homeModel : PageModel{
-  //      public int OnGet(){
-		//	// ��ȡ��Ϊ "JWT" �� Cookie
-		//	if (Request.Cookies.TryGetValue("JWT", out var jwt)){
-		//		Console.WriteLine($"JWT: {jwt}");
-		//		if(jwt == null){
-		//			return Page("/admin/login");
+namespace aspnetapp.Pages.Admin {
+	[Authorize] // 确保需要认证才能访问
+	[Authorize(Roles = "admin")]// 只有管理员能访问
+	public class homeModel : PageModel {
+		public IActionResult OnGet() {
 
-		//		}
-		//	}
-		//}
-
-    }
+			return Page();
+		}
+	}
 }

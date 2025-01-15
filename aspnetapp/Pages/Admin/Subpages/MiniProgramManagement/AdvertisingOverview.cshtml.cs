@@ -1,5 +1,6 @@
 ﻿using aspnetapp.Controllers.Miniprogram;
 using aspnetapp.Controllers.Web;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
@@ -10,6 +11,8 @@ namespace aspnetapp.Pages.Admin.Subpages.MiniProgramManagement {
 	/// <summary>
 	/// 广告
 	/// </summary>
+	[Authorize] // 确保需要认证才能访问
+	[Authorize(Roles = "admin")]// 只有管理员能访问
 	public class AdvertisingOverviewModel : PageModel {
 		private readonly AdvertisementControllerWeb _advertisementController;
 		private readonly ILogger<AdvertisingOverviewModel> _logger;
