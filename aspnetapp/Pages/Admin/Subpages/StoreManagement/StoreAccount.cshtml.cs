@@ -1,5 +1,6 @@
 ﻿using aspnetapp.Controllers.Miniprogram;
 using aspnetapp.Controllers.Web;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NPOI.SS.UserModel;
@@ -7,7 +8,9 @@ using NPOI.XSSF.UserModel;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 
 namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
-    public class StoreAccountModel : PageModel {
+	[Authorize] // 确保需要认证才能访问
+	[Authorize(Roles = "admin")]// 只有管理员能访问
+	public class StoreAccountModel : PageModel {
         private readonly StoreAccountControllerWeb _storeAccountControllerWeb;
         private readonly ILogger<StoreAccountModel> _logger;
         private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;

@@ -1,13 +1,17 @@
 ﻿using aspnetapp.Controllers.Miniprogram;
 using aspnetapp.Controllers.Web;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 using SixLabors.ImageSharp;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
+	[Authorize] // 确保需要认证才能访问
+	[Authorize(Roles = "admin")]// 只有管理员能访问
 	public class OrderOverviewModel : PageModel {
 		private readonly OrderControllerWeb _orderController;
 		private readonly ILogger<OrderOverviewModel> _logger;
@@ -137,7 +141,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// </summary>
 		/// <returns></returns>
 		public async Task<IActionResult> OnPostUpdateOrderAsync() {
-			var result = await _orderController.UpdateOrder(UpdatedOrder);
+			var result = await _orderController.UpdateOrder(UpdatedOrder, GetUserIdInt());
 			if (result is NotFoundResult) {
 				ErrorMessage = $"未找到订单，订单ID：{UpdatedOrder.Id}";
 			} else if (result is StatusCodeResult status && status.StatusCode == 500) {
@@ -341,6 +345,14 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// <returns></returns>
 		public async Task<JsonResult> OnGetSearchDataAsync() {
 			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus, SearchTheVehicle, SearchPlateNumber, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder });
+		}
+
+		/// <summary>
+		/// JWT 获取用户id
+		/// </summary>
+		/// <returns></returns>
+		public int GetUserIdInt() {
+			return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 		}
 	}
 }

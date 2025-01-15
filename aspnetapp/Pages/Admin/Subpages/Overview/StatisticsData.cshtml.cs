@@ -1,7 +1,10 @@
 ﻿using aspnetapp.Controllers.Web;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace aspnetapp.Pages.Admin.Subpages.Overview {
+	[Authorize] // 确保需要认证才能访问
+	[Authorize(Roles = "admin")]// 只有管理员能访问
 	public class StatisticsDataModel : PageModel {
 		private readonly StatisticsDataControllerWeb _statisticsDataController;
 		private readonly ILogger<StatisticsDataModel> _logger;
@@ -52,11 +55,7 @@ namespace aspnetapp.Pages.Admin.Subpages.Overview {
 		public List<(string State, int VehicleCount)> VehicleStateDistribution { get; set; }
 
 		public async Task<IActionResult> OnGetAsync() {
-            // 读取名为 "JWT" 的 Cookie
-            if (Request.Cookies.TryGetValue("JWT", out var jwt))
-            {
-                Console.WriteLine($"JWT: {jwt}");
-            }
+
 
             UserSum = await _statisticsDataController.GetUserSumAsync();
 			VehicleSum = await _statisticsDataController.GetVehicleSumAsync();

@@ -54,18 +54,28 @@ builder.Services.AddHostedService<TimedHostedService>();
 
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWT"));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
-    opt => {
+    options => {
         var jwtSettings = builder.Configuration.GetSection("JWT").Get<JWTSettings>();
         byte[] keyBytes = Encoding.UTF8.GetBytes(jwtSettings.SecKey);
         var secKey = new SymmetricSecurityKey(keyBytes);
-        opt.TokenValidationParameters = new() {
+        options.TokenValidationParameters = new() {
             ValidateIssuer = false,
             ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = secKey
         };
-    });
+		options.Events = new JwtBearerEvents {
+			OnMessageReceived = context => {
+				// 尝试从 Cookie 中读取 JWT
+				var token = context.HttpContext.Request.Cookies["JWT"];
+				if (!string.IsNullOrEmpty(token)) {
+					context.Token = token; // 将 Token 传递给验证逻辑
+				}
+				return Task.CompletedTask;
+			}
+		};
+	});
 
 
 //Senparc.Weixin 注册（必须）

@@ -1,10 +1,13 @@
 ﻿using aspnetapp.Controllers.Web;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 
 namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
+	[Authorize] // 确保需要认证才能访问
+	[Authorize(Roles = "admin")]// 只有管理员能访问
 	public class UserOverviewModel : PageModel {
 		private readonly UserControllerWeb _userController;
 		private readonly ILogger<UserOverviewModel> _logger;
