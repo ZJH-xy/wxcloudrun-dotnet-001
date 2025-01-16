@@ -23,6 +23,7 @@ builder.Services.AddRazorPages();
 // 激活本地缓存
 builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<MyDbContext>();
+builder.Services.AddScoped<ConfigurationService>();
 builder.Services.AddScoped<IUserRepository, UserController>();// 依赖注入
 builder.Services.AddScoped<IStoreRepository, StoreController>();
 builder.Services.AddScoped<IVehicleRepository, VehicleController>();

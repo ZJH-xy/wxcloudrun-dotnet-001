@@ -450,9 +450,10 @@ namespace aspnetapp.Controllers.API.StoreAccount
             }
 
             // 调度
-            if (order.TheRentalLocation != GetUserIdInt()) {
-                order.DispatchFee += 10;
-            }
+            // 改为在下单时收取
+            //if (order.TheRentalLocation != GetUserIdInt()) {
+            //    order.DispatchFee += 10;
+            //}
 
             order.ActualReturnTime = now;// 更新订单归还时间
             DateTime startingTime = (DateTime)order.ActualStartingTime!;// 租车开始时间
