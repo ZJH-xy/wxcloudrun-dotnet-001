@@ -201,8 +201,6 @@
 		// 获取 JWT
 		var token = getCookieValue("JWT");
 
-		console.log("JWT Token: ", token); // 打印 JWT token
-
 		if (token) {
 			let strings = token.split(".");
 			var userinfo = JSON.parse(decodeURIComponent(escape(window.atob(strings[1].replace(/-/g, "+").replace(/_/g, "/")))));

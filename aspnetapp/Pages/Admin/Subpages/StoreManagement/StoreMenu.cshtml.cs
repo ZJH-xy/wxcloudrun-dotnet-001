@@ -64,6 +64,38 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 		public string? SortOrderHtml { get; set; }
 
 		/// <summary>
+		/// 当前调度费
+		/// </summary>
+		[BindProperty]
+		public decimal DispatchFee { get; set; } // 
+
+		/// <summary>
+		/// 加载当前调度费
+		/// </summary>
+		public async Task LoadDispatchFeeAsync() {
+			var config = await _storeMenuControllerWeb.GetConfigurationByKeyAsync("DispatchFee");
+			DispatchFee = decimal.TryParse(config?.Value, out var fee) ? fee : 0; // 默认值为0
+		}
+
+		/// <summary>
+		/// 更新调度费
+		/// </summary>
+		public async Task<IActionResult> OnPostUpdateDispatchFeeAsync() {
+			try {
+				// 更新调度费
+				await _storeMenuControllerWeb.UpdateConfigurationAsync("DispatchFee", DispatchFee.ToString());
+				SuccessMessage = "调度费已成功更新";
+			} catch (Exception ex) {
+				_logger.LogError(ex, "更新调度费时出错");
+				ErrorMessage = "更新调度费时发生错误，请稍后重试。";
+			}
+
+			// 重新加载调度费
+			await LoadDispatchFeeAsync();
+			return Page();
+		}
+
+		/// <summary>
 		/// 添加
 		/// </summary>
 		/// <returns></returns>
@@ -102,9 +134,11 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
         /// </summary>
         /// <returns></returns>
         public async Task<IActionResult> OnGetAsync() {
-            //_logger.LogInformation("[OnGetAsync]正在获取限制为{Limit}的页面{PageIndex}的门店列表", PageIndex, Limit);
+			await LoadDispatchFeeAsync();
 
-            SearchTheStore = null;
+			//_logger.LogInformation("[OnGetAsync]正在获取限制为{Limit}的页面{PageIndex}的门店列表", PageIndex, Limit);
+
+			SearchTheStore = null;
 			SortField = "Id";
 			SortOrder = "asc";
 

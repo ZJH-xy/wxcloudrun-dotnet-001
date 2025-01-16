@@ -2,6 +2,7 @@
 using aspnetapp.Dao.RepositoryInterface.Web;
 using aspnetapp.Models;
 using aspnetapp.Pages;
+using Microsoft.EntityFrameworkCore;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 
 namespace aspnetapp.Controllers.Web {
@@ -191,6 +192,18 @@ namespace aspnetapp.Controllers.Web {
 				if (stores.TryGetValue(menu.TheStore, out var storeName)) {
 					menu.StoreName = storeName; // 假设 StoreMenu 添加了 StoreName 属性
 				}
+			}
+		}
+
+		public async Task<Configuration?> GetConfigurationByKeyAsync(string key) {
+			return await _context.Configurations.FirstOrDefaultAsync(c => c.Key == key);
+		}
+
+		public async Task UpdateConfigurationAsync(string key, string value) {
+			var config = await _context.Configurations.FirstOrDefaultAsync(c => c.Key == key);
+			if (config != null) {
+				config.Value = value;
+				await _context.SaveChangesAsync();
 			}
 		}
 	}
