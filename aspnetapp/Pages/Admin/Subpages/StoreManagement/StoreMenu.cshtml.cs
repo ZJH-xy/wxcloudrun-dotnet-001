@@ -92,7 +92,9 @@ namespace aspnetapp.Pages.Admin.Subpages.StoreManagement {
 
 			// 重新加载调度费
 			await LoadDispatchFeeAsync();
-			return Page();
+            await OnGetAsync();
+
+            return Page();
 		}
 
 		/// <summary>
