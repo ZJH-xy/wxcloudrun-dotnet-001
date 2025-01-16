@@ -64,7 +64,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (await _dbContext.Store.AnyAsync(s => s.Id == storeAccount.Id && s.IsDelete))// 门店是否删除
                 return StatusCode(403, "门店不存在");
 
-            return StatusCode(200, GetJwtToken(CreateClaim(storeAccount.Id.ToString(), "store")));
+            return StatusCode(200, new { JWT = GetJwtToken(CreateClaim(storeAccount.Id.ToString(), "store")), TheStore = storeAccount.TheStore });
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (order.Status != Order.EOrderStatus.待确认)
                 return StatusCode(403, "订单状态异常");
 
-            return StatusCode(200, new ReturnConfirmOrder(order));
+            return StatusCode(200, new ReturnConfirmOrder(order, async id => await GetPlateNumberById(id)));
         }
 
         #region 商家确认订单
@@ -119,11 +119,17 @@ namespace aspnetapp.Controllers.API.StoreAccount
             /* 检查车辆状态 */
             Vehicle? vehicle;
             try {
-                vehicle = await _dbContext.Vehicle.FindAsync(getData.TheVehicle);
+                //vehicle = await _dbContext.Vehicle.FindAsync(getData.TheVehicle);
 
-            } catch (Exception e) {
-                _logger.LogError(e, "查询车辆{VehicleId}", getData.TheVehicle);
-                return StatusCode(500);
+				// 查询将要更换的车辆
+				//if (!getData.PlateNumber.IsNullOrEmpty()) {
+					vehicle = await storeAccountController.GetVehicleByPlateNumber(getData.PlateNumber);
+				//}
+
+			} catch (Exception e) {
+                //_logger.LogError(e, "查询车辆{VehicleId}", getData.TheVehicle);
+				_logger.LogError(e, "查询车辆车牌：{VehicleId}", getData.PlateNumber);
+				return StatusCode(500);
 			}
 
             if (vehicle is null)
@@ -156,7 +162,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
 				await _dbContext.SaveChangesAsync();
 
 				// 商家选择不同车辆
-				if (order.TheVehicle != getData.TheVehicle) {
+				if (order.TheVehicle != vehicle.Id) {
                     Vehicle oldV = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
                     oldV.State = Vehicle.Estates.空闲;
                     oldV.UpdatedAt = now;
@@ -164,7 +170,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                     _dbContext.Update(oldV);
                     await _dbContext.SaveChangesAsync();
 
-                    order.TheVehicle = getData.TheVehicle;
+                    order.TheVehicle = vehicle.Id;
                     order.UpdatedAt = now;
                     vehicle.State = Vehicle.Estates.已出租;
                     vehicle.UpdatedAt = now;
@@ -196,9 +202,12 @@ namespace aspnetapp.Controllers.API.StoreAccount
             VehicleReplacementRecord? vrr;
 
             try {
-                vrr = await _dbContext.VehicleReplacementRecord.FirstOrDefaultAsync(v => v.TheOrder == orderId);// 获取换车信息
+				vrr = await _dbContext.VehicleReplacementRecord
+	                .Where(v => v.TheOrder == orderId) // 根据 orderId 筛选
+	                .OrderByDescending(v => v.CreatedAt) // CreatedAt 是记录创建的时间戳
+	                .FirstOrDefaultAsync(); // 获取最新的一条记录
 
-            } catch (Exception e) {
+			} catch (Exception e) {
                 _logger.LogError(e, "查询换车请求{OrderId}", orderId);
                 return StatusCode(500);
             }
@@ -209,26 +218,24 @@ namespace aspnetapp.Controllers.API.StoreAccount
             // 获取订单状态
             Order order;
             try {
-                order = await _dbContext.Order.FirstAsync(o => o.Id == orderId);
+                order = await _dbContext.Order.SingleAsync(o => o.Id == orderId);
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取订单{OrderId}", orderId);
                 return StatusCode(500);
-				
 			}
 
             // 获取套餐
             StoreMenu storeMenu;
             try {
-                storeMenu = await _dbContext.StoreMenus.FirstAsync(sm => sm.Id == order.TheStoreMenu);
+                storeMenu = await _dbContext.StoreMenus.SingleAsync(sm => sm.Id == order.TheStoreMenu);
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取套餐{StoreMenuId}", order.TheStoreMenu);
                 return StatusCode(500);
-				
 			}
 
-            return StatusCode(200, new Returnreplacement(vrr, order, storeMenu));
+            return StatusCode(200, new Returnreplacement(vrr, order, storeMenu, async id => await GetPlateNumberById(id)));
         }
 
         /// <summary>
@@ -275,13 +282,18 @@ namespace aspnetapp.Controllers.API.StoreAccount
             /* 检查车辆状态 */
             Vehicle? newVehicle;
             try {
-                // 查询将要更换的车辆
-                newVehicle = await _dbContext.Vehicle.FindAsync(getData.TheVehicle);
+				// 查询将要更换的车辆
+				//newVehicle = await _dbContext.Vehicle.FindAsync(getData.TheVehicle);
+				//newVehicle = await _dbContext.Vehicle.FindAsync(getData.TheVehicle);
 
-            } catch (Exception e) {
-                _logger.LogError(e, "查询车辆{VehicleId}", getData.TheVehicle);
+                //if (!getData.PlateNumber.IsNullOrEmpty()) {
+					newVehicle = await storeAccountController.GetVehicleByPlateNumber(getData.PlateNumber);
+				//}
+
+			} catch (Exception e) {
+                //_logger.LogError(e, "查询车辆{VehicleId}", getData.TheVehicle);
+                _logger.LogError(e, "查询车辆车牌：{VehicleId}", getData.PlateNumber);
                 return StatusCode(500);
-				
 			}
 
             if (newVehicle is null)
@@ -305,13 +317,17 @@ namespace aspnetapp.Controllers.API.StoreAccount
             // 获取用户将要更换的旧车辆
             Vehicle? oldVehicle;
             try {
-                oldVehicle = await _dbContext.Vehicle.FirstAsync(v => v.Id == order.TheVehicle);
+				oldVehicle = await _dbContext.Vehicle.SingleAsync(v => v.Id == order.TheVehicle);
 
-            } catch (Exception e) {
+			} catch (Exception e) {
                 _logger.LogError(e, "获取车辆{VehicleId}", GetUserIdInt());
-                return StatusCode(500);
-				
+				return StatusCode(500);
 			}
+
+            //if (oldVehicle is null) {
+			//	_logger.LogError("订单租用车辆异常", getData.PlateNumber);
+			//	return StatusCode(403, "订单租用车辆异常，请联系管理员");
+			//}
 
             using var transaction = await _dbContext.Database.BeginTransactionAsync();// 事务开始
 
@@ -322,10 +338,13 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             // 新车辆状态改为已出租
             newVehicle.State = Vehicle.Estates.已出租;
+			newVehicle.StateUpdatedAt = now;
+			newVehicle.UpdatedAt = now;
 
-            /* 车辆状态改为侍确认 */
-            oldVehicle.State = Vehicle.Estates.侍确认;
-            oldVehicle.UpdatedAt = now;
+			/* 车辆状态改为侍确认 */
+			oldVehicle.State = Vehicle.Estates.侍确认;
+			oldVehicle.StateUpdatedAt = now;
+			oldVehicle.UpdatedAt = now;
 
             /* 换车记录表VehicleReplacementRecord 更新 */
             vrr.State = VehicleReplacementRecord.Estates.已完成;
@@ -360,7 +379,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             if (order.Status != Order.EOrderStatus.进行中)
                 return StatusCode(403, "订单状态异常");
 
-            return StatusCode(200, new ReturnOrder(order));
+            return StatusCode(200, new ReturnOrder(order, async id => await GetPlateNumberById(id)));
         }
 
         #region 商家确认还车
@@ -431,9 +450,10 @@ namespace aspnetapp.Controllers.API.StoreAccount
             }
 
             // 调度
-            if (order.TheRentalLocation != GetUserIdInt()) {
-                order.DispatchFee += 10;
-            }
+            // 改为在下单时收取
+            //if (order.TheRentalLocation != GetUserIdInt()) {
+            //    order.DispatchFee += 10;
+            //}
 
             order.ActualReturnTime = now;// 更新订单归还时间
             DateTime startingTime = (DateTime)order.ActualStartingTime!;// 租车开始时间
@@ -482,7 +502,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                     return StatusCode(500);
                 }
 
-                return StatusCode(200);
+                //return StatusCode(200);
                 //return StatusCode(202, new { appid, timestamp, nonceStr, pack, signType, paySign });
             } else if (order.Paid > totalPrice) {
                 // 进入退款
@@ -846,12 +866,25 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 claims.ToJToken());
             return jwt;
         }
-    }
 
-    /// <summary>
-    /// 商家审核地址信息
-    /// </summary>
-    public class GetAddress {
+		/// <summary>
+		/// 根据车辆 ID 查询车牌号
+		/// </summary>
+		/// <param name="vehicleId">车辆 ID</param>
+		/// <returns>车牌号</returns>
+		public async Task<string?> GetPlateNumberById(int vehicleId) {
+			var vehicle = await _dbContext.Vehicle
+				.AsNoTracking()
+				.FirstOrDefaultAsync(v => v.Id == vehicleId);
+
+			return vehicle?.PlateNumber;
+		}
+	}
+
+	/// <summary>
+	/// 商家审核地址信息
+	/// </summary>
+	public class GetAddress {
         /// <summary>
         /// Longitude 经度，范围 [-180, 180]
         /// </summary>
@@ -870,15 +903,17 @@ namespace aspnetapp.Controllers.API.StoreAccount
     /// </summary>
     public class GetConfirmOrder {
         public int OderId { get; set; }
-        public int TheVehicle { get; set; }// 租用车辆
-    }
+        //public int TheVehicle { get; set; }// 租用车辆
+		public string PlateNumber { get; set; }// 车辆（车牌号）
+	}
 
     /// <summary>
     /// 确认换车格式
     /// </summary>
     public class GetConfirmReplacement {
         public int OderId { get; set; }
-        public int TheVehicle { get; set; }// 更换车辆
+        //public int TheVehicle { get; set; }// 更换车辆
+        public string PlateNumber { get; set; }// 车辆（车牌号）
     }
 
     /// <summary>
@@ -892,7 +927,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
     /// 商家获取确认订单返回格式
     /// </summary>
     public struct ReturnConfirmOrder {
-        public ReturnConfirmOrder(Order order) {
+        public ReturnConfirmOrder(Order order, Func<int, Task<string?>> getPlateNumberById) {
             Id = order.Id;
             TheVehicle = order.TheVehicle;
             TheStoreMenu = order.TheStoreMenu;
@@ -906,9 +941,11 @@ namespace aspnetapp.Controllers.API.StoreAccount
             Status = order.Status;
             CreatedAt = order.CreatedAt;
             Notes = order.Notes;
-        }
+			TheVehiclePlateNumber = getPlateNumberById(TheVehicle).Result ?? "未知";
+		}
         public int Id { get; init; }// 订单编号
         public int TheVehicle { get; set; }// 租用车辆
+        public string TheVehiclePlateNumber { get; set; }// 租用车辆
         public int TheStoreMenu { get; set; }// 套餐
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public string UserName { get; set; }// 用户姓名
@@ -927,21 +964,26 @@ namespace aspnetapp.Controllers.API.StoreAccount
     /// 商家获取确认换车返回格式
     /// </summary>
     public struct Returnreplacement {
-        public Returnreplacement(VehicleReplacementRecord vrr, Order order, StoreMenu storeMenu) {
+        public Returnreplacement(VehicleReplacementRecord vrr, Order order, StoreMenu storeMenu, Func<int, Task<string?>> getPlateNumberById) {
             TheOldVehicles = vrr.TheOldVehicles;
             TheNewVehicles = vrr.TheNewVehicles;
-            CreatedAt = vrr.CreatedAt;
+			CreatedAt = vrr.CreatedAt;
             TheOrder = order.Id;
             TheRentalLocation = order.TheRentalLocation;
             UserName = order.UserName;
             UserPhone = order.UserPhone;
             IdentityCard = order.IdentityCard;
             Notes = order.Notes;
-            Duration = storeMenu.Duration;
-        }
-        public int TheOldVehicles { get; set; }// 旧车辆
+            Duration = storeMenu.Duration;// 初始化车牌号
+			TheOldVehiclesPlateNumber = getPlateNumberById(vrr.TheOldVehicles).Result ?? "未知";
+			TheNewVehiclesPlateNumber = getPlateNumberById(vrr.TheNewVehicles).Result ?? "未知";
+		}
+		public int TheOldVehicles { get; set; }// 旧车辆
         public int TheNewVehicles { get; set; }// 新车辆
-        public DateTime CreatedAt { get; set; }
+
+		public string TheOldVehiclesPlateNumber { get; set; }// 旧车辆车牌号
+		public string TheNewVehiclesPlateNumber { get; set; }// 新车辆车牌号
+		public DateTime CreatedAt { get; set; }
         // 订单相关
         public int TheOrder { get; set; }// 租车点（StoreId）
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
@@ -957,10 +999,11 @@ namespace aspnetapp.Controllers.API.StoreAccount
     /// 商家确认还车返回格式
     /// </summary>
     public struct ReturnOrder {
-        public ReturnOrder(Order order) {
+        public ReturnOrder(Order order, Func<int, Task<string?>> getPlateNumberById) {
             Id = order.Id;
             TheVehicle = order.TheVehicle;
-            TheStoreMenu = order.TheStoreMenu;
+			TheVehiclePlateNumber = getPlateNumberById(order.TheVehicle).Result ?? "未知";
+			TheStoreMenu = order.TheStoreMenu;
             ActualStartingTime = order.ActualStartingTime;
             TheRentalLocation = order.TheRentalLocation;
             UserName = order.UserName;
@@ -975,7 +1018,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
         }
         public int Id { get; init; }// 订单编号
         public int TheVehicle { get; set; }// 租用车辆
-        public DateTime? ActualStartingTime { get; set; }// 实际起始时间
+		public string TheVehiclePlateNumber { get; set; }// 租用车辆车牌号
+		public DateTime? ActualStartingTime { get; set; }// 实际起始时间
         public int TheStoreMenu { get; set; }// 套餐
         public int TheRentalLocation { get; set; }// 租车点（StoreId）
         public string UserName { get; set; }// 用户姓名

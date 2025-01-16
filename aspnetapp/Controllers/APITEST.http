@@ -1,9 +1,9 @@
-@localhost = https://localhost:60831
+@localhost = https://localhost:63236
 @id = 0
 @phone = 15878175303
 @password = 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
 @authorization = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE5IiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoidXNlciIsImV4cCI6MTczODgzMzc1NX0.JAjr0oxCHJVCkBu9ouP2QGkpkzdepXoa6OJKgrdKqZc
-@storeAccountauthorization = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJzdG9yZSIsImV4cCI6MTczNjA3NjgzM30._EcXeRtGDXJYwRuWelr8b2wlEjXA9HphtcCCwllh4ko
+@storeAccountauthorization = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJzdG9yZSIsImV4cCI6MTczOTU5MTA5Nn0.2nVJ7nTf1MRDdBw2VdqBtrbpBJmQtN0Zc0-VUoIlXYY
 
 
 
@@ -134,7 +134,7 @@ GET {{localhost}}/storeAccount/login/1/{{password}} HTTP/1.1
 
 
 ### 获取确认订单信息
-GET {{localhost}}/storeAccount/confirm/order/13 HTTP/1.1
+GET {{localhost}}/storeAccount/confirm/order/85 HTTP/1.1
 Authorization: Bearer {{storeAccountauthorization}}
 
 
@@ -144,8 +144,8 @@ Authorization: Bearer {{storeAccountauthorization}}
 content-type: application/json
 
 {
-    "OderId": 62,
-    "TheVehicle": 24
+    "OderId": 88,
+    "PlateNumber": "6662"
 }
 
 
@@ -160,13 +160,26 @@ content-type: application/json
 }
 
 
+### 确认换车
+POST {{localhost}}/storeAccount/confirm/vehicle/replacement HTTP/1.1
+Authorization: Bearer {{storeAccountauthorization}}
+content-type: application/json
+
+{
+    "OderId": 85,
+    "TheVehicle": 0,
+    "PlateNumber": "9991"
+}
+
+
+
 ### 确认还车
 POST {{localhost}}/storeAccount/confirm/vehicle/return HTTP/1.1
 Authorization: Bearer {{storeAccountauthorization}}
 content-type: application/json
 
 {
-    "OderId": 65
+    "OderId": 88
 }
 
 

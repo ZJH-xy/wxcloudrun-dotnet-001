@@ -25,11 +25,13 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		private readonly MyDbContext _dbContext;
 		private readonly ILogger<OrderAPI> _logger;
 		private readonly OrderController _orderController;
+		private readonly ConfigurationService _configService;
 
-		public OrderAPI(MyDbContext dbContext, ILogger<OrderAPI> logger) {
+		public OrderAPI(MyDbContext dbContext, ILogger<OrderAPI> logger, ConfigurationService configService) {
 			_dbContext = dbContext;
 			_logger = logger;
 			_orderController = new(_dbContext);
+			_configService = configService;
 		}
 
 		/// <summary>
@@ -318,6 +320,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 					IdentityCard = data.IdentityCard,// 身份证号
 					Deposit = /*data.DepositRequired ?*/ storeMenus.Deposit/* : 0*/,// 押金
 					Rent = storeMenus.Rent,// 租金
+					DispatchFee = await _configService.GetDispatchFeeAsync(),// 使用从数据库读取的 调度费
 					Status = Order.EOrderStatus.待付款,
 					CreatedAt = DateTime.Now,
 					UpdatedAt = DateTime.Now

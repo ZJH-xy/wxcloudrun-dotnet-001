@@ -27,6 +27,7 @@ builder.Services.AddRazorPages();
 // 小程序相关
 builder.Services.AddMemoryCache();
 builder.Services.AddDbContext<MyDbContext>();
+builder.Services.AddScoped<ConfigurationService>();
 builder.Services.AddScoped<IUserRepository, UserController>();// 依赖注入
 builder.Services.AddScoped<IStoreRepository, StoreController>();
 builder.Services.AddScoped<IVehicleRepository, VehicleController>();
