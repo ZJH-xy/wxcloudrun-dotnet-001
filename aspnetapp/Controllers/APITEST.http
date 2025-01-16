@@ -1,4 +1,4 @@
-@localhost = https://localhost:63236
+@localhost = https://localhost:58536
 @id = 0
 @phone = 15878175303
 @password = 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
@@ -58,6 +58,13 @@ content-type: application/json
 ### ======================== 门店 ===========================
 ### 获取所有门店信息
 GET {{localhost}}/store/a HTTP/1.1
+
+
+
+### 获取门店套餐
+GET {{localhost}}/store/storeMenus/1 HTTP/1.1
+
+
 
 
 ### ======================== 车辆 ===========================
