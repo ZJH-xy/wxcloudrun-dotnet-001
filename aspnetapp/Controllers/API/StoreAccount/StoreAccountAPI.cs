@@ -449,11 +449,15 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 order.OvertimeFee += overtimeHours * overtimeRate;
             }
 
-            // 调度
-            // 改为在下单时收取
-            //if (order.TheRentalLocation != GetUserIdInt()) {
-            //    order.DispatchFee += 10;
-            //}
+			// 调度
+			// 改为在下单时收取
+			//if (order.TheRentalLocation != GetUserIdInt()) {
+			//    order.DispatchFee += 10;
+			//}
+			if (order.TheRentalLocation == GetUserIdInt()) {
+                // 租车点等于还车点，不收调度费
+                order.DispatchFee = 0;
+            }
 
             order.ActualReturnTime = now;// 更新订单归还时间
             DateTime startingTime = (DateTime)order.ActualStartingTime!;// 租车开始时间
