@@ -78,17 +78,14 @@
 
     <span>提示：修改套餐时先删除原有套餐，再添加新套餐。</span>
 
-    <div class="card mt-4" style="max-width: 600px; width: 100%; min-height: 15px;">
+    <div class="card" style="min-width: 300px; width: 100%;">
         <div class="card-header">
             更改调度费
         </div>
-        <div class="card-body">
-            <form method="post" asp-page-handler="UpdateDispatchFee" style="display: flex; align-items: center;">
-                <div class="form-group" style="margin-right: 15px; display: inline-block;">
-                    <label for="dispatchFee" style="margin-right: 5px;">当前调度费</label>
-                    <input type="number" asp-for="DispatchFee" class="form-control" id="dispatchFee" step="0.01" min="0" required style="display: inline-block; width: auto; max-width: 120px;" />
-                </div>
-                <button type="submit" class="btn btn-primary mt-2" style="display: inline-block; padding: 6px 12px;">保存</button>
+        <div class="card-body" style="">
+            <form method="post" asp-page-handler="UpdateDispatchFee" style="display: flex;align-items: center; ">
+                    当前调度费：<input type="number" asp-for="DispatchFee"  step="0.01" required />
+                <button type="submit">保存</button>
             </form>
         </div>
     </div>
