@@ -264,6 +264,11 @@
 				if (event.target.files[0]) {
 					file = event.target.files[0]; // 获取用户上传的文件
 					console.log('myFile', file)
+					const fileSize = file.size; // 单位为字节
+					const maxSize = 1 * 1024 * 1024; // 设置最大大小为 1MB
+					if (fileSize > maxSize) {
+						alert('文件过大，请上传小于 1MB 的图片。'); // 弹出提示框
+					}
 				}
 			});
 		}
