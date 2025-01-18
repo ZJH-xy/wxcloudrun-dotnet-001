@@ -153,7 +153,24 @@
 			@for (int i = 0; i < Model.List.Count; i++) {
 				<tr>
 					<form method="post" asp-page-handler="UpdateUser" enctype="multipart/form-data" id="@("form" + i)">
-					<td><span>@(i + 1)</span></td>
+					<td id="No_@(i + 1)" class="NoContainer">@(i + 1)</td>
+					<script>
+						// 加载序号
+						async function loadNo() {
+							const No = await getIndexPage(); // 获取序号的基础值
+							const spans = document.querySelectorAll('td.NoContainer'); // 查询所有的序号单元格
+
+							spans.forEach((span, index) => {
+								const newNumber = (No * 10 - 10) + index + 1; // 更新序号的逻辑
+								span.innerHTML = newNumber; // 设置新的序号
+								span.id = "No_" + newNumber; // 更新 ID 为新的序号
+							});
+						}
+						// 确保当文档加载完成后执行 loadNo
+						document.addEventListener('DOMContentLoaded', (event) => {
+							loadNo();
+						});
+					</script>
 					<td><span>@Model.List[i].Id</span><input type="hidden" name="UpdatedStore.Id" value="@Model.List[i].Id" /></td>
 					<td>
 						<span id="editSpan">@Model.List[i].Name</span>
