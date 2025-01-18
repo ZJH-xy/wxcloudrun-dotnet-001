@@ -226,7 +226,7 @@ namespace aspnetapp.Pages.Admin.Subpages.UserManagement {
 
 			List = await _userController.GetTablePage(Limit, PageIndex); // 刷新用户列表
 
-			//Thread.Sleep(2500);
+			Thread.Sleep(1500);
 
 			if (!FileId.IsNullOrEmpty()) {
 #if DEBUG

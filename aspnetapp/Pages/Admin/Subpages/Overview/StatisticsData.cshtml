@@ -230,7 +230,7 @@
                 });
 
                 // 最新月份是数组中第一个元素的Item1
-                var latestMonth = data2[0];
+                var latestMonth = data2[0] || 0;
 
                 // 获取span元素并设置innerHTML
                 document.getElementById('latestMonthSpan').innerHTML += latestMonth;
@@ -239,9 +239,9 @@
                 var reversedLabels = data1.reverse(); // 反转时间标签
                 var reversedData = data2.reverse(); // 反转增长数据
 
-
+                var total = 0;
                 // 计算总和
-                var total = reversedData.reduce((sum, value) => sum + value, 0);
+                total = reversedData.reduce((sum, value) => sum + value, 0);
 
                 // 将总和添加到span中
                 document.getElementById('totalSales').innerHTML += total;
