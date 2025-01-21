@@ -243,7 +243,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				return StatusCode(403, "用户不存在");
 
 			// 需要押金为假，检查身份证格式
-			if (!(/*data.DepositRequired || */Judge.IdentityCardFormatDetermination(data.IdentityCard)))
+			if (!(data.DepositRequired || Judge.IdentityCardFormatDetermination(data.IdentityCard)))
 				return StatusCode(403, "请检查身份证号格式");
 
 			if (data.UserName == string.Empty)
@@ -318,7 +318,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 					UserName = data.UserName,// 用户姓名
 					UserPhone = data.UserPhone,// 用户手机号
 					IdentityCard = data.IdentityCard,// 身份证号
-					Deposit = /*data.DepositRequired ?*/ storeMenus.Deposit/* : 0*/,// 押金
+					Deposit = data.DepositRequired ? storeMenus.Deposit : 0,// 押金
 					Rent = storeMenus.Rent,// 租金
 					DispatchFee = await _configService.GetDispatchFeeAsync(),// 使用从数据库读取的 调度费
 					Status = Order.EOrderStatus.待付款,
