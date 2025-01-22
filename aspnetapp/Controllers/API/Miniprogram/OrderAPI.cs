@@ -15,6 +15,8 @@ using aspnetapp.Models;
 using static aspnetapp.Models.Order;
 using Org.BouncyCastle.Asn1.Cms;
 using aspnetapp.Controllers.API.StoreAccount;
+using Microsoft.EntityFrameworkCore;
+using Senparc.CO2NET.Cache;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
@@ -158,8 +160,18 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 			List<ReturnOrderBasic> returnOrderorderList = new();
 
-			foreach (Order order in orderList)
+			foreach (Order order in orderList) {
+				if (order.Status == EOrderStatus.进行中) {
+					// 添加套餐时长（小时）
+					var sm = new ReturnOrderBasic(order);
+					var storeMenuTime = await _dbContext.StoreMenus.FindAsync(order.TheStoreMenu);
+					sm.StoreMenuTime = storeMenuTime?.Duration;
+					returnOrderorderList.Add(sm);
+					continue;
+				}
+
 				returnOrderorderList.Add(new ReturnOrderBasic(order));
+			}
 
 			return StatusCode(200, returnOrderorderList);
 		}
@@ -1953,6 +1965,8 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			DepositRefunded = order.DepositRefunded;
 			Status = order.Status;
 			CreatedAt = order.CreatedAt;
+			ActualStartingTime = order.ActualStartingTime;
+			StoreMenuTime = null;
 		}
 		public int OrderId { get; init; }// 订单编号
 		public int TheRentalLocation { get; set; }// 租车点（StoreId）
@@ -1965,6 +1979,14 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		public decimal Paid { get; set; }// 已付
 		public decimal DepositRefunded { get; set; }// 已退押金
 		public Order.EOrderStatus Status { get; set; }// 订单状态
+		/// <summary>
+		/// 实际起始时间
+		/// </summary>
+		public DateTime? ActualStartingTime { get; set; }
+		/// <summary>
+		/// 套餐时长（小时）
+		/// </summary>
+		public int? StoreMenuTime { get; set; }
 		public DateTime CreatedAt { get; set; }
 	}
 
