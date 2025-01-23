@@ -335,11 +335,13 @@
                     </td>
                     <td>
                         @if (!string.IsNullOrEmpty(Model.List[i].VehicleIntroduction)){
-                            <span id="editSpan">@Model.List[i].VehicleIntroduction</span>
+                            @* <span id="editSpan">@Model.List[i].VehicleIntroduction</span> *@
+                            <textarea id="editSpan" class="hidden-textarea" name="UpdatedVehicle.VehicleIntroduction" placeholder="请输入车辆介绍" style="min-width:150px;" disabled>@Model.List[i].VehicleIntroduction</textarea>
+
                         }else{
                             <span id="editSpan">无</span>
                         }
-                        <textarea id="inputSpan" name="UpdatedVehicle.VehicleIntroduction" value="@Model.List[i].VehicleIntroduction" placeholder="请输入车辆介绍" style="display:none;width:200px;" disabled>@Model.List[i].VehicleIntroduction</textarea>
+                        <textarea id="inputSpan" name="UpdatedVehicle.VehicleIntroduction" placeholder="请输入车辆介绍" style="display:none;min-width:150px;" disabled>@Model.List[i].VehicleIntroduction</textarea>
                     </td>
 
                     <td>
@@ -1054,7 +1056,7 @@
                     }
 
                     // 切换其他字段为可编辑状态
-                    const spans = container.closest("tr").querySelectorAll("span");
+                    const spans = container.closest("tr").querySelectorAll("span,textarea");
                     spans.forEach(span => {
                         if (span.id == "editSpan") {
                             span.style.display = "none";  // 隐藏其他span

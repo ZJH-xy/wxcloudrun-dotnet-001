@@ -83,7 +83,7 @@
                 <option value="已补余">已补余</option>
             </select>
             <select asp-for="SortFieldHtml" id="SortFieldHtml">
-                <option value="Id">订单编号</option>
+                <option value="Id">排序类型</option>
                 <option value="ActualStartingTime">起始时间</option>
                 <option value="ActualReturnTime">实际归还时间</option>
                 <option value="SuccessTime">支付完成时间</option>
@@ -107,7 +107,7 @@
                 <th>起始时间</th>
                 <th>剩余时间</th>
                 <th>实际归还时间</th>
-                <th>租用车辆车牌号（ID）</th>
+                <th>租用车辆车牌号</th>
                 <th>租车门店名称（ID）</th>
                 <th>还车门店名称（ID）</th>
                 <th>押金</th>
@@ -118,8 +118,8 @@
                 <th>已付金额</th>
                 <th>已退押金</th>
                 <th>订单状态</th>
-                <th>支付完成时间</th>
                 <th>备注</th>
+                <th>支付完成时间</th>
                 <th>创建时间</th>
                 <th>更新时间</th>
                 <th>操作</th>
@@ -174,8 +174,10 @@
                                 <span style="color:red">已超时 @time.Duration().ToString(@"hh\:mm\:ss")</span>
                                 }
                                 else {
-                                <span style="color:green">剩余时间: @time.Duration().ToString(@"hh\:mm\:ss")</span>
+                                <span style="color:#07C160">剩余时间: @time.Duration().ToString(@"hh\:mm\:ss")</span>
                                 }
+                            }else{
+                                <span>无</span>
                             }
                     </td>
                     <td>
@@ -281,21 +283,26 @@
                         }
                     </td>
                     <td>
-                        @if (@Model.List[i].SuccessTime != null){
-                            <span id="@("SuccessTime" + i)">@Model.List[i].SuccessTime</span>
-                        }
-                        else{
-                            <span>无</span>
-                        }
-                    </td>
-                    <td>
                             @if (!string.IsNullOrEmpty(Model.List[i].Notes)){
-                            <span id="editSpan" name="Notes">@Model.List[i].Notes</span> }
+                            @* <span id="editSpan" name="Notes">@Model.List[i].Notes</span> *@
+                            <textarea id="editSpan" name="Notes" class="hidden-textarea" style="min-width:100px;" disabled>@Model.List[i].Notes</textarea>
+
+                            }
                             else
                             {
                             <span id="editSpan" name="Notes">无</span>
                             }
                         <textarea id="inputSpan" name="UpdatedOrder.Notes" style="display:none;width:100px;" disabled>@Model.List[i].Notes</textarea>
+                    </td>
+                    <td>
+                            @if (@Model.List[i].SuccessTime != null)
+                            {
+                            <span id="@("SuccessTime" + i)">@Model.List[i].SuccessTime</span>
+                            }
+                            else
+                            {
+                            <span>无</span>
+                            }
                     </td>
                     <td><span>@Model.List[i].CreatedAt</span></td>
                     <td><span>@Model.List[i].UpdatedAt</span></td>
@@ -630,7 +637,7 @@
                             textArea.style.display = "inline-block";  // 显示textArea
 
                         }
-                        const textAreaSpan = container.closest("tr").querySelector(`span[name='Notes']`);
+                        const textAreaSpan = container.closest("tr").querySelector(`textarea[name='Notes']`);
                         if (textAreaSpan) textAreaSpan.style.display = 'none';
                     } else {
                         // 切换其他字段为可编辑状态
@@ -638,7 +645,7 @@
                         inputs.forEach(input => input.disabled = false);
 
                         // 切换其他字段为可编辑状态
-                        const spans = container.closest("tr").querySelectorAll("span");
+                        const spans = container.closest("tr").querySelectorAll("span,textarea");
                         const inputsToEnable = container.closest("tr").querySelectorAll("input, textarea");
 
                         // 只显示id为edit的span
