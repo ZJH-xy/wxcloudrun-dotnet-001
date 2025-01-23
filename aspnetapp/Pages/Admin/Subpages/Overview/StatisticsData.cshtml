@@ -98,7 +98,7 @@
     <div class="statistics" id="content">
         <!-- 销售统计卡片 -->
         <div class="card" >
-            <div class="card-header" onclick="changeIframeSrc('Subpages/OrderManagement/OrderOverview')" style="cursor: pointer;">销售统计</div>
+            <div class="card-header" onclick="changeIframeSrc('Subpages/OrderManagement/OrderOverview')" style="cursor: pointer;">最近半年销售统计</div>
             <div class="stat-card">
                 <i class="fas fa-dollar-sign"></i>
                 <span id="totalSales">¥</span>
@@ -109,7 +109,7 @@
         </div>
         <!-- 订单趋势分析 -->
         <div class="card" >
-            <div class="card-header" onclick="changeIframeSrc('Subpages/OrderManagement/OrderOverview')" style="cursor: pointer;">订单趋势分析</div>
+            <div class="card-header" onclick="changeIframeSrc('Subpages/OrderManagement/OrderOverview')" style="cursor: pointer;">最近半年订单趋势</div>
             <div class="stat-card">
                 <i class="fas fa-credit-card"></i>
                 <span>@Model.OrderSum</span>
@@ -120,7 +120,7 @@
         </div>
         <!-- 用户增长卡片 -->
         <div class="card" >
-            <div class="card-header" onclick="changeIframeSrc('Subpages/UserManagement/UserOverview')" style="cursor: pointer;">用户增长</div>
+            <div class="card-header" onclick="changeIframeSrc('Subpages/UserManagement/UserOverview')" style="cursor: pointer;">最近半年用户增长趋势</div>
             <div class="stat-card">
                 <i class="fas fa-users"></i>
                 <span>@Model.UserSum</span>

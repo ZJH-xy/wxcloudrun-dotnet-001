@@ -86,6 +86,13 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		public static string? SearchStoreName { get; set; }
 		public string? SearchStoreNameHtml { get; set; }
 
+		/// <summary>
+		/// 查询超时
+		/// </summary>
+		[BindProperty(SupportsGet = true)]
+		public static string? SearchTimeout { get; set; }
+		public string? SearchTimeoutHtml { get; set; }
+
 		// 排序
 		[BindProperty(SupportsGet = true)]
 		public static string? SortField { get; set; } = "Id"; // 默认排序字段为 "Id"
@@ -110,6 +117,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchPlateNumber = null;
 			SearchTheRentalLocation = null;
 			SearchStoreName = null;
+			SearchTimeout = null;
 			SortField = "Id";
 			SortOrder = "asc";
 
@@ -129,7 +137,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		public async Task<IActionResult> OnPostSearchAsync() {
 
 			// 调用 OrderControllerWeb 中的 SearchOrders 方法，包含排序字段和顺序
-			(List, SearchSum) = await _orderController.SearchOrders(Limit, PageIndex, SearchUserPhone, SearchStatus, SearchTheVehicle, SearchPlateNumber, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder);
+			(List, SearchSum) = await _orderController.SearchOrders(Limit, PageIndex, SearchTimeout, SearchUserPhone, SearchStatus, SearchTheVehicle, SearchPlateNumber, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder);
 			
 			SuccessMessage = $"搜索成功，共{SearchSum}条数据";
 
@@ -333,6 +341,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchPlateNumber = requestData["SearchPlateNumber"];
 			SearchTheRentalLocation = requestData["SearchTheRentalLocation"];
 			SearchStoreName = requestData["SearchStoreName"];
+			SearchTimeout = requestData["SearchTimeout"];
             SortField = requestData["SortField"];
             SortOrder = requestData["SortOrder"];
 
@@ -344,7 +353,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		/// </summary>
 		/// <returns></returns>
 		public async Task<JsonResult> OnGetSearchDataAsync() {
-			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus, SearchTheVehicle, SearchPlateNumber, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder });
+			return new JsonResult(new { success = true, message = "成功", SearchUserPhone, SearchStatus, SearchTheVehicle, SearchPlateNumber, SearchTheRentalLocation, SearchStoreName, SearchTimeout, SortField, SortOrder });
 		}
 
 		/// <summary>

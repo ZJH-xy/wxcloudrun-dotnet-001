@@ -90,7 +90,10 @@ namespace aspnetapp.Controllers.Web {
             // 更新帐号属性
             StoreAccount.TheStore = updatedStoreAccount.TheStore;
             StoreAccount.Account = updatedStoreAccount.Account;
-            StoreAccount.Password = UserAPI.HashPassword(updatedStoreAccount.Password);
+
+            if (StoreAccount.Password != updatedStoreAccount.Password) {
+                StoreAccount.Password = UserAPI.HashPassword(updatedStoreAccount.Password);
+            }
 
             // 设置并发标记
             _context.Entry(StoreAccount).Property("RowVersion").OriginalValue = updatedStoreAccount.RowVersion;
