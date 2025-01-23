@@ -117,7 +117,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchPlateNumber = null;
 			SearchTheRentalLocation = null;
 			SearchStoreName = null;
-			SearchTimeout = null;
+			SearchTimeout = "";
 			SortField = "Id";
 			SortOrder = "asc";
 
