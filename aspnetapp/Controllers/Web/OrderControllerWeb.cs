@@ -73,7 +73,12 @@ namespace aspnetapp.Controllers.Web {
 		/// <summary>
 		/// 查询订单（支持多字段搜索）
 		/// </summary>
-		public async Task<(List<Order>, int sum)> SearchOrders(int limit, int pageIndex, string? userPhone = null, string? status = null, string? theVehicle = null, string? plateNumber = null, string? theRentalLocation = null, string? searchStoreName = null, string sortField = "Id", string sortOrder = "asc") {
+		public async Task<(List<Order>, int sum)> SearchOrders(
+			int limit, int pageIndex,
+			string? timeout = "false",
+			string? userPhone = null, string? status = null, string? theVehicle = null, string? plateNumber = null, string? theRentalLocation = null, string? searchStoreName = null,
+			string sortField = "Id", string sortOrder = "asc") {
+
 			if (userPhone.IsNullOrEmpty() && status.IsNullOrEmpty() && theVehicle.IsNullOrEmpty() && plateNumber.IsNullOrEmpty() && theRentalLocation.IsNullOrEmpty() && searchStoreName.IsNullOrEmpty() && sortField == "Id" && sortOrder == "asc") {
 				var list = await GetTablePage(limit, pageIndex);
 				return (list, list is null ? 0 : list.Count);
@@ -99,6 +104,18 @@ namespace aspnetapp.Controllers.Web {
 			}
 			if (!string.IsNullOrEmpty(theRentalLocation) && int.TryParse(theRentalLocation, out int RentalLocationId)) {
 				query = query.Where(o => o.TheRentalLocation == RentalLocationId);// 租车点
+			}
+			_ = bool.TryParse(timeout, out bool timeoutb);
+			if (timeout is not null && timeoutb) {
+				// 查询所有超时订单
+				var currentTime = DateTime.Now;
+
+				// 获取超时订单
+				query = query.Join(_context.StoreMenus, o => o.TheStoreMenu, sm => sm.Id, (o, sm) => new { o, sm })
+					.Where(joined => joined.o.ActualStartingTime.HasValue &&
+									 joined.o.ActualStartingTime.Value.AddHours(joined.sm.Duration) < currentTime &&
+									 joined.o.Status == Order.EOrderStatus.进行中)
+					.Select(joined => joined.o);
 			}
 
 			// 车牌号过滤
