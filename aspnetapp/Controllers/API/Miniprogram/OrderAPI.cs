@@ -1009,6 +1009,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		[AllowAnonymous]// 允许匿名访问
 		[HttpPost("callback/refund")]
 		public async Task<IActionResult> RefundNotify(GetCancelReplacementInfo getData) {
+			return Ok();// 退款有问题不使用，用户查询订单时更新
 			_logger.LogInformation("RefundNotify收到微信退款回调");
 
 			WeixinTrace.SendCustomLog("RefundNotifyUrl被访问", "IP" + HttpContext.UserHostAddress()?.ToString());
