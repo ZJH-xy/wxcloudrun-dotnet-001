@@ -639,7 +639,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
         }
         #endregion
 
-        #region 接收支付回调
+        #region 接收支付回调（补余）
         /// <summary>
         /// 支付回调（侍测试）
         /// </summary>
@@ -725,6 +725,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                             using (var transaction = await _dbContext.Database.BeginTransactionAsync()) {
                                 try {
                                     supplementaryOrders.Status = Order.EOrderStatus.已完成;// 更改订单状态
+                                    // 注意会与订单表中的已付重复
                                     supplementaryOrders.Paid += orderReturnJson.amount.total / 100m;// 增加已付金额,在代码中将 `total` 转换为元
                                     supplementaryOrders.SuccessTime = orderReturnJson.success_time;
                                     supplementaryOrders.UpdatedAt = now;
@@ -732,7 +733,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
                                     Order order = await _dbContext.Order.SingleAsync(o => o.Id == supplementaryOrders.TheOrder);
                                     order.Status = EOrderStatus.已补余;
-                                    //order.Paid += orderReturnJson.amount.total;
+                                    // 增加订单的已付，注意会与补余表中的已付重复
+                                    order.Paid += orderReturnJson.amount.total;// 增加已付金额
                                     order.UpdatedAt = now;
                                     await _dbContext.SaveChangesAsync();
 
