@@ -166,6 +166,12 @@
 		public string? VehiclePlateNumber { get; set; }
 
 		/// <summary>
+		/// 剩余时间
+		/// </summary>
+		[NotMapped]
+		public TimeSpan? Timeout { get; set; }
+
+		/// <summary>
 		/// 订单状态枚举
 		/// </summary>
 		public enum EOrderStatus {

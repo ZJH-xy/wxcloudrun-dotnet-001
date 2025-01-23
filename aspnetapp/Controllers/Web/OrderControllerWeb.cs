@@ -312,6 +312,16 @@ namespace aspnetapp.Controllers.Web {
 				if (vehicles.TryGetValue(order.TheVehicle, out var plateNumber)) {
 					order.VehiclePlateNumber = plateNumber; // 设置车辆车牌号
 				}
+
+				if (order.ActualStartingTime is not null) {
+					var now = DateTime.Now;
+					var sm = await _context.StoreMenus.FindAsync(order.TheStoreMenu);// 套餐时间
+					if (sm is not null) {
+						//var t1 = now - order.ActualStartingTime;// 已持续时间
+						var ot = order.ActualStartingTime.Value.AddHours(sm.Duration);// 订单截止时间
+						order.Timeout = ot - now;// 剩余时间
+					}
+				}
 			}
 
 			return orders;

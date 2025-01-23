@@ -105,6 +105,7 @@
                 <th>订单编号</th>
                 <th>用户信息</th>
                 <th>起始时间</th>
+                <th>剩余时间</th>
                 <th>实际归还时间</th>
                 <th>租用车辆车牌号（ID）</th>
                 <th>租车门店名称（ID）</th>
@@ -165,6 +166,16 @@
                             }
                             else{
                                 <span>未开始</span>
+                            }
+                    </td>
+                    <td>
+                            @if (Model.List[i].Timeout is TimeSpan time) {
+                                if (time.TotalSeconds < 0) {
+                                <span style="color:red">已超时 @time.Duration().ToString(@"hh\:mm\:ss")</span>
+                                }
+                                else {
+                                <span style="color:green">剩余时间: @time.Duration().ToString(@"hh\:mm\:ss")</span>
+                                }
                             }
                     </td>
                     <td>
