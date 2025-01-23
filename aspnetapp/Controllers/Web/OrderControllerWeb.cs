@@ -330,7 +330,7 @@ namespace aspnetapp.Controllers.Web {
 					order.VehiclePlateNumber = plateNumber; // 设置车辆车牌号
 				}
 
-				if (order.ActualStartingTime is not null) {
+				if (order.ActualStartingTime is not null && (order.Status == Order.EOrderStatus.进行中 || order.Status == Order.EOrderStatus.侍补余)) {
 					var now = DateTime.Now;
 					var sm = await _context.StoreMenus.FindAsync(order.TheStoreMenu);// 套餐时间
 					if (sm is not null) {
