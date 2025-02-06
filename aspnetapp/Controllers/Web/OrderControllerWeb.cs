@@ -114,7 +114,7 @@ namespace aspnetapp.Controllers.Web {
 				query = query.Join(_context.StoreMenus, o => o.TheStoreMenu, sm => sm.Id, (o, sm) => new { o, sm })
 					.Where(joined => joined.o.ActualStartingTime.HasValue &&
 									 joined.o.ActualStartingTime.Value.AddHours(joined.sm.Duration) < currentTime &&
-									 joined.o.Status == Order.EOrderStatus.进行中)
+									 (joined.o.Status == Order.EOrderStatus.进行中 || joined.o.Status == Order.EOrderStatus.侍补余))
 					.Select(joined => joined.o);
 			}
 

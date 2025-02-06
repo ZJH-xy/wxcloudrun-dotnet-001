@@ -69,6 +69,11 @@
             <input type="number" asp-for="SearchTheRentalLocationHtml" id="SearchTheRentalLocationHtml" value="" placeholder="搜索门店ID" />
             <input type="text" asp-for="SearchStoreNameHtml" id="SearchStoreNameHtml" value="" placeholder="搜索门店名称" />
             <input type="number" asp-for="SearchUserPhoneHtml" id="SearchUserPhoneHtml" value="" placeholder="搜索手机号" />
+            <select asp-for="SearchTimeoutHtml" id="SearchTimeoutHtml">
+                <option value="">选择是否超时</option>
+                <option value=false>未超时</option>
+                <option value=true>已超时</option>
+            </select>
             <select asp-for="SearchStatusHtml" id="SearchStatusHtml">
                 <option value="">选择状态</option>
                 <option value="已取消">已取消</option>
@@ -84,6 +89,7 @@
             </select>
             <select asp-for="SortFieldHtml" id="SortFieldHtml">
                 <option value="Id">排序类型</option>
+                <option value="Id">订单编号</option>
                 <option value="ActualStartingTime">起始时间</option>
                 <option value="ActualReturnTime">实际归还时间</option>
                 <option value="SuccessTime">支付完成时间</option>
@@ -705,8 +711,9 @@
             var SearchTheVehicle = document.getElementById('SearchTheVehicleHtml');
             var SearchTheRentalLocation = document.getElementById('SearchTheRentalLocationHtml');
             var SearchStoreName = document.getElementById('SearchStoreNameHtml');
-            var searchUserPhone = document.getElementById('SearchUserPhoneHtml');
-            var searchStatus = document.getElementById('SearchStatusHtml');
+            var SearchUserPhone = document.getElementById('SearchUserPhoneHtml');
+            var SearchTimeout = document.getElementById('SearchTimeoutHtml');
+            var SearchStatus = document.getElementById('SearchStatusHtml');
             var sortField = document.getElementById('SortFieldHtml');
             var sortOrder = document.getElementById('SortOrderHtml');
             try {
@@ -730,8 +737,9 @@
                         SearchTheVehicle.value = data.searchTheVehicle;
                         SearchTheRentalLocation.value = data.searchTheRentalLocation;
                         SearchStoreName.value = data.searchStoreName;
-                        searchUserPhone.value = data.searchUserPhone;
-                        searchStatus.value = data.searchStatus;
+                        SearchUserPhone.value = data.searchUserPhone;
+                        SearchTimeout.value = data.searchTimeout;
+                        SearchStatus.value = data.searchStatus;
                         sortField.value = data.sortField;
                         sortOrder.value = data.sortOrder;
                         console.log('搜索成功!')
@@ -755,6 +763,7 @@
             const SearchTheRentalLocationHtml = document.getElementById('SearchTheRentalLocationHtml').value;
             const SearchTheVehicleHtml = document.getElementById('SearchTheVehicleHtml').value;
             const SearchStoreNameHtml = document.getElementById('SearchStoreNameHtml').value;
+            const SearchTimeoutHtml = document.getElementById('SearchTimeoutHtml').value;
             const SortFieldHtml = document.getElementById('SortFieldHtml').value;
             const SortOrderHtml = document.getElementById('SortOrderHtml').value;
             const requestData = {
@@ -764,6 +773,7 @@
                 "SearchTheVehicle": SearchTheVehicleHtml,
                 "SearchTheRentalLocation": SearchTheRentalLocationHtml,
                 "SearchStoreName": SearchStoreNameHtml,
+                "SearchTimeout": SearchTimeoutHtml,
                 "SortField": SortFieldHtml,
                 "SortOrder": SortOrderHtml,
 

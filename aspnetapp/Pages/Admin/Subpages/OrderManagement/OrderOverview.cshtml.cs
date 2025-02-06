@@ -15,13 +15,13 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 	public class OrderOverviewModel : PageModel {
 		private readonly OrderControllerWeb _orderController;
 		private readonly ILogger<OrderOverviewModel> _logger;
-        private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;
+		private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;
 
-        public OrderOverviewModel(OrderControllerWeb orderController, ILogger<OrderOverviewModel> logger, IOptionsSnapshot<WeixinSetting> wxSetting) {
+		public OrderOverviewModel(OrderControllerWeb orderController, ILogger<OrderOverviewModel> logger, IOptionsSnapshot<WeixinSetting> wxSetting) {
 			_orderController = orderController;
 			_logger = logger;
-            _wxSetting = wxSetting;
-        }
+			_wxSetting = wxSetting;
+		}
 
 		public List<Order> List { get; set; } = new List<Order>();
 
@@ -102,22 +102,54 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 		public static string? SortOrder { get; set; } = "asc"; // 默认排序顺序为升序
 		public string? SortOrderHtml { get; set; }
 
-        // 图片上传
-        public string ImageName { get; set; } // 图片文件名
-        public static string FileId { get; set; } = "";
+		// 图片上传
+		public string ImageName { get; set; } // 图片文件名
+		public static string FileId { get; set; } = "";
 
-        /// <summary>
-        /// 默认页码查询
-        /// </summary>
-        /// <returns></returns>
-        public async Task<IActionResult> OnGetAsync() {
+		/// <summary>
+		/// 获取文件下载链接
+		/// </summary>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		[HttpPost]
+		[IgnoreAntiforgeryToken]
+		public async Task<JsonResult> OnPostImageDownload([FromBody] Dictionary<string, string> requestData) {
+			// 确保接收到的数据被正确绑定
+			if (requestData == null || !requestData.Any()) {
+				return new JsonResult(new { success = false, message = "请求数据为空！" });
+			}
+
+			var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+			var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+			var envId = _wxSetting.Value.Env;
+
+			List<FileItem> fileid_list = new() {
+				new FileItem {
+					fileid = requestData["fileid"],
+					max_age = 7200
+				}
+				};
+
+			var re = await TcbApi.BatchDownloadFileAsync(appId, envId, fileid_list);
+			if (re.errcode != ReturnCode.请求成功) {
+				_logger.LogError("{errmsg},获取下载链接{fileid_list}", re.errmsg, fileid_list.ToJson());
+			}
+
+			return new JsonResult(new { success = true, message = "获取文件下载链接结束", re.file_list });
+		}
+
+		/// <summary>
+		/// 默认页码查询
+		/// </summary>
+		/// <returns></returns>
+		public async Task<IActionResult> OnGetAsync() {
 			SearchUserPhone = "";
 			SearchStatus = "";
 			SearchTheVehicle = null;
 			SearchPlateNumber = null;
 			SearchTheRentalLocation = null;
 			SearchStoreName = null;
-			SearchTimeout = null;
+			SearchTimeout = "";
 			SortField = "Id";
 			SortOrder = "asc";
 
@@ -138,7 +170,7 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 
 			// 调用 OrderControllerWeb 中的 SearchOrders 方法，包含排序字段和顺序
 			(List, SearchSum) = await _orderController.SearchOrders(Limit, PageIndex, SearchTimeout, SearchUserPhone, SearchStatus, SearchTheVehicle, SearchPlateNumber, SearchTheRentalLocation, SearchStoreName, SortField, SortOrder);
-			
+
 			SuccessMessage = $"搜索成功，共{SearchSum}条数据";
 
 			return Page();
@@ -342,10 +374,10 @@ namespace aspnetapp.Pages.Admin.Subpages.OrderManagement {
 			SearchTheRentalLocation = requestData["SearchTheRentalLocation"];
 			SearchStoreName = requestData["SearchStoreName"];
 			SearchTimeout = requestData["SearchTimeout"];
-            SortField = requestData["SortField"];
-            SortOrder = requestData["SortOrder"];
+			SortField = requestData["SortField"];
+			SortOrder = requestData["SortOrder"];
 
-            return new JsonResult(new { success = true, message = "成功" });
+			return new JsonResult(new { success = true, message = "成功" });
 		}
 
 		/// <summary>
