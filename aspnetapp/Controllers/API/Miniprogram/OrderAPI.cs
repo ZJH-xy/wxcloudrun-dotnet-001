@@ -234,7 +234,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogError(e, "用户{UserId}查询订单{order}换车状态", GetUserIdInt(), orderId);
 				return StatusCode(500);
-
 			}
 
 			return StatusCode(200, status);
@@ -356,6 +355,29 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 				return StatusCode(403, "创建订单失败，请联系管理员");
 			}
+		}
+		#endregion
+
+		#region 协议图片写入
+		[HttpPost("put/protocol")]
+		public async Task<IActionResult> PutProtocolImage(PutProtocolImageData data) {
+
+			Order? order = await _orderController.GetById(GetUserIdInt(), data.TheOrder);
+
+			if (order is null) {
+				return NotFound(/*"未找到订单"*/);
+			}
+
+			order.ProtocolImage = data.FileId;
+
+			try {
+				await _orderController.UpdateOrder(order);
+
+			} catch (Exception e) {
+				_logger.LogError(e, "用户{UserId} 保存协议失败，订单{order}", GetUserIdInt(), data.TheOrder);
+			}
+
+			return Ok();
 		}
 		#endregion
 
@@ -1655,6 +1677,18 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			{ "PROCESSING", RefundOrder.Estatus.退款处理中 },
 			{ "ABNORMAL", RefundOrder.Estatus.退款异常 }
 		};
+	}
+
+	public class PutProtocolImageData {
+		/// <summary>
+		/// 订单编号
+		/// </summary>
+		public int TheOrder { get; set; }
+
+		/// <summary>
+		/// 图片
+		/// </summary>
+		public string FileId { get; set; }
 	}
 
 	public class Getvaluate {
