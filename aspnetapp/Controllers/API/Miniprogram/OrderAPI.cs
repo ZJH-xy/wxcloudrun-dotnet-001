@@ -234,7 +234,6 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			} catch (Exception e) {
 				_logger.LogError(e, "用户{UserId}查询订单{order}换车状态", GetUserIdInt(), orderId);
 				return StatusCode(500);
-
 			}
 
 			return StatusCode(200, status);
@@ -255,7 +254,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 				return StatusCode(403, "用户不存在");
 
 			// 需要押金为假，检查身份证格式
-			if (!(/*data.DepositRequired || */Judge.IdentityCardFormatDetermination(data.IdentityCard)))
+			if (!(data.DepositRequired || Judge.IdentityCardFormatDetermination(data.IdentityCard)))
 				return StatusCode(403, "请检查身份证号格式");
 
 			if (data.UserName == string.Empty)
@@ -330,7 +329,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 					UserName = data.UserName,// 用户姓名
 					UserPhone = data.UserPhone,// 用户手机号
 					IdentityCard = data.IdentityCard,// 身份证号
-					Deposit = /*data.DepositRequired ?*/ storeMenus.Deposit/* : 0*/,// 押金
+					Deposit = data.DepositRequired ? storeMenus.Deposit : 0,// 押金
 					Rent = storeMenus.Rent,// 租金
 					DispatchFee = await _configService.GetDispatchFeeAsync(),// 使用从数据库读取的 调度费
 					Status = Order.EOrderStatus.待付款,
@@ -356,6 +355,29 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 				return StatusCode(403, "创建订单失败，请联系管理员");
 			}
+		}
+		#endregion
+
+		#region 协议图片写入
+		[HttpPost("put/protocol")]
+		public async Task<IActionResult> PutProtocolImage(PutProtocolImageData data) {
+
+			Order? order = await _orderController.GetById(GetUserIdInt(), data.TheOrder);
+
+			if (order is null) {
+				return NotFound(/*"未找到订单"*/);
+			}
+
+			order.ProtocolImage = data.FileId;
+
+			try {
+				await _orderController.UpdateOrder(order);
+
+			} catch (Exception e) {
+				_logger.LogError(e, "用户{UserId} 保存协议失败，订单{order}", GetUserIdInt(), data.TheOrder);
+			}
+
+			return Ok();
 		}
 		#endregion
 
@@ -1009,6 +1031,7 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		[AllowAnonymous]// 允许匿名访问
 		[HttpPost("callback/refund")]
 		public async Task<IActionResult> RefundNotify(GetCancelReplacementInfo getData) {
+			return Ok();// 退款有问题不使用，用户查询订单时更新
 			_logger.LogInformation("RefundNotify收到微信退款回调");
 
 			WeixinTrace.SendCustomLog("RefundNotifyUrl被访问", "IP" + HttpContext.UserHostAddress()?.ToString());
@@ -1654,6 +1677,18 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 			{ "PROCESSING", RefundOrder.Estatus.退款处理中 },
 			{ "ABNORMAL", RefundOrder.Estatus.退款异常 }
 		};
+	}
+
+	public class PutProtocolImageData {
+		/// <summary>
+		/// 订单编号
+		/// </summary>
+		public int TheOrder { get; set; }
+
+		/// <summary>
+		/// 图片
+		/// </summary>
+		public string FileId { get; set; }
 	}
 
 	public class Getvaluate {

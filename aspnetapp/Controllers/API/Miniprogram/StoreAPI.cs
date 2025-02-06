@@ -1,4 +1,5 @@
 ﻿using aspnetapp.Controllers.Miniprogram;
+using aspnetapp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
 using System.Security.Claims;
@@ -13,13 +14,15 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		private readonly StoreController _storeController;
 		private readonly FavoritesStoreController _favoritesStoreController;
 		private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;
+		private readonly ConfigurationService _configService;
 
-		public StoreAPI(MyDbContext dbContext, ILogger<StoreAPI> logger, IOptionsSnapshot<WeixinSetting> wxSetting) {
+		public StoreAPI(MyDbContext dbContext, ILogger<StoreAPI> logger, IOptionsSnapshot<WeixinSetting> wxSetting, ConfigurationService configService) {
 			_dbContext = dbContext;
 			_logger = logger;
 			_storeController = new(_dbContext);
 			_favoritesStoreController = new(_dbContext);
 			_wxSetting = wxSetting;
+			_configService = configService;
 		}
 
 		/// <summary>
@@ -105,9 +108,10 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 		/// <returns></returns>
 		[HttpGet("storeMenus/{storeId}")]
 		public async Task<IActionResult> CalculateRent(int storeId) {
+			var DispatchFee = await _configService.GetDispatchFeeAsync();// 使用从数据库读取的 调度费
 
 			// 获取门店当前的套餐
-			return StatusCode(200, await _dbContext.StoreMenus.Where(sm => sm.TheStore == storeId && !sm.IsDelete).ToListAsync());
+			return StatusCode(200, new { StoreMenusLast = await _dbContext.StoreMenus.Where(sm => sm.TheStore == storeId && !sm.IsDelete).ToListAsync(), DispatchFee });
 		}
 
 		/// <summary>

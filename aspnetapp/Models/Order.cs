@@ -33,6 +33,11 @@
 		public int TheStoreMenu { get; set; }
 
 		/// <summary>
+		/// 协议图片
+		/// </summary>
+		public string? ProtocolImage { get; set; }
+
+		/// <summary>
 		/// 实际起始时间
 		/// </summary>
 		public DateTime? ActualStartingTime { get; set; }

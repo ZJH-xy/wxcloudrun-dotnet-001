@@ -138,7 +138,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
             // 检查车辆是否属于当前商家
             int storeId;
             try {
-                storeId = await _dbContext.StoreAccount.Where(sa => sa.Id == GetUserIdInt()).Select(sa => sa.TheStore).FirstAsync();
+                //storeId = await _dbContext.StoreAccount.Where(sa => sa.Id == GetUserIdInt()).Select(sa => sa.TheStore).FirstAsync();
+                storeId = await storeAccountController.GetTheStoreById(GetUserIdInt());
 
             } catch (Exception e) {
                 _logger.LogError(e, "获取商家{VehicleId}的门店Id", GetUserIdInt());
@@ -302,9 +303,10 @@ namespace aspnetapp.Controllers.API.StoreAccount
             // 检查车辆是否属于当前商家
             int storeId;
             try {
-                storeId = await _dbContext.StoreAccount.Where(sa => sa.Id == GetUserIdInt()).Select(sa => sa.TheStore).FirstAsync();
+                //storeId = await _dbContext.StoreAccount.Where(sa => sa.Id == GetUserIdInt()).Select(sa => sa.TheStore).FirstAsync();
+                storeId = await storeAccountController.GetTheStoreById(GetUserIdInt());
 
-            } catch (Exception e) {
+			} catch (Exception e) {
                 _logger.LogError(e, "根据商家帐号Id{VehicleReplacementRecordId}获取门店", GetUserIdInt());
                 return StatusCode(500);
 			}
@@ -348,8 +350,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
             /* 换车记录表VehicleReplacementRecord 更新 */
             vrr.State = VehicleReplacementRecord.Estates.已完成;
-            vrr.TheStore = GetUserIdInt();
-            vrr.UpdatedAt = now;
+            vrr.TheStore = await storeAccountController.GetTheStoreById(GetUserIdInt());
+			vrr.UpdatedAt = now;
 
             try {
                 await _dbContext.SaveChangesAsync();
@@ -449,11 +451,15 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 order.OvertimeFee += overtimeHours * overtimeRate;
             }
 
-            // 调度
-            // 改为在下单时收取
-            //if (order.TheRentalLocation != GetUserIdInt()) {
-            //    order.DispatchFee += 10;
-            //}
+			// 调度
+			// 改为在下单时收取
+			//if (order.TheRentalLocation != GetUserIdInt()) {
+			//    order.DispatchFee += 10;
+			//}
+			if (order.TheRentalLocation == await storeAccountController.GetTheStoreById(GetUserIdInt())) {
+                // 租车点等于还车点，不收调度费
+                order.DispatchFee = 0;
+            }
 
             order.ActualReturnTime = now;// 更新订单归还时间
             DateTime startingTime = (DateTime)order.ActualStartingTime!;// 租车开始时间
@@ -537,8 +543,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
 					order.Status = Order.EOrderStatus.退款中;
                     order.ActualReturnTime = now;// 归还时间
-                    order.TheReturnThePoint = GetUserIdInt();
-                    order.DepositRefunded += refundOrder.Refund;
+                    order.TheReturnThePoint = await storeAccountController.GetTheStoreById(GetUserIdInt());
+                    order.DepositRefunded = refundOrder.Refund;
                     order.UpdatedAt = now;
 					await _dbContext.SaveChangesAsync();
 
@@ -561,7 +567,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
 					order.Status = Order.EOrderStatus.已完成;
 					order.ActualReturnTime = now;// 归还时间
-					order.TheReturnThePoint = GetUserIdInt();
+					order.TheReturnThePoint = await storeAccountController.GetTheStoreById(GetUserIdInt());
 					order.UpdatedAt = now;
 					await _dbContext.SaveChangesAsync();
 
@@ -575,7 +581,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
             // 营业额统计表
             RevenueStatistics revenueStatistics = new() {
                 TheStoreA = order.TheRentalLocation,
-                TheStoreB = GetUserIdInt(),
+                TheStoreB = await storeAccountController.GetTheStoreById(GetUserIdInt()),
                 TheOrder = order.Id,
                 CreatedAt = now,
                 UpdatedAt = now,
@@ -594,7 +600,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                 await transaction.CommitAsync();
 
             } catch (Exception e) {
-                _logger.LogCritical(e, "确认还车事务提交失败orderId{Id},TheVehicle:{TheVehicle},TheStoreId:{TheStore}", order.Id, order.TheVehicle, GetUserIdInt());
+                _logger.LogCritical(e, "确认还车事务提交失败orderId{Id},TheVehicle:{TheVehicle},TheSAId:{TheStore}", order.Id, order.TheVehicle, GetUserIdInt());
                 await transaction.RollbackAsync();
 
                 return StatusCode(500);
@@ -613,7 +619,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
 		[HttpPost("reviewMerchantAddress")]
         public async Task<IActionResult> PostReviewMerchantAddress(GetAddress data) {
             var reviewMerchantAddress = new ReviewMerchantAddress() {
-                TheStore = GetUserIdInt(),
+                TheStore = await storeAccountController.GetTheStoreById(GetUserIdInt()),
 				Name = data.Name,
 				Address = data.Address,
 				GpsLongitude = data.GpsLongitude,
@@ -633,7 +639,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
         }
         #endregion
 
-        #region 接收支付回调
+        #region 接收支付回调（补余）
         /// <summary>
         /// 支付回调（侍测试）
         /// </summary>
@@ -719,6 +725,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                             using (var transaction = await _dbContext.Database.BeginTransactionAsync()) {
                                 try {
                                     supplementaryOrders.Status = Order.EOrderStatus.已完成;// 更改订单状态
+                                    // 注意会与订单表中的已付重复
                                     supplementaryOrders.Paid += orderReturnJson.amount.total / 100m;// 增加已付金额,在代码中将 `total` 转换为元
                                     supplementaryOrders.SuccessTime = orderReturnJson.success_time;
                                     supplementaryOrders.UpdatedAt = now;
@@ -726,7 +733,8 @@ namespace aspnetapp.Controllers.API.StoreAccount
 
                                     Order order = await _dbContext.Order.SingleAsync(o => o.Id == supplementaryOrders.TheOrder);
                                     order.Status = EOrderStatus.已补余;
-                                    //order.Paid += orderReturnJson.amount.total;
+                                    // 增加订单的已付，注意会与补余表中的已付重复
+                                    order.Paid += orderReturnJson.amount.total;// 增加已付金额
                                     order.UpdatedAt = now;
                                     await _dbContext.SaveChangesAsync();
 
