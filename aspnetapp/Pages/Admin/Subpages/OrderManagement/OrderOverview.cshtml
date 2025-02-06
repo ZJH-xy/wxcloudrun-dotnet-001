@@ -109,6 +109,7 @@
             <tr>
                 <th>序号</th>
                 <th>订单编号</th>
+                <th>协议</th>
                 <th>用户信息</th>
                 <th>起始时间</th>
                 <th>剩余时间</th>
@@ -153,6 +154,43 @@
                         });
                     </script>
                     <td><span>@Model.List[i].Id</span><input type="hidden" name="UpdatedOrder.Id" value="@Model.List[i].Id" /></td>
+                    <td>
+                        <div class="imageContainer" data-id="@Model.List[i].Id">
+                            <!-- 常驻显示的图片 -->
+                            <div style="display:flex;align-items: center; justify-content: center; ">
+                                <img src="" alt="图片加载失败"
+                                     id="imageUrl"
+                                     style="width: 100px; height: auto; cursor: pointer;display:none;"
+                                     class="thumbnail"
+                                     data-id="@Model.List[i].Id"
+                                     onclick="openModal(this)">
+
+                            </div>
+
+                            <!-- 查看图片 -->
+                                @if (!@Model.List[i].ProtocolImage.IsNullOrEmpty())
+                                {
+                                <a href="#" id="@("getImageUrl" + i)" data-id="@Model.List[i].ProtocolImage" onclick="loadImageUrl(event)">点击加载图片</a>
+                                <div id="message" class="message">加载成功</div>
+
+                                }
+                                else
+                                {
+                                    <text>无图片</text>
+                                }
+                            <div style="display:flex;align-items: center; justify-content: center; ">
+
+                                <!-- 编辑的图片预览 -->
+                                <img src="" alt="预览图" class="preview" style="display: none; width: 100px; height: auto; margin-top: 10px;">
+
+                            </div>
+                            <!-- 图片模态窗口 -->
+                            <div id="imageModal" class="modal" style="display:none;">
+                                <span class="close" onclick="closeModal()">&times;</span>
+                                <img class="modal-content" id="modalImage" />
+                            </div>
+                        </div>
+                    </td>
                     <td>
                         <span>ID：@Model.List[i].TheUser</span><br>
                         @if (@Model.List[i].UserPhone != null){
@@ -381,6 +419,75 @@
         const RESPONSEURL = `/Admin/Subpages/OrderManagement/OrderOverview`;
         const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]').value;
         const LENGTH = document.getElementById('PageCount').value;// 显示长度
+
+
+        // 加载文件
+        async function uploadFile(url, data) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: data,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP 错误！状态码: ${response.status}`);
+                }
+
+                return;  // 返回服务器的响应
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        // 获取图片url
+        async function loadImageUrl(event) {
+            loadHTML();
+            // 使用 event.target 获取被点击的按钮元素
+            const button = event.target;
+
+            // 获取 data-id 属性的值
+            const fileId = button.getAttribute('data-id');
+            const requestData = {
+                fileid: fileId
+            };
+            console.log("requestData...", requestData);
+
+            try {
+                const response = await fetch(`${RESPONSEURL}?handler=ImageDownload`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': TOKEN // 添加 CSRF Token
+                    },
+                    body: JSON.stringify(requestData), // 将数据序列化为 JSON 格式
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP 错误！状态码: ${response.status}`);
+                }
+
+                const data = await response.json();  // 等待接口返回数据
+
+                if (data.success) {
+                    console.log("接口返回数据:", data);
+                    // 设置图片路径
+                    const image = button.parentElement.querySelector('.thumbnail'); // 获取当前行的图片元素
+
+                    image.src = data.file_list[0].download_url; // 设置图片路径
+                    image.style.display = 'block'; // 显示图片
+                    showMessage("message");
+                    // 隐藏加载图片按钮
+                    button.style.display = 'none';
+                } else {
+                    alert("文件上传失败: " + (data.message || "未知错误"));
+                }
+
+            } catch (error) {
+                console.error("API 调用失败:", error);
+            } finally {
+                cancelloadHTML();
+            }
+        }
 
         // 显示分页提示（支持自定义提示时长）
         function showPaginationTip(message, duration = 3000) {
