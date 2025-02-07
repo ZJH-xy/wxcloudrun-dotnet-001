@@ -141,21 +141,45 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 _logger.LogError(e, "用户{UserId}实名认证，更新数据", GetUserIdInt());
 
                 return StatusCode(500);
-				
 			}
             _logger.LogInformation("用户{UserId}实名认证成功，已修改行数{ChangSum}", GetUserIdInt(), changSum);
 
             return StatusCode(200);
         }
-        #endregion
+		#endregion
 
-        #region 更新昵称
-        /// <summary>
-        /// 更新昵称
-        /// </summary>
-        /// <param name="updateUser"></param>
-        /// <returns></returns>
-        [Authorize]
+		#region 身份证图片写入
+		[HttpPost("put/identity_card_pictures")]
+		public async Task<IActionResult> PutIdentityCardPictures(PutIdentityCardPicturesData data) {
+
+			User? user = await _userController.GetUserById(GetUserIdInt());
+
+            if (user is null) {
+				return NotFound(/*"未找到用户"*/);
+			}
+
+            user.IdentityCardPictures = data.FileId;
+
+            try {
+				await _userController.UpdateUser(user);
+
+			} catch (Exception e) {
+				_logger.LogError(e, "用户{UserId}身份证图片写入", GetUserIdInt());
+
+				return StatusCode(500);
+			}
+
+			return Ok();
+		}
+		#endregion
+
+		#region 更新昵称
+		/// <summary>
+		/// 更新昵称
+		/// </summary>
+		/// <param name="updateUser"></param>
+		/// <returns></returns>
+		[Authorize]
         [HttpPost("update/i")]
         public async Task<IActionResult> UpdateUser(UpdateUser updateUser) {
             User? user;
@@ -500,7 +524,17 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         public string IdentityCard { get; set; }// 身份证号
     }
 
-    public class UpdateUser {
+    /// <summary>
+    /// 接收身份证图片
+    /// </summary>
+	public class PutIdentityCardPicturesData {
+		/// <summary>
+		/// 图片
+		/// </summary>
+		public string FileId { get; set; }
+	}
+
+	public class UpdateUser {
         //public string Phone { get; set; }// 手机号码
         public string Nickname { get; set; }// 昵称
     }
