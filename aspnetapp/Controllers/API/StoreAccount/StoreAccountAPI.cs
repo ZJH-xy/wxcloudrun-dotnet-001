@@ -734,7 +734,7 @@ namespace aspnetapp.Controllers.API.StoreAccount
                                     Order order = await _dbContext.Order.SingleAsync(o => o.Id == supplementaryOrders.TheOrder);
                                     order.Status = EOrderStatus.已补余;
                                     // 增加订单的已付，注意会与补余表中的已付重复
-                                    order.Paid += orderReturnJson.amount.total;// 增加已付金额
+                                    order.Paid += orderReturnJson.amount.total / 100m;// 增加已付金额
                                     order.UpdatedAt = now;
                                     await _dbContext.SaveChangesAsync();
 
