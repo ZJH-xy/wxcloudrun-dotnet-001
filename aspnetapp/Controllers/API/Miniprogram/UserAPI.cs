@@ -3,6 +3,11 @@ using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using aspnetapp.Controllers.Miniprogram;
 using Senparc.CO2NET.Extensions;
+using Senparc.Weixin.WxOpen.AdvancedAPIs.Tcb;
+using Senparc.Weixin.MP;
+using System.Globalization;
+using Senparc.Weixin.MP.AdvancedAPIs.CV.OCR;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace aspnetapp.Controllers.API.Miniprogram {
 
@@ -14,14 +19,16 @@ namespace aspnetapp.Controllers.API.Miniprogram {
         private readonly ILogger<UserAPI> _logger;
         private readonly Controllers.Miniprogram.UserController _userController;
         private readonly FavoritesStoreController _favoritesStoreController;
+		private readonly IOptionsSnapshot<WeixinSetting> _wxSetting;
 
-        public UserAPI(MyDbContext dbContext, IOptionsSnapshot<JWTSettings> jWTSettingsOpt, ILogger<UserAPI> logger) {
+		public UserAPI(MyDbContext dbContext, IOptionsSnapshot<JWTSettings> jWTSettingsOpt, ILogger<UserAPI> logger, IOptionsSnapshot<WeixinSetting> wxSetting) {
             _dbContext = dbContext;
             _JWTSettingsOpt = jWTSettingsOpt;
             _logger = logger;
             _userController = new(_dbContext);
             _favoritesStoreController = new(_dbContext);
-        }
+			_wxSetting = wxSetting;
+		}
 
         /// <summary>
         /// Id获取用户基础信息
@@ -150,26 +157,121 @@ namespace aspnetapp.Controllers.API.Miniprogram {
 
 		#region 身份证图片写入
 		[HttpPost("put/identity_card_pictures")]
+		[Authorize]// 方法受到限制
 		public async Task<IActionResult> PutIdentityCardPictures(PutIdentityCardPicturesData data) {
 
 			User? user = await _userController.GetUserById(GetUserIdInt());
-
-            if (user is null) {
+			if (user is null) {
 				return NotFound(/*"未找到用户"*/);
 			}
 
-            user.IdentityCardPictures = data.FileId;
+			try {
+				// 获取微信配置
+				var appid = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+				var secret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+                var envId = _wxSetting.Value.Env;
 
-            try {
+				// 获取AccessToken
+				//var sessionKey = await Senparc.Weixin.WxOpen.AdvancedAPIs.Sns.SnsApi.JsCode2JsonAsync(appid, secret, data.Unionid);
+				var accessToken = await AccessTokenContainer.GetAccessTokenAsync(appid);
+
+                // 获取图片下载链接
+                var downloadUrl = await GetImageDownload(data.FileId);
+
+				// 调用OCR接口（身份证正面）
+				IdCardJsonResult ocrResult = await Senparc.Weixin.MP.AdvancedAPIs.CV.OCR.OCRApi.IdCardAsync(accessToken, downloadUrl);
+
+				// 检查OCR结果
+				if (ocrResult.errcode != ReturnCode.请求成功) {
+					_logger.LogError("OCR识别失败：{ErrorMessage}", ocrResult.errmsg);
+					return StatusCode(500, "身份证识别失败");
+				}
+
+				if (ocrResult.type != "Front") {
+					return StatusCode(403, "请上传身份证正面");
+				}
+
+                if (!Judge.NameFormatDetermination(ocrResult.name)) {
+					return StatusCode(403, "姓名格式不符");
+				}
+                if (!Judge.IdentityCardFormatDetermination(ocrResult.id)) {
+					return StatusCode(403, "身份证格式不符");
+				}
+
+				// 更新用户信息
+				user.IdentityCardPictures = data.FileId;
+				user.Name = ocrResult.name;
+				user.IdentityCard = ocrResult.id;
+				//user.IdCardAddress = ocrResult.addr;
+				//user.IdCardBirth = ParseBirthDate(ocrResult.birth); // 生日需要转换格式
+
+				// 更新数据库
 				await _userController.UpdateUser(user);
 
-			} catch (Exception e) {
-				_logger.LogError(e, "用户{UserId}身份证图片写入", GetUserIdInt());
+				// 构造返回结果（示例）
+				/*var response = new {
+					Name = ocrResult.name,
+					IdNumber = ocrResult.id,
+					Address = ocrResult.addr,
+					Birth = ocrResult.birth,
+					Gender = ocrResult.gender,
+					Nation = ocrResult.nation
+				};*/
 
-				return StatusCode(500);
+				return Ok(ocrResult);
+				//return Ok(response);
+			} catch (Exception e) {
+				_logger.LogError(e, "用户{UserId}身份证处理失败", GetUserIdInt());
+				return StatusCode(500, "身份证处理失败");
 			}
 
-			return Ok();
+
+			//var fileId = data.FileId;// 图片id
+			//Senparc.Weixin.MP.AdvancedAPIs.CV.OCR.IdCardJsonResult idCardJsonResult;// OCR 身份证识别返回结果
+
+
+   //         // 调用API
+
+
+			//// 图片id获取下载链接
+			//var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+			//var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+			//var envId = _wxSetting.Value.Env;
+
+			//List<FileItem> fileid_list = new() {
+			//	new FileItem {
+			//		fileid = fileId,
+			//		max_age = 7200
+			//	}
+			//	};
+
+			//// 获取下载链接
+			//Result_File_List[] downloadLinkArray = await GetImageDownload(fileid_list);
+
+   //         var downloadUrl = downloadLinkArray.First().download_url;
+
+
+
+			//user.IdentityCardPictures = data.FileId;
+
+   //         try {
+			//	await _userController.UpdateUser(user);
+
+			//} catch (Exception e) {
+			//	_logger.LogError(e, "用户{UserId}身份证图片写入", GetUserIdInt());
+
+			//	return StatusCode(500);
+			//}
+
+			//return Ok();
+		}
+
+		private DateTime ParseBirthDate(string birthText) {
+			// 实现日期格式转换逻辑（示例：yyyyMMdd → DateTime）
+			if (DateTime.TryParseExact(birthText, "yyyyMMdd", null, DateTimeStyles.None, out DateTime result)) {
+				return result;
+			}
+			return DateTime.MinValue;
 		}
 		#endregion
 
@@ -509,7 +611,51 @@ namespace aspnetapp.Controllers.API.Miniprogram {
                 return builder.ToString();
             }
         }
-    }
+
+		/// <summary>
+		/// 获取图片文件下载链接（多个）
+		/// </summary>
+		/// <param name="fileidList"></param>
+		/// <returns></returns>
+		private async Task<Result_File_List[]> GetImageDownload(List<FileItem> fileidList) {
+			var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+			var envId = _wxSetting.Value.Env;
+
+			var re = await TcbApi.BatchDownloadFileAsync(appId, envId, fileidList);
+
+			if (re.errcode != ReturnCode.请求成功) {
+				_logger.LogError("{errmsg},获取下载链接失败{fileidList}", re.errmsg, fileidList.ToJson(true));
+			}
+
+			return re.file_list;
+		}
+
+		/// <summary>
+		/// 获取图片文件下载链接（单个）
+		/// </summary>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		private async Task<string> GetImageDownload(string fileid) {
+			var appId = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppId;
+			//var appSecret = Senparc.Weixin.Config.SenparcWeixinSetting.WxOpenAppSecret;
+			var envId = _wxSetting.Value.Env;
+
+			List<FileItem> fileid_list = new() {
+				new FileItem {
+					fileid = fileid,
+					max_age = 7200
+				}
+				};
+
+			var re = await TcbApi.BatchDownloadFileAsync(appId, envId, fileid_list);
+
+			if (re.errcode != ReturnCode.请求成功) {
+				_logger.LogError("{errmsg},获取下载链接{fileid_list}", re.errmsg, fileid_list.ToJson(true));
+			}
+
+			return re.file_list.First().download_url;
+		}
+	}
 
 	/// <summary>
 	/// 快速登录

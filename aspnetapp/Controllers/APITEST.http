@@ -1,8 +1,8 @@
-@localhost = https://localhost:58536
+@localhost = https://localhost:53793
 @id = 0
 @phone = 15878175303
 @password = 6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b
-@authorization = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE5IiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoidXNlciIsImV4cCI6MTczODgzMzc1NX0.JAjr0oxCHJVCkBu9ouP2QGkpkzdepXoa6OJKgrdKqZc
+@authorization = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjE4IiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoidXNlciIsImV4cCI6MTc0MTYxNjQ0NX0.7vMln9sZDQYzfdR-lsJYKR5Pnkby5eXVODmfwhMNXdo
 @storeAccountauthorization = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJzdG9yZSIsImV4cCI6MTczOTU5MTA5Nn0.2nVJ7nTf1MRDdBw2VdqBtrbpBJmQtN0Zc0-VUoIlXYY
 
 
@@ -16,7 +16,7 @@ GET {{localhost}}/user/p/{{phone}} HTTP/1.1
 
 
 ### phone/password，登录
-GET {{localhost}}/user/login/phone/13006973371/{{password}} HTTP/1.1
+GET {{localhost}}/user/login/phone/15878175303/{{password}} HTTP/1.1
 
 
 
@@ -43,6 +43,16 @@ content-type: application/json
 {
     "Name": "ghmch",
     "IdentityCard": "360000000000000000"
+}
+
+
+### 身份证上传
+POST {{localhost}}/user/put/identity_card_pictures HTTP/1.1
+Authorization: Bearer {{authorization}}
+content-type: application/json
+
+{
+    "FileId": "cloud://prod-3g2khb36f729f21f.7072-prod-3g2khb36f729f21f-1331625129/admin/user/identityCardPictures/4db50311-4378-454a-80fe-fc7e7c4f8ae9.png"
 }
 
 
