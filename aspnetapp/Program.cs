@@ -112,11 +112,12 @@ var registerService = app.UseSenparcWeixin(app.Environment,
     null /* 不为 null 则覆盖 appsettings  中的 SenpacWeixinSetting 配置*/,
     register => { },
     (register, weixinSetting) => {
-        //注册公众号信息（可以执行多次，注册多个小程序）
-        register.RegisterWxOpenAccount(weixinSetting, "文旅小程序");
-        //注册微信支付（可以执行多次，注册多个微信支付）
-        register.RegisterTenpayApiV3(weixinSetting, "【盛派网络小助手】微信支付（ApiV3）");
-    });
+        AccessTokenContainer.RegisterAsync(weixinSetting.WxOpenAppId, weixinSetting.WxOpenAppSecret, "小程序");
+		//注册公众号信息（可以执行多次，注册多个小程序）
+		register.RegisterWxOpenAccount(weixinSetting, "文旅小程序");
+		//注册微信支付（可以执行多次，注册多个微信支付）
+		register.RegisterTenpayApiV3(weixinSetting, "【盛派网络小助手】微信支付（ApiV3）");
+	});
 
 
 //var registerService = app.UseSenparcWeixin(app.Environment, null, null,
